@@ -9,6 +9,8 @@ class Issue(models.Model):
 
     objects = models.Manager()
 
+    def getSubject(self):
+        return self.subject
     def __str__(self):
         return self.subject + ' ' + self.description
 

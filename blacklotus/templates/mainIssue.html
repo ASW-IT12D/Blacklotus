@@ -30,7 +30,15 @@
         <th>Asignada a</th>
         </tr>
         {% for issue in qs %}
-
+        <tr>
+        <th><p>{{ issue.getSubject }}</p></th>
+        <th><p>{{ "Por hacer"  }}</p></th>
+        <th><p>{{ "Por hacer" }}</p></th>
+        <th><p>{{ "Por hacer" }}</p></th>
+        <th><p>{{ "Por hacer" }}</p></th>
+        <th><p>{{ "Por hacer" }}</p></th>
+        <th><p>{{ "Por hacer" }}</p></th>
+        </tr>
         {% endfor %}
     </table>
 	</div>

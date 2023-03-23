@@ -20,5 +20,5 @@ import blacklotus
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('blacklotus/', include('blacklotus.urls'))
+    path('', include('blacklotus.urls'))
 ]
