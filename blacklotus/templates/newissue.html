@@ -1,27 +1,85 @@
-<!DOCTYPE HTML>
-<html>
+<!DOCTYPE html>
+<html lang="en">
 <head>
-<title>Black Lotus</title>
+    <meta charset="UTF-8">
+    <title>New Issue</title>
 </head>
+
 <body class="wallbody">
-	<h1 class="wallnewissue">New Issue</h1>
-	<div class="wallnewissue">
+	<form action="newissue/new/" method="post">
+    {% csrf_token %}
+	<h1 class="walltitle">Nueva petición</h1>
+	<div class="wallissues">
+	<table border=0 cellpadding=2>
+		<tr>
+			<td><input name="subject" placeholder="Asunto" type="text" size=30></td>
+			<td>
+			<select>
+				<option value="nueva">Nueva </option>
+				<option value="encurso">En curso</option>
+				<option value="listatotest">Lista para testear</option>
+				<option value="cerrada">Cerrada</option>
+				<option value="informacion">Necesita Información</option>
+				<option value="rechazada">Rechazada</option>
+				<option value="propuesta">Pospuesta</option>
+				</select></td>
+		</tr>
+		<tr>
+			<td><textarea name="description" rows="15" cols="30" placeholder="Por favor, añade un texto descriptivo que ayude a otros a entender mejor esta petición"></textarea></td>
+			<td>
+				<table border=0 cellpadding=2>
+					<tr>
+						<td>
+							<select>
+							<option value="bug">Bug</option>
+							<option value="pregunta">Preguna</option>
+							<option value="mejora">Mejora</option>
+							</select> </td>
+					</tr>
+					<tr>
+						<td>
+							<select>
+							<option value="deseada">Deseada </option>
+							<option value="menor">Menor</option>
+							<option value="normal">Normal</option>
+							<option value="importante">Importante</option>
+							<option value="critica">Crítica</option>
+							</select></td>
+					</tr>
+					<tr>
+						<td>
+							<select>
+							<option value="baja">Baja </option>
+							<option value="normal">Normal</option>
+							<option value="alta">Alta</option>
+							</select></td>
+					</tr>
+					</tr></table>
+			<tr><td><input type="submit" name="crea" value="CREAR"></td></tr>
+		</tr></table>
+
+<!--.
+
+<body>
+<form action="newissue/new/" method="post">
+    {% csrf_token %}
+	<div class="walltweet">
 		<table border=0 cellpadding=2>
 			<tr>
-				<td>Subject:</td>
-				<td><input id="tweet_author" type="text" size=70></td>
+				<td>Your name:</td>
+				<td><input name="subject" type="text" size=70></td>
 				<td />
 			</tr>
 			<tr>
-				<td>Description:</td>
-				<td><textarea id="tweet_text" rows="2" cols="70"></textarea>
+				<td>Your tweet:</td>
+				<td><textarea name="description" rows="2" cols="70"></textarea>
 				</td>
-				<td><input type="submit" id="tweet_submit" value="Tweet!">
+				<td><input type="submit" value="Tweet!">
 				</td>
 			</tr>
 		</table>
 	</div>
-	<br>
-	<div id='tweet_list'></div>
+	</form>
+-->
 </body>
 </html>
