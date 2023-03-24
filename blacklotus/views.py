@@ -21,7 +21,7 @@ def CreateIssue(request):
     i.save()
     return redirect(showIssues)
 def showIssues(request):
-    qs = Issue.objects.all
+    qs = Issue.objects.all().order_by('-creationdate')
     return render(request, 'mainIssue.html', {'qs': qs})
 
 def SeeIssue(request, num):
