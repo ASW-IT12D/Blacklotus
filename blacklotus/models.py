@@ -25,6 +25,8 @@ class Issue(models.Model):
 
     def getType(self):
         return self.type
+    def getId(self):
+        return self.id
 
     def getSeverity(self):
         return self.severity

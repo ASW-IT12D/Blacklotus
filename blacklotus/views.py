@@ -23,3 +23,12 @@ def CreateIssue(request):
 def showIssues(request):
     qs = Issue.objects.all
     return render(request, 'mainIssue.html', {'qs': qs})
+
+def SeeIssue(request, num):
+    issue = Issue.objects.filter(id=num).values()
+    return render(request, 'single_issue.html', {'issue':issue})
+
+def DeleteIssue(request, id):
+    issue = Issue.objects.get(id=id)
+    issue.delete()
+    return redirect(showIssues)

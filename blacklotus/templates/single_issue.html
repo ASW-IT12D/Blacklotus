@@ -1,0 +1,13 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+</head>
+<body>
+    <p>{{ issue.first }}</p>
+    <button> Modificar</button>
+    <a href="{% url 'deleteIssue' issue.first.id%}">
+    <button> Eliminar</button></a>
+</body>
+</html>
