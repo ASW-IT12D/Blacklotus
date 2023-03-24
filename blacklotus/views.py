@@ -17,7 +17,7 @@ def CreateIssue(request):
     priority = request.POST.get("priority")
     status = request.POST.get("status")
 
-    i = Issue(subject=sub, description=des,creator="Lluis",status=status,type=type,severity=severity,priority=priority)
+    i = Issue(subject=sub, description=des,creator="Llus",status=status,type=type,severity=severity,priority=priority)
     i.save()
     return redirect(showIssues)
 def showIssues(request):
