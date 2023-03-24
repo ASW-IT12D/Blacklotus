@@ -5,5 +5,5 @@ from . import views
 urlpatterns = [
     path('newissue/', views.CreateIssueForm),
     path('', views.showIssues),
-    path('newissue/newissue/new/', views.CreateIssue)
+    path('newissue/new/', views.CreateIssue)
 ]

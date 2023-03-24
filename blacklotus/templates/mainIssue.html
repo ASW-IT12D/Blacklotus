@@ -15,7 +15,7 @@
             <th><input type="checkbox" name="tag" value="tagson"> Tags<br></th>
             <th></th>
             <th></th>
-             <th><a href="http://127.0.0.1:8000/newissue/">
+             <th><a href="http://127.0.0.1:7000/newissue/">
             <button> + New Issue</button></a></th>
             </tr>
         </table>
@@ -32,12 +32,12 @@
         {% for issue in qs %}
         <tr>
         <th><p>{{ issue.getSubject }}</p></th>
-        <th><p>{{ "Por hacer"  }}</p></th>
+        <th><p>{{ issue.getSeverity  }}</p></th>
+        <th><p>{{ issue.getPriority}}</p></th>
         <th><p>{{ "Por hacer" }}</p></th>
-        <th><p>{{ "Por hacer" }}</p></th>
-        <th><p>{{ "Por hacer" }}</p></th>
-        <th><p>{{ "Por hacer" }}</p></th>
-        <th><p>{{ "Por hacer" }}</p></th>
+        <th><p>{{ issue.getStatus }}</p></th>
+        <th><p>{{ issue.getEditionDate }}</p></th>
+        <th><p>{{ issue.getCreator }}</p></th>
         </tr>
         {% endfor %}
     </table>

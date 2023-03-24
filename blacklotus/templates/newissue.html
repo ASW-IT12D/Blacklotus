@@ -6,23 +6,24 @@
 </head>
 
 <body class="wallbody">
-	<form action="newissue/new/" method="post">
+	<form action="new/" method="post">
     {% csrf_token %}
 	<h1 class="walltitle">Nueva petición</h1>
 	<div class="wallissues">
 	<table border=0 cellpadding=2>
 		<tr>
-			<td><input name="subject" placeholder="Asunto" type="text" size=30></td>
+			<td><input name="subject" placeholder="Subject" type="text" size=30></td>
 			<td>
-			<select>
-				<option value="nueva">Nueva </option>
-				<option value="encurso">En curso</option>
-				<option value="listatotest">Lista para testear</option>
-				<option value="cerrada">Cerrada</option>
-				<option value="informacion">Necesita Información</option>
-				<option value="rechazada">Rechazada</option>
-				<option value="propuesta">Pospuesta</option>
-				</select></td>
+				<select name="status">
+					<option value=1>Nueva </option>
+					<option value=2>En curso</option>
+					<option value=3>Lista para testear</option>
+					<option value=4>Cerrada</option>
+					<option value=5>Necesita Información</option>
+					<option value=6>Rechazada</option>
+					<option value=7>Pospuesta</option>
+				</select>
+			</td>
 		</tr>
 		<tr>
 			<td><textarea name="description" rows="15" cols="30" placeholder="Por favor, añade un texto descriptivo que ayude a otros a entender mejor esta petición"></textarea></td>
@@ -30,56 +31,37 @@
 				<table border=0 cellpadding=2>
 					<tr>
 						<td>
-							<select>
-							<option value="bug">Bug</option>
-							<option value="pregunta">Preguna</option>
-							<option value="mejora">Mejora</option>
-							</select> </td>
+							<select name  = "type">
+								<option value=1>Bug</option>
+								<option value=2>Preguna</option>
+								<option value=3>Mejora</option>
+							</select>
+						</td>
 					</tr>
 					<tr>
 						<td>
-							<select>
-							<option value="deseada">Deseada </option>
-							<option value="menor">Menor</option>
-							<option value="normal">Normal</option>
-							<option value="importante">Importante</option>
-							<option value="critica">Crítica</option>
-							</select></td>
+							<select name = "severity">
+								<option value=1>Deseada </option>
+								<option value=2>Menor</option>
+								<option value=3>Normal</option>
+								<option value=4>Importante</option>
+								<option value=5>Crítica</option>
+							</select>
+						</td>
 					</tr>
 					<tr>
 						<td>
-							<select>
-							<option value="baja">Baja </option>
-							<option value="normal">Normal</option>
-							<option value="alta">Alta</option>
+							<select name="priority">
+							<option value=1>Baja </option>
+							<option value=2>Normal</option>
+							<option value=3>Alta</option>
 							</select></td>
 					</tr>
 					</tr></table>
 			<tr><td><input type="submit" name="crea" value="CREAR"></td></tr>
 		</tr></table>
-
-<!--.
-
-<body>
-<form action="newissue/new/" method="post">
-    {% csrf_token %}
-	<div class="walltweet">
-		<table border=0 cellpadding=2>
-			<tr>
-				<td>Your name:</td>
-				<td><input name="subject" type="text" size=70></td>
-				<td />
-			</tr>
-			<tr>
-				<td>Your tweet:</td>
-				<td><textarea name="description" rows="2" cols="70"></textarea>
-				</td>
-				<td><input type="submit" value="Tweet!">
-				</td>
-			</tr>
-		</table>
 	</div>
 	</form>
--->
+
 </body>
 </html>
