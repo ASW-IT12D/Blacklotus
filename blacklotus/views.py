@@ -23,3 +23,11 @@ def CreateIssue(request):
 def showIssues(request):
     qs = Issue.objects.all
     return render(request, 'mainIssue.html', {'qs': qs})
+
+def showFilters(request):
+    visible = False;
+    if request.method == 'POST':
+        if 'togglefiltros' in request.POST:
+            visible = not visible
+    return render(request,'mainIssue.html', {'visible': visible})
+
