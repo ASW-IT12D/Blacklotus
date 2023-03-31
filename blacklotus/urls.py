@@ -5,5 +5,7 @@ from . import views
 urlpatterns = [
     path('newissue/', views.CreateIssueForm, name="newIssue"),
     path('', views.showIssues),
-    path('newissue/new/', views.CreateIssue)
+    path('delete/<int:id>', views.DeleteIssue, name="deleteIssue"),
+    path('newissue/new/', views.CreateIssue),
+    path('<int:num>/', views.SeeIssue, name="seeIssue"),
 ]
