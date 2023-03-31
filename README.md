@@ -1,4 +1,5 @@
-| Nom                             | Taiga User  | Git Usuer   | 
+| Nom                             | Taiga User  | Git User    |
+| ------------------------------- | ----------- | ----------- |
 | Marc Castro Chavez              | @marcchavez | @marcchavez | 
 | Lluis Pujalte Feliu de Cabrera  | @llpfdc     | @llpfdc     | 
 | Paula Barrachina Cáceres        | @paulaabc   | @paulaabc   | 
