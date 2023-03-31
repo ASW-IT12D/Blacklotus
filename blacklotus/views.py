@@ -40,3 +40,10 @@ def showFilters(request):
             visible = not visible
     return render(request,'mainIssue.html', {'visible': visible})
 
+
+def loginPage():
+    return None
+
+
+def signUp():
+    return None
