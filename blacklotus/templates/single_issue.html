@@ -1,13 +1,77 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>Title</title>
-</head>
-<body>
-    <p>{{ issue.first }}</p>
-    <button> Modificar</button>
-    <a href="{% url 'deleteIssue' issue.first.id%}">
-    <button> Eliminar</button></a>
-</body>
-</html>
+{% extends 'base.html' %}
+{% block content %}
+<table class = "SingleIssue">
+<tr>
+    <th style="width:80%">
+        <div>
+            <h1>#{{ issue.first.id }} {{ issue.first.subject }}
+                <button type="button" class="btn btn-secondary btn-sm" name="edit">Edit</button>
+                <button type="button" class="btn btn-secondary btn-sm" name="edit"><</button>
+                <button type="button" class="btn btn-secondary btn-sm" name="edit"> > </button>
+            </h1>
+            <b>
+                <div class="created-by">
+                    <a>Created by {{ issue.first.creator }}</a>
+                    <div class="creatinDate">{{ issue.first.creationdate }}</div>
+                </div>
+                <div>
+                    <a><img src="https://cdn.pixabay.com/photo/2015/04/23/22/00/tree-736885__480.jpg" alt="Italian Trulli" style="width:50px;height:50px;"></a>
+                </div>
+            </b>
+        </div>
+        <br>
+        <div>
+            <p>Description: {{ issue.first.description }}</p>
+        </div>
+        <br>
+        <div>
+            <p>X Attachments <button>+</button></p>
+        </div>
+        <br>
+        <div class="">
+          <a class="active" href="">X Comments</a>
+          <a href="">X Activities</a>
+            <br>
+        <input name="comment" placeholder="Type and comment here" type="text" size=30>
+        </div>
+    </th>
+    <th>
+        <div class="status">
+            <a>{{ issue.first.status }}</a>
+            <select name="status">
+                <option value="new">New</option>
+                <option value="inprogress">In progress</option>
+                <option value="ready">Ready for test</option>
+                <option value="closed">Closed</option>
+                <option value="info">Needs info</option>
+                <option value="rejected">Rejected</option>
+                <option value="postponed">Postponed</option>
+            </select>
+            <br> type {{ issue.first.type }}
+            <br> severity {{ issue.first.severity }}
+            <br> priority {{ issue.first.priority }}
+        </div>
+        <br>
+        <div class="Asigned">
+            <a>Assigned</a>
+            <br>
+            <button>+ Add assigned</button>
+        </div>
+        <br>
+        <div class="Watchers">
+            <a>Watchers</a>
+            <br>
+            <button>+ Add Watchers</button>
+            <button>Unwatch</button>
+        </div>
+        <br>
+        <div class="Options">
+            <button>Deadline</button>
+            <button>Block</button>
+            <a href="{% url 'deleteIssue' issue.first.id%}">
+            <button> Delete</button></a>
+        </div>
+    </th>
+</tr>
+</table>
+{% endblock %}

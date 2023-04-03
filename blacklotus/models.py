@@ -39,10 +39,10 @@ class Issue(models.Model):
     def __str__(self):
         return self.subject + ' ' + self.description
 
-    class User(models.Model):
-        username = models.CharField(max_length=100, primary_key=True)
-        password = models.CharField(max_length=100)
-        objects = models.Manager()
+class User(models.Model):
+    username = models.CharField(max_length=100, primary_key=True)
+    password = models.CharField(max_length=100)
+    objects = models.Manager()
 
-        def __str__(self):
-            return self.username
+    def __str__(self):
+        return self.username

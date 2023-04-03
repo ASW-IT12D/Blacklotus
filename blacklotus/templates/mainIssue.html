@@ -72,20 +72,20 @@
         </table>
     <table class="issues">
         <tr>
-        <th>Tipo</th>
-        <th>Gravedad</th>
-        <th>Prioridad</th>
-        <th>Petición</th>
-        <th>Estado</th>
-        <th>Modificado</th>
-        <th>Asignada a</th>
+        <th>Type</th>
+        <th>Severity</th>
+        <th>Priority</th>
+        <th>Issue</th>
+        <th>Status</th>
+        <th>Modified</th>
+        <th>Assign To</th>
         </tr>
         {% for issue in qs %}
         <tr>
-        <th><p>{{ issue.getSubject }}</p></th>
+        <th><p>{{ issue.getType }}</p></th>
         <th><p>{{ issue.getSeverity  }}</p></th>
         <th><p>{{ issue.getPriority}}</p></th>
-        <th><p>{{ "Por hacer" }}</p></th>
+        <th><a href = "{% url 'seeIssue' issue.getId%}" target = "_self"><p>{{ issue.getSubject }}</p></a></th>
         <th><p>{{ issue.getStatus }}</p></th>
         <th><p>{{ issue.getEditionDate }}</p></th>
         <th><p>{{ issue.getCreator }}</p></th>
