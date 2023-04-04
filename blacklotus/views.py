@@ -4,6 +4,7 @@ from django.shortcuts import render, redirect
 from .forms import IssueForm
 from .models import Issue
 from django.http import HttpResponse
+from django.db.models import Q
 # Create your views here.
 
 def CreateIssueForm(request):
@@ -15,8 +16,13 @@ def CreateIssue(request):
         form.save()
     return redirect(showIssues)
 def showIssues(request):
-    qs = Issue.objects.all().order_by('-creationdate')
-    return render(request, 'mainIssue.html', {'qs': qs})
+    ref = request.GET.get('r')
+    if ref:
+        issues = Issue.objects.filter(Q(subject__icontains=ref))
+    else:
+        issues = Issue.objects.all()
+
+    return render(request, 'mainIssue.html', {'qs': issues})
 
 def SeeIssue(request, num):
     issue = Issue.objects.filter(id=num).values()
