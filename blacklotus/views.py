@@ -1,11 +1,7 @@
-
-
-from django.shortcuts import render, redirect
-
 from .models import Issue
-from django.http import HttpResponse
-# Create your views here.
-
+from django.shortcuts import render, redirect
+from .forms import CustomUserCreationForm
+from .forms import CustomUserLoginForm
 def CreateIssueForm(request):
     return render(request, 'newissue.html')
 
@@ -40,9 +36,11 @@ def showFilters(request):
     return render(request,'mainIssue.html', {'visible': visible})
 
 
-def loginPage():
-    return None
-
-
-def signUp():
-    return None
+def join(request):
+    if request.method == 'POST':
+        form = CustomUserCreationForm(request.POST)
+        form.save()
+        return redirect(join)
+    else:
+        form = CustomUserCreationForm()
+    return render(request, 'signUp.html',{'form': form})
