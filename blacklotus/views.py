@@ -1,7 +1,7 @@
 from .models import Issue
 from django.shortcuts import render, redirect
 from .forms import CustomUserCreationForm
-from .forms import CustomUserLoginForm
+from django.contrib.auth import login as login_auth
 def CreateIssueForm(request):
     return render(request, 'newissue.html')
 
@@ -38,9 +38,11 @@ def showFilters(request):
 
 def join(request):
     if request.method == 'POST':
-        form = CustomUserCreationForm(request.POST)
-        form.save()
-        return redirect(join)
+        form = CustomUserCreationForm(data=request.POST)
+        if form.is_valid():
+            user = form.save()
+            login_auth(request,user)
+            return redirect(join)
     else:
         form = CustomUserCreationForm()
     return render(request, 'signUp.html',{'form': form})
