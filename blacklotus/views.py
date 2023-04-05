@@ -4,7 +4,7 @@ from .forms import CustomUserCreationForm
 from django.contrib.auth import authenticate
 from django.contrib.auth import login as auth_login
 from django.contrib.auth.forms import AuthenticationForm, UserCreationForm
-
+from django.contrib.auth.decorators import login_required
 def CreateIssueForm(request):
     return render(request, 'newissue.html')
 
@@ -18,6 +18,7 @@ def CreateIssue(request):
     i = Issue(subject=sub, description=des, creator="Llus", status=status, type=type, severity=severity, priority=priority)
     i.save()
     return redirect(showIssues)
+
 def showIssues(request):
     qs = Issue.objects.all().order_by('-creationdate')
     return render(request, 'mainIssue.html', {'qs': qs})
@@ -38,14 +39,14 @@ def showFilters(request):
             visible = not visible
     return render(request,'mainIssue.html', {'visible': visible})
 
-def login(request):
+def log(request):
     if request.method == 'POST':
-        form = AuthenticationForm(request=request, data=request.POST)
+        form = AuthenticationForm(request,data=request.POST)
         if form.is_valid():
-            user = authenticate(request,username=form.cleaned_data['username'],password=form.cleaned_data['password'])
-            if user is not None:
-                auth_login(request,user)
-                return redirect('home')
+            user = form.get_user()
+            auth_login(request, user)
+
+            return redirect('home')
         else:
             print(form.errors)
             return render(request,'failedLogin.html')
@@ -55,10 +56,10 @@ def login(request):
 
 def join(request):
     if request.method == 'POST':
-        form = CustomUserCreationForm(request.POST)
+        form = UserCreationForm(request.POST)
         if form.is_valid():
             form.save()
-            return redirect(login)
+            return redirect(log)
     else:
-        form = CustomUserCreationForm()
+        form = UserCreationForm()
     return render(request, 'signUp.html',{'form': form})
