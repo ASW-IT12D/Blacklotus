@@ -4,12 +4,9 @@ from django.shortcuts import render, redirect
 
 from .models import Issue
 from django.shortcuts import render, redirect
-from .forms import CustomUserCreationForm
 from .forms import IssueForm
-from django.contrib.auth import authenticate
 from django.contrib.auth import login as auth_login
 from django.contrib.auth.forms import AuthenticationForm, UserCreationForm
-from django.contrib.auth.decorators import login_required
 def CreateIssueForm(request):
     return render(request, 'newissue.html')
 
