@@ -1,5 +1,5 @@
 from django.db import models
-from django.contrib.auth.models import AbstractUser
+from django.contrib.auth.models import AbstractUser,Group,Permission
 # Create your models here.
 
 class Issue(models.Model):
@@ -43,19 +43,14 @@ class Issue(models.Model):
 class CustomUser(AbstractUser):
     fullName = models.CharField(max_length=100,default="test")
     groups = models.ManyToManyField(
-        'auth.Group',
-        related_name='customuser_set',
-        blank=True,
-        help_text='The groups this user belongs to. A user will get all permissions granted to each of their groups.',
-        verbose_name='groups',
+        Group,
+        related_name='customuser_set'
     )
 
     user_permissions = models.ManyToManyField(
-        'auth.Permission',
+        Permission,
         related_name='customuser_set',
-        blank=True,
-        help_text='Specific permissions for this user.',
-        verbose_name='user permissions',
+        blank=True
     )
     def __str__(self):
         return self.username
