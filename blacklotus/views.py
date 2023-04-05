@@ -1,11 +1,14 @@
 
 
 from django.shortcuts import render, redirect
-from .forms import IssueForm
-from .models import Issue
-from django.http import HttpResponse
-# Create your views here.
 
+from .models import Issue
+from django.shortcuts import render, redirect
+from .forms import CustomUserCreationForm
+from django.contrib.auth import authenticate
+from django.contrib.auth import login as auth_login
+from django.contrib.auth.forms import AuthenticationForm, UserCreationForm
+from django.contrib.auth.decorators import login_required
 def CreateIssueForm(request):
     return render(request, 'newissue.html')
 
@@ -34,10 +37,21 @@ def showFilters(request):
             visible = not visible
     return render(request,'mainIssue.html', {'visible': visible})
 
+def log(request):
+    if request.method == 'POST':
+        form = AuthenticationForm(request,data=request.POST)
+        if form.is_valid():
+            user = form.get_user()
+            auth_login(request, user)
 
-def loginPage():
-    return None
 
 
-def signUp():
-    return None
+def join(request):
+    if request.method == 'POST':
+        form = UserCreationForm(request.POST)
+        if form.is_valid():
+            form.save()
+            return redirect(log)
+    else:
+        form = UserCreationForm()
+    return render(request, 'signUp.html',{'form': form})

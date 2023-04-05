@@ -1,5 +1,5 @@
 from django.db import models
-
+from django.contrib.auth.models import AbstractUser,Group,Permission
 # Create your models here.
 
 class Issue(models.Model):
@@ -39,10 +39,19 @@ class Issue(models.Model):
     def __str__(self):
         return self.subject + ' ' + self.description
 
-    class User(models.Model):
-        username = models.CharField(max_length=100, primary_key=True)
-        password = models.CharField(max_length=100)
-        objects = models.Manager()
+# Create your models here.
+class CustomUser(AbstractUser):
+    fullName = models.CharField(max_length=100,default="test")
+    groups = models.ManyToManyField(
+        Group,
+        related_name='customuser_set'
+    )
 
-        def __str__(self):
-            return self.username
+    user_permissions = models.ManyToManyField(
+        Permission,
+        related_name='customuser_set',
+        blank=True
+    )
+    def __str__(self):
+        return self.username
+
