@@ -5,6 +5,7 @@ from django.shortcuts import render, redirect
 from .models import Issue
 from django.shortcuts import render, redirect
 from .forms import CustomUserCreationForm
+from .forms import IssueForm
 from django.contrib.auth import authenticate
 from django.contrib.auth import login as auth_login
 from django.contrib.auth.forms import AuthenticationForm, UserCreationForm
@@ -43,7 +44,10 @@ def log(request):
         if form.is_valid():
             user = form.get_user()
             auth_login(request, user)
-
+            return redirect(showIssues)
+    else:
+        form = AuthenticationForm()
+    return render(request, 'loginPage.html',{'form': form})
 
 
 def join(request):
