@@ -1,7 +1,10 @@
 from .models import Issue
 from django.shortcuts import render, redirect
 from .forms import CustomUserCreationForm
-from django.contrib.auth import login as login_auth
+from django.contrib.auth import authenticate
+from django.contrib.auth import login as auth_login
+from django.contrib.auth.forms import AuthenticationForm, UserCreationForm
+
 def CreateIssueForm(request):
     return render(request, 'newissue.html')
 
@@ -35,14 +38,27 @@ def showFilters(request):
             visible = not visible
     return render(request,'mainIssue.html', {'visible': visible})
 
+def login(request):
+    if request.method == 'POST':
+        form = AuthenticationForm(request=request, data=request.POST)
+        if form.is_valid():
+            user = authenticate(request,username=form.cleaned_data['username'],password=form.cleaned_data['password'])
+            if user is not None:
+                auth_login(request,user)
+                return redirect('home')
+        else:
+            print(form.errors)
+            return render(request,'failedLogin.html')
+    else:
+        form = AuthenticationForm()
+    return render(request, 'loginPage.html', {'form': form})
 
 def join(request):
     if request.method == 'POST':
-        form = CustomUserCreationForm(data=request.POST)
+        form = CustomUserCreationForm(request.POST)
         if form.is_valid():
-            user = form.save()
-            login_auth(request,user)
-            return redirect(join)
+            form.save()
+            return redirect(login)
     else:
         form = CustomUserCreationForm()
     return render(request, 'signUp.html',{'form': form})
