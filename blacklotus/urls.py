@@ -11,5 +11,7 @@ urlpatterns = [
     path('register/', views.join, name='register'),
     path('',views.log, name = 'login'),
     path('login/',views.redirectLogin, name = 'login'),
-    path('logout/',views.custom_logout, name='logout')
+    path('logout/',views.custom_logout, name='logout'),
+    path('profile/',views.showProfile, name = 'profile'),
+    path('editprof/',views.edit_profile, name='editprof'),
 ]

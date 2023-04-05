@@ -6,8 +6,9 @@ from .models import Issue
 from django.shortcuts import render, redirect
 from .forms import IssueForm
 from django.contrib.auth import login as auth_login
-from django.contrib.auth.forms import AuthenticationForm, UserCreationForm
+from django.contrib.auth.forms import AuthenticationForm, UserCreationForm, UserChangeForm
 from django.contrib.auth import logout
+from .forms import RegisterForm
 @login_required(login_url='login')
 def CreateIssueForm(request):
     return render(request, 'newissue.html')
@@ -59,17 +60,32 @@ def log(request):
 
 def join(request):
     if request.method == 'POST':
-        form = UserCreationForm(request.POST)
+        form = RegisterForm(request.POST)
         if form.is_valid():
             form.save()
             return redirect(log)
     else:
-        form = UserCreationForm()
+        form = RegisterForm()
     return render(request, 'signUp.html',{'form': form})
+@login_required
+def edit_profile(request):
+    if request.method == 'PUT':
+        form = UserChangeForm(request.PUT)
+        if form.is_valid():
+            form.save()
+            return redirect(showProfile)
+    else:
+        form = UserChangeForm()
+    return render(request, 'editProfile.html',{'form': form})
 
 @login_required
 def custom_logout(request):
     logout(request)
     return redirect('home')
+
+@login_required
+def showProfile(request):
+    return render(request, 'viewProfile.html')
 def redirectLogin(request):
     return redirect(log)
+

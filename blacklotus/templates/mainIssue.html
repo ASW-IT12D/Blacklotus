@@ -7,7 +7,8 @@
 
 <body class="wallbody">
 	<h1 class="walltitle">Peticiones</h1>
-    <p>Logged in As {{user.username}}</p>
+    <th><a href="{% url 'profile' %}"> <p>{{user.username}}</p></a></th>
+
 	<div class="wallmain">
         <table class="default">
             <tr>
