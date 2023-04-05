@@ -8,7 +8,9 @@ from .forms import IssueForm
 from django.contrib.auth import login as auth_login
 from django.contrib.auth.forms import AuthenticationForm, UserCreationForm, UserChangeForm
 from django.contrib.auth import logout
-from .forms import RegisterForm
+from .forms import RegisterForm,EditProfForm
+from django.views import generic
+from django.urls import reverse_lazy
 @login_required(login_url='login')
 def CreateIssueForm(request):
     return render(request, 'newissue.html')
@@ -67,16 +69,6 @@ def join(request):
     else:
         form = RegisterForm()
     return render(request, 'signUp.html',{'form': form})
-@login_required
-def edit_profile(request):
-    if request.method == 'PUT':
-        form = UserChangeForm(request.PUT)
-        if form.is_valid():
-            form.save()
-            return redirect(showProfile)
-    else:
-        form = UserChangeForm()
-    return render(request, 'editProfile.html',{'form': form})
 
 @login_required
 def custom_logout(request):
@@ -89,3 +81,9 @@ def showProfile(request):
 def redirectLogin(request):
     return redirect(log)
 
+class UserEditView(generic.UpdateView):
+    form_class = EditProfForm
+    template_name = 'editProfile.html'
+    success_url = reverse_lazy('home')
+    def get_object(self):
+        return self.request.user

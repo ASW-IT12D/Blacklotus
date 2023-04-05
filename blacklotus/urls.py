@@ -1,6 +1,6 @@
 from django.urls import path
 from . import views
-
+from .views import UserEditView
 #URLConf
 urlpatterns = [
     path('newissue/', views.CreateIssueForm, name="newIssue"),
@@ -13,5 +13,6 @@ urlpatterns = [
     path('login/',views.redirectLogin, name = 'login'),
     path('logout/',views.custom_logout, name='logout'),
     path('profile/',views.showProfile, name = 'profile'),
-    path('editprof/',views.edit_profile, name='editprof'),
+    path('editprofile/',UserEditView.as_view(), name='editprofile')
+
 ]
