@@ -9,5 +9,7 @@ urlpatterns = [
     path('newissue/new/', views.CreateIssue),
     path('<int:num>/', views.SeeIssue, name="seeIssue"),
     path('register/', views.join, name='register'),
-    path('',views.log, name = 'login')
+    path('',views.log, name = 'login'),
+    path('login/',views.redirectLogin, name = 'login'),
+    path('logout/',views.custom_logout, name='logout')
 ]

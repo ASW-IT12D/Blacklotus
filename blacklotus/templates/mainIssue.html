@@ -7,6 +7,7 @@
 
 <body class="wallbody">
 	<h1 class="walltitle">Peticiones</h1>
+    <p>Logged in As {{user.username}}</p>
 	<div class="wallmain">
         <table class="default">
             <tr>
@@ -78,7 +79,7 @@
         <th>Petición</th>
         <th>Estado</th>
         <th>Modificado</th>
-        <th>Asignada a</th>
+        <th>Creador</th>
         </tr>
         {% for issue in qs %}
         <tr>
@@ -93,5 +94,7 @@
         {% endfor %}
     </table>
 	</div>
+        <th><a href="{% url 'logout' %}">
+            <button>logout</button></a></th>
 </body>
 </html>
