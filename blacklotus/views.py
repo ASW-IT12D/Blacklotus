@@ -26,6 +26,8 @@ def SeeIssue(request, num):
             issueUpdate.status = request.POST.get("status")
         if 'severity' in request.POST:
             issueUpdate.severity = request.POST.get("severity")
+        if 'type' in request.POST:
+                issueUpdate.type = request.POST.get("type")
         issueUpdate.save()
     issue = Issue.objects.filter(id=num).values()
     return render(request, 'single_issue.html', {'issue' :issue})
