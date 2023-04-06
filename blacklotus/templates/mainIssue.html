@@ -16,8 +16,8 @@
 
             <ul id="listafiltros"{% if not visible%}hidden{%endif%}>
                 <li>
-                    <select name="estados" id="estados">
-                       <option value="Estado">Estado</option>
+                    <select name="estados" id="estados" onchange="location = this.value">
+                       <option value="Home.php">Estado</option>
                        <option value="nuevo">Nuevo</option>
                        <option value="enprogreso">En Progreso </option>
                        <option value="listotest">Listo para Testear</option>
