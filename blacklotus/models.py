@@ -40,5 +40,3 @@ class Issue(models.Model):
     def __str__(self):
         return self.subject + ' ' + self.description
 
-
-

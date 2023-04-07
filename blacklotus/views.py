@@ -17,14 +17,15 @@ def CreateIssueForm(request):
 
 @login_required(login_url='login')
 def CreateIssue(request):
-    sub = request.POST.get("subject")
-    des = request.POST.get("description")
-    type = request.POST.get("type")
-    severity = request.POST.get("severity")
-    priority = request.POST.get("priority")
-    status = request.POST.get("status")
-    i = Issue(subject=sub, description=des, creator=request.user.username, status=status, type=type, severity=severity, priority=priority)
-    i.save()
+    if len(request.POST.get("subject")) > 0:
+        sub = request.POST.get("subject")
+        des = request.POST.get("description")
+        type = request.POST.get("type")
+        severity = request.POST.get("severity")
+        priority = request.POST.get("priority")
+        status = request.POST.get("status")
+        i = Issue(subject=sub, description=des, creator=request.user.username, status=status, type=type, severity=severity, priority=priority)
+        i.save()
     return redirect(showIssues)
 @login_required(login_url='login')
 def showIssues(request):
@@ -85,7 +86,7 @@ def DeleteIssue(request, id):
 
 @login_required(login_url='login')
 def showFilters(request):
-    visible = False;
+    visible = False
     if request.method == 'POST':
         if 'togglefiltros' in request.POST:
             visible = not visible
