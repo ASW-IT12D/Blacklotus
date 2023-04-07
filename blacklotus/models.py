@@ -1,5 +1,5 @@
 from django.db import models
-from django.contrib.auth.models import User
+
 # Create your models here.
 
 class Issue(models.Model):
@@ -10,7 +10,8 @@ class Issue(models.Model):
     type = models.IntegerField()
     severity = models.IntegerField()
     priority = models.IntegerField()
-    creationdate = models.DateTimeField(auto_now=True)
+    creationdate = models.DateTimeField(auto_now_add=True)
+    modifieddate = models.DateTimeField(auto_now=True)
     objects = models.Manager()
 
     def getSubject(self):
