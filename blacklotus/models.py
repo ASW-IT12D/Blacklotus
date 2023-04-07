@@ -11,6 +11,7 @@ class Issue(models.Model):
     severity = models.IntegerField()
     priority = models.IntegerField()
     creationdate = models.DateTimeField(auto_now_add=True)
+    modifieddate = models.DateTimeField(auto_now=True)
     objects = models.Manager()
 
     def getSubject(self):
