@@ -34,7 +34,7 @@
             <ul id="listafiltros"{% if not visible%}hidden{%endif%}>
                 <li>
                     <select name="type" id="Type" multiple>
-                         <option value="type">Type</option>
+                         <option value="type" disabled>Type</option>
                          <option value="1">Bug</option>
                          <option value="2">Question</option>
                          <option value="3">Enchancement</option>
@@ -42,7 +42,7 @@
                 </li>
                 <li>
                     <select name="severity" id="severity" multiple>
-                         <option value="severity">Severity</option>
+                         <option value="severity" disabled>Severity</option>
                          <option value="1">Wishlist</option>
                          <option value="2">Minor</option>
                          <option value="3">Normal</option>
@@ -53,7 +53,7 @@
 
                  <li>
                     <select name="priority" id="priority" multiple>
-                         <option value="priority">Priority</option>
+                         <option value="priority" disabled>Priority</option>
                          <option value="1">Low</option>
                          <option value="2">Normal</option>
                          <option value="3">High</option>
@@ -62,7 +62,7 @@
 
                 <li>
                     <select name="status" id="status" multiple>
-                       <option value="status">Status</option>
+                       <option value="status" disabled>Status</option>
                        <option value="1">New</option>
                        <option value="2">In Progress </option>
                        <option value="3">Ready to Test</option>
@@ -75,7 +75,7 @@
 
                 <li>
                     <select name="assignations" id="assignations" multiple>
-                        <option value="assignations"> Assignations</option>
+                        <option value="assignations" disbaled> Assignations</option>
                         <option value="1">Assigned</option>
                         <option value="2">Unassigned</option>
                     </select>
@@ -83,7 +83,7 @@
 
                 <li>
                     <select name="creator" id="creator" multiple>
-                        <option value="creator">Created By</option>
+                        <option value="creator" disabled>Created By</option>
                     </select>
                 </li>
             </ul>
