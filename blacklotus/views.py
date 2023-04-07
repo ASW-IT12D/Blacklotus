@@ -21,7 +21,7 @@ def showIssues(request):
 
 def SeeIssue(request, num):
     issueUpdate = Issue.objects.get(id=num)
-    if 'BUpdate' in request.POST:
+    if 'BotonUpdateStatuses' in request.POST:
         if 'status' in request.POST:
             issueUpdate.status = request.POST.get("status")
         if 'severity' in request.POST:
@@ -29,11 +29,28 @@ def SeeIssue(request, num):
         if 'type' in request.POST:
                 issueUpdate.type = request.POST.get("type")
         issueUpdate.save()
+    elif 'EditContent' in request.POST:
+        request.session['id'] = num
+        return redirect(EditIssue)
+    elif 'next' in request.POST:
+        try:
+            nextIssue = issueUpdate.get_previous_by_creationdate()
+            return redirect(SeeIssue,num=nextIssue.id)
+        except:
+            firstIssue = Issue.objects.order_by('creationdate').last()
+            return redirect(SeeIssue, num=firstIssue.id)
+    elif 'previous' in request.POST:
+        try:
+            previousIssue = issueUpdate.get_next_by_creationdate()
+            return redirect(SeeIssue,num=previousIssue.id)
+        except:
+            lastIssue = Issue.objects.order_by('creationdate').first()
+            return redirect(SeeIssue, num=lastIssue.id)
     issue = Issue.objects.filter(id=num).values()
     return render(request, 'single_issue.html', {'issue' :issue})
 
 def EditIssue(request):
-    ID = request.POST.get('id')
+    ID = request.session.get('id')
     issue = Issue.objects.filter(id=ID).values()
     if 'Update' in request.POST:
         issueUpdate = Issue.objects.get(id=request.POST.get("idHidden"))

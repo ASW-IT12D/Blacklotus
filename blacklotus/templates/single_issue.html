@@ -4,13 +4,13 @@
 <tr>
     <th style="width:80%">
         <div>
-            <form method="post" action="{% url 'edit' %}">
+            <form method="post">
               {% csrf_token %}
             <h1>#{{ issue.first.id }} {{ issue.first.subject }}
                 <input type="hidden" name="id" value=" {{ issue.first.id }}">
-                <button type="submit" class="btn btn-primary btn-sm">Edit</button>
-                <button type="button" class="btn btn-info btn-sm" name="previous"><</button>
-                <button type="button" class="btn btn-info btn-sm" name="next"> > </button>
+                <button type="submit" name="EditContent" class="btn btn-primary btn-sm">Edit</button>
+                <button type="submit" class="btn btn-info btn-sm" name="previous"><</button>
+                <button type="submit" class="btn btn-info btn-sm" name="next"> > </button>
             </h1>
             <b>
                 <div class="created-by">
@@ -165,7 +165,7 @@
             </select>
 
             <br>
-            <input type="hidden" name="BUpdate" value="Update">
+            <input type="hidden" name="BotonUpdateStatuses" value="Update">
             <button type="submit" class="btn btn-primary btn-sm">Update</button>
         </div>
         </form>
