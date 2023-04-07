@@ -10,7 +10,8 @@ class Issue(models.Model):
     type = models.IntegerField()
     severity = models.IntegerField()
     priority = models.IntegerField()
-    creationdate = models.DateTimeField(auto_now=True)
+    creationdate = models.DateTimeField(auto_now_add=True)
+    modifieddate = models.DateTimeField(auto_now=True)
     objects = models.Manager()
 
     def getSubject(self):
@@ -39,10 +40,3 @@ class Issue(models.Model):
     def __str__(self):
         return self.subject + ' ' + self.description
 
-class User(models.Model):
-    username = models.CharField(max_length=100, primary_key=True)
-    password = models.CharField(max_length=100)
-    objects = models.Manager()
-
-    def __str__(self):
-        return self.username

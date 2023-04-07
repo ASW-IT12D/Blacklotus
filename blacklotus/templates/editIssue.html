@@ -1,0 +1,27 @@
+{% extends 'base.html' %}
+{% block content %}
+<form method="post" action="{% url 'edit' %}">
+{% csrf_token %}
+<table class = "editIssue">
+<tr>
+    <th style="width:80%">
+        <div>
+
+            <input type="hidden" name="idHidden" value="{{issue.first.id}}">
+
+            <a>New Subject:</a>
+            <input name="subject" placeholder="{{ issue.first.subject }}" type="text" size=30>
+        </div>
+        <br>
+        <div>
+             <a>New Description:</a>
+            <textarea name="description" rows="15" cols="30" placeholder=" {{issue.first.description}}"></textarea>
+        </div>
+        <br>
+        <input type="hidden" name="Update" value="Update">
+        <button type="submit" class="btn btn-primary btn-sm">Update</button>
+    </th>
+</tr>
+</table>
+</form>
+{% endblock %}

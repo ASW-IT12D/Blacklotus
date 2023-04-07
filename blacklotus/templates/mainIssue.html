@@ -7,6 +7,8 @@
 
 <body class="wallbody">
 	<h1 class="walltitle">Peticiones</h1>
+    <th><a href="{% url 'profile' %}"> <p>{{user.username}}</p></a></th>
+
 	<div class="wallmain">
         <table class="default">
             <tr>
@@ -16,8 +18,8 @@
 
             <ul id="listafiltros"{% if not visible%}hidden{%endif%}>
                 <li>
-                    <select name="estados" id="estados">
-                       <option value="Estado">Estado</option>
+                    <select name="estados" id="estados" onchange="location = this.value">
+                       <option value="Home.php">Estado</option>
                        <option value="nuevo">Nuevo</option>
                        <option value="enprogreso">En Progreso </option>
                        <option value="listotest">Listo para Testear</option>
@@ -93,5 +95,7 @@
         {% endfor %}
     </table>
 	</div>
+        <th><a href="{% url 'logout' %}">
+            <button>logout</button></a></th>
 </body>
 </html>
