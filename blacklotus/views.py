@@ -11,7 +11,6 @@ def CreateIssueForm(request):
 def CreateIssue(request):
     form = IssueForm(request.POST.copy() or None)
     if form.is_valid():
-        form.data['subject'] = "HArd"
         form.save()
     return redirect(showIssues)
 def showIssues(request):
