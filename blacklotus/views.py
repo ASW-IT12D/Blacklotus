@@ -1,7 +1,7 @@
 
 
 from django.shortcuts import render, redirect
-from django.contrib.auth.decorators import login_required
+from .forms import IssueForm
 from .models import Issue
 from django.shortcuts import render, redirect
 from .forms import IssueForm
@@ -12,6 +12,10 @@ from .forms import RegisterForm,EditProfForm
 from django.views import generic
 from django.urls import reverse_lazy
 @login_required(login_url='login')
+from django.http import HttpResponse
+from django.db.models import Q
+# Create your views here.
+
 def CreateIssueForm(request):
     return render(request, 'newissue.html')
 
@@ -29,8 +33,13 @@ def CreateIssue(request):
     return redirect(showIssues)
 @login_required(login_url='login')
 def showIssues(request):
-    qs = Issue.objects.all().order_by('-creationdate').filter(creator=request.user.username)
-    return render(request, 'mainIssue.html', {'qs': qs})
+    ref = request.GET.get('r')
+    if ref:
+        issues = Issue.objects.filter(Q(subject__icontains=ref))
+    else:
+        issues = Issue.objects.all()
+
+    return render(request, 'mainIssue.html', {'qs': issues})
 
 @login_required(login_url='login')
 def SeeIssue(request, num):
