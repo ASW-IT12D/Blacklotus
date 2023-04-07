@@ -14,29 +14,46 @@
             <tr>
             <form method="post" name = "mostrarfiltros">
                 {% csrf_token %}
-                <input type="submit" name="clearfiltros" value="Limpiar Filtros">
+                <input type="submit" name="clearfiltros" value="Clean Filters">
                 {% if visible%}
-                    <input type="submit" name="ocultarfiltros" value="Ocultar Filtros">
+                    <input type="submit" name="ocultarfiltros" value="Hide Filters">
                     <input type="submit" name="updatefiltros" value="Update Filtros">
+                    <div class="from-check">
+                        <input class="form-check-input" type="radio" name="flexRadioDefault" id="flexRadioInclude" checked>
+                        <label class="form-check-label" for="flexRadioInclude">Include</label>
+                    </div>
+
+                    <div class="from-check">
+                        <input class="form-check-input" type="radio" name="flexRadioDefault" id="flexRadioExclude">
+                        <label class="form-check-label" for="flexRadioExclude">Exclude</label>
+                    </div>
                 {%else%}
-                    <input type="submit" name="mostrarfiltros" value="Mostrar Filtros">
+                    <input type="submit" name="mostrarfiltros" value="Filters">
                 {%endif%}
 
             <ul id="listafiltros"{% if not visible%}hidden{%endif%}>
                 <li>
-                    <select name="estados" id="estados" multiple>
-                       <option value="estado">Estado</option>
-                       <option value="1">Nuevo</option>
-                       <option value="2">En Progreso </option>
-                       <option value="3">Listo para Testear</option>
-                       <option value="4">Cerrado</option>
-                       <option value="5">Necesita Información</option>
-                       <option value="6">Rechazado</option>
-                       <option value="7">Pospuesto</option>
-                    </select></li>
+                    <select name="type" id="Type" multiple>
+                         <option value="type">Type</option>
+                         <option value="1">Bug</option>
+                         <option value="2">Question</option>
+                         <option value="3">Enchancement</option>
+                     </select>
+                </li>
                 <li>
-                    <select name="prioridad" id="prioridad" multiple>
-                         <option value="prioridad">Prioridad</option>
+                    <select name="severity" id="severity" multiple>
+                         <option value="severity">Severity</option>
+                         <option value="1">Wishlist</option>
+                         <option value="2">Minor</option>
+                         <option value="3">Normal</option>
+                         <option value="4">Important</option>
+                         <option value="5">Critical</option>
+                     </select>
+                </li>
+
+                 <li>
+                    <select name="priority" id="priority" multiple>
+                         <option value="priority">Priority</option>
                          <option value="1">Low</option>
                          <option value="2">Normal</option>
                          <option value="3">High</option>
@@ -44,16 +61,29 @@
                 </li>
 
                 <li>
-                    <select name="asignado" id="asignado" multiple>
-                        <option value="asignaciones"> Assignations</option>
+                    <select name="status" id="status" multiple>
+                       <option value="status">Status</option>
+                       <option value="1">New</option>
+                       <option value="2">In Progress </option>
+                       <option value="3">Ready to Test</option>
+                       <option value="4">Closed</option>
+                       <option value="5">Needs Info</option>
+                       <option value="6">Rejected</option>
+                       <option value="7">Postponed</option>
+                    </select>
+                </li>
+
+                <li>
+                    <select name="assignations" id="assignations" multiple>
+                        <option value="assignations"> Assignations</option>
                         <option value="1">Assigned</option>
                         <option value="2">Unassigned</option>
                     </select>
                 </li>
 
                 <li>
-                    <select name="creador" id="creador" multiple>
-                        <option value="creador">Creador</option>
+                    <select name="creator" id="creator" multiple>
+                        <option value="creator">Created By</option>
                     </select>
                 </li>
             </ul>

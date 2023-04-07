@@ -35,22 +35,30 @@ def showIssues(request):
     visible = None
     filtrosstatus = []
     filtrospriority = []
+    filtrostype = []
+    filtrosseverity = []
     if request.method == 'POST':
         if 'clearfiltros' in request.POST:
             filtros = []
             request.session['filtros_status'] = filtros
             request.session['filtros_priority'] = filtros
+            request.session['filtros_type'] = filtros
+            request.session['filtros_severity'] = filtros
         if 'ocultarfiltros' in request.POST:
             visible = False
         elif 'mostrarfiltros' in request.POST:
             visible = True
-        if 'updatefiltros' in request.POST or ('filtros_status' in request.session or 'filtros_priority' in request.session):
-            if 'filtros_status' not in request.session and 'filtros_priority' not in request.session:
+        if 'updatefiltros' in request.POST or ('filtros_status' in request.session or 'filtros_severity' in request.session or 'filtros_priority' in request.session or 'filtros_type' in request.session):
+            if 'filtros_status' not in request.session and 'filtros_severity' not in request.session and 'filtros_priority' not in request.session and 'filtros_type' not in request.session:
                 filtrosS = Q()
                 filtrosP = Q()
+                filtrosT = Q()
+                filtrosSv = Q()
             else:
                 filtrosS = Q()
                 filtrosP = Q()
+                filtrosT = Q()
+                filtrosSv = Q()
                 if'filtros_status' in request.session:
                     filtrosstatus = request.session["filtros_status"]
                     for filtro in filtrosstatus:
@@ -61,19 +69,41 @@ def showIssues(request):
                     for filtro in filtrospriority:
                         filtrosP = Q(priority=filtro) | filtrosP
 
-            for filtro in request.POST.getlist("estados"):
+                if 'filtros_type' in request.session:
+                    filtrostype = request.session["filtros_type"]
+                    for filtro in filtrostype:
+                        filtrosT = Q(type=filtro) | filtrosT
+
+                if 'filtros_severity' in request.session:
+                    filtrosseverity = request.session["filtros_severity"]
+                    for filtro in filtrosseverity:
+                        filtrosSv = Q(severity=filtro) | filtrosSv
+
+            for filtro in request.POST.getlist("status"):
                 filtrosS = Q(status=filtro) | filtrosS
                 filtrosstatus.append(filtro)
 
-            for filtro in request.POST.getlist("prioridad"):
+            for filtro in request.POST.getlist("priority"):
                 filtrosP = Q(priority=filtro) | filtrosP
                 filtrospriority.append(filtro)
 
+            for filtro in request.POST.getlist("type"):
+                filtrosT = Q(type=filtro) | filtrosT
+                filtrostype.append(filtro)
+
+            for filtro in request.POST.getlist("severity"):
+                filtrosSv = Q(severity=filtro) | filtrosSv
+                filtrosseverity.append(filtro)
+
             request.session['filtros_status'] = filtrosstatus
             request.session['filtros_priority'] = filtrospriority
+            request.session['filtros_type'] = filtrostype
+            request.session['filtros_severity'] = filtrosseverity
 
-
-            filtros = filtrosS & filtrosP
+            if 'flexRadioInclude' in request.POST:
+                filtros = filtrosS | filtrosP | filtrosT | filtrosSv
+            else:
+                filtros = filtrosS & filtrosP & filtrosT & filtrosSv
             qs = Issue.objects.filter(filtros).order_by('-creationdate').filter(creator=request.user.username)
 
     return render(request, 'mainIssue.html', {'visible': visible,'qs': qs})
