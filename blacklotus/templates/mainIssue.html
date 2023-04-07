@@ -12,52 +12,47 @@
 	<div class="wallmain">
         <table class="default">
             <tr>
-            <form method="mostrarfiltros">
+            <form method="post" name = "mostrarfiltros">
                 {% csrf_token %}
-                <input type="submit" name="togglefiltros" value="{%if visible%}Ocultar Filtros {%else%}Mostrar Filtros{%endif%}">
+                <input type="submit" name="clearfiltros" value="Limpiar Filtros">
+                {% if visible%}
+                    <input type="submit" name="ocultarfiltros" value="Ocultar Filtros">
+                    <input type="submit" name="updatefiltros" value="Update Filtros">
+                {%else%}
+                    <input type="submit" name="mostrarfiltros" value="Mostrar Filtros">
+                {%endif%}
 
             <ul id="listafiltros"{% if not visible%}hidden{%endif%}>
                 <li>
-                    <select name="estados" id="estados" onchange="location = this.value">
-                       <option value="Home.php">Estado</option>
-                       <option value="nuevo">Nuevo</option>
-                       <option value="enprogreso">En Progreso </option>
-                       <option value="listotest">Listo para Testear</option>
-                       <option value="cerrado">Cerrado</option>
-                       <option value="necesitainfo">Necesita Información</option>
-                       <option value="rechazado">Rechazado</option>
-                       <option value="pospuesto">Pospuesto</option>
+                    <select name="estados" id="estados" multiple>
+                       <option value="estado">Estado</option>
+                       <option value="1">Nuevo</option>
+                       <option value="2">En Progreso </option>
+                       <option value="3">Listo para Testear</option>
+                       <option value="4">Cerrado</option>
+                       <option value="5">Necesita Información</option>
+                       <option value="6">Rechazado</option>
+                       <option value="7">Pospuesto</option>
                     </select></li>
                 <li>
-                    <select name="assignee" id="assignee">
-                        <option value="Assignee?">Assignee?</option>
-                        <option value="??">??</option>
-                    </select>
-                </li>
-
-                <li>
-                    <select name="tags" id="tags">
-                        <option value="Tag">Tag</option>
-                    </select>
-                </li>
-
-                <li>
-                    <select name="prioridad" id="prioridad">
+                    <select name="prioridad" id="prioridad" multiple>
                          <option value="prioridad">Prioridad</option>
-                         <option value="low">Low</option>
-                         <option value="normal">Normal</option>
-                         <option value="high">High</option>
+                         <option value="1">Low</option>
+                         <option value="2">Normal</option>
+                         <option value="3">High</option>
                      </select>
                 </li>
 
                 <li>
-                    <select name="asignado" id="asignado">
-                        <option value="asignado">Asignado</option>
+                    <select name="asignado" id="asignado" multiple>
+                        <option value="asignaciones"> Assignations</option>
+                        <option value="1">Assigned</option>
+                        <option value="2">Unassigned</option>
                     </select>
                 </li>
 
                 <li>
-                    <select name="creador" id="creador">
+                    <select name="creador" id="creador" multiple>
                         <option value="creador">Creador</option>
                     </select>
                 </li>

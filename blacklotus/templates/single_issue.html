@@ -43,7 +43,7 @@
         <form method="post" action="{% url 'seeIssue' issue.first.id%}">
               {% csrf_token %}
         <div class="status">
-            <select name="status">
+            <select name="status" multiple>
                 {% if issue.first.status == 1 %}
                 <option value=1 selected disabled>New</option>
                 {% else %}
