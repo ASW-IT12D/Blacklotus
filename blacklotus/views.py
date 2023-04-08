@@ -30,7 +30,6 @@ def CreateIssue(request):
         i.save()
     return redirect(showIssues)
 @login_required(login_url='login')
-#Comentario genérico
 def showIssues(request):
     ref = request.GET.get('r')
     if ref:
