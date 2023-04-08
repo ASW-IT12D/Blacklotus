@@ -1,5 +1,4 @@
-
-
+from django.contrib.auth.decorators import login_required
 from django.shortcuts import render, redirect
 from .forms import IssueForm
 from .models import Issue
@@ -11,7 +10,6 @@ from django.contrib.auth import logout
 from .forms import RegisterForm,EditProfForm
 from django.views import generic
 from django.urls import reverse_lazy
-@login_required(login_url='login')
 from django.http import HttpResponse
 from django.db.models import Q
 # Create your views here.
@@ -32,6 +30,7 @@ def CreateIssue(request):
         i.save()
     return redirect(showIssues)
 @login_required(login_url='login')
+#Comentario genérico
 def showIssues(request):
     ref = request.GET.get('r')
     if ref:
