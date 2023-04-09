@@ -86,7 +86,7 @@ def showIssues(request):
 
                 if 'filtros_creator' in request.session:
                     filtroscreator = request.session["filtros_creator"]
-                    for filtro in filtrosseverity:
+                    for filtro in filtroscreator:
                         filtrosC = Q(creator=filtro) | filtrosC
 
 

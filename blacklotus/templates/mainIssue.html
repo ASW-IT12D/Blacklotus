@@ -84,6 +84,10 @@
                 <li>
                     <select name="creator" id="creator" multiple>
                         <option value="creator" disabled>Created By</option>
+                             {% for issue in qs %}
+                                <option value="{{issue.getCreator}}">{{ issue.getCreator }}</option>
+                            {% endfor %}
+
                     </select>
                 </li>
             </ul>
