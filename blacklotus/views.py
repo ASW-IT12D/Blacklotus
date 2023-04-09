@@ -1,7 +1,6 @@
-
-
-from django.shortcuts import render, redirect
 from django.contrib.auth.decorators import login_required
+from django.shortcuts import render, redirect
+from .forms import IssueForm
 from .models import Issue
 from django.shortcuts import render, redirect
 from .forms import IssueForm
@@ -12,10 +11,18 @@ from .forms import RegisterForm,EditProfForm
 from django.views import generic
 from django.db.models import Q
 from django.urls import reverse_lazy
+from django.http import HttpResponse
+from django.db.models import Q
+
+# Create your views here.
 
 @login_required(login_url='login')
 def CreateIssueForm(request):
     return render(request, 'newissue.html')
+    
+@login_required(login_url='login')
+def BulkIssueForm(request):
+    return render(request, 'bulkissue.html')
 
 @login_required(login_url='login')
 def CreateIssue(request):
@@ -29,6 +36,23 @@ def CreateIssue(request):
         i = Issue(subject=sub, description=des, creator=request.user.username, status=status, type=type, severity=severity, priority=priority)
         i.save()
     return redirect(showIssues)
+
+@login_required(login_url='login')
+def BulkIssue(request):
+    if len(request.POST.get("issues")) > 0:
+        textarea_input = request.POST['issues']
+        lines = textarea_input.split('\n')
+        for line in lines:
+            sub = line
+            des = ""
+            type = 1
+            severity = 1
+            priority = 1
+            status = 1
+            i = Issue(subject=sub, description=des, creator=request.user.username, status=status, type=type, severity=severity, priority=priority)
+            i.save()
+    return redirect(showIssues)
+
 @login_required(login_url='login')
 def showIssues(request):
     qs = Issue.objects.all().order_by('-creationdate').filter(creator=request.user.username)
@@ -122,8 +146,14 @@ def showIssues(request):
             else:
                 filtros = filtrosS & filtrosP & filtrosT & filtrosSv & filtrosC
             qs = Issue.objects.filter(filtros).order_by('-creationdate').filter(creator=request.user.username)
+          
+    ref = request.GET.get('r')
+    if ref:
+        qs = Issue.objects.filter(Q(subject__icontains=ref))    
 
     return render(request, 'mainIssue.html', {'visible': visible,'qs': qs})
+    
+       
 
 @login_required(login_url='login')
 def SeeIssue(request, num):
