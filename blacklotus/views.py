@@ -17,6 +17,9 @@ from django.db.models import Q
 def CreateIssueForm(request):
     return render(request, 'newissue.html')
 
+def BulkIssueForm(request):
+    return render(request, 'bulkissue.html')
+
 @login_required(login_url='login')
 def CreateIssue(request):
     if len(request.POST.get("subject")) > 0:
@@ -29,6 +32,24 @@ def CreateIssue(request):
         i = Issue(subject=sub, description=des, creator=request.user.username, status=status, type=type, severity=severity, priority=priority)
         i.save()
     return redirect(showIssues)
+
+@login_required(login_url='login')
+
+def BulkIssue(request):
+    if len(request.POST.get("issues")) > 0:
+        textarea_input = request.POST['issues']
+        lines = textarea_input.split('\n')
+        for line in lines:
+            sub = line
+            des = ""
+            type = 1
+            severity = 1
+            priority = 1
+            status = 1
+            i = Issue(subject=sub, description=des, creator=request.user.username, status=status, type=type, severity=severity, priority=priority)
+            i.save()
+    return redirect(showIssues)
+
 @login_required(login_url='login')
 def showIssues(request):
     ref = request.GET.get('r')

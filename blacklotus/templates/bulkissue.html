@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>New bulk insert</title>
+</head>
+
+<body class="wallbody">
+	<form action="new/" method="post">
+    {% csrf_token %}
+	<h1 class="walltitle">New Bulk Insert</h1>
+	<div class="wallissues">
+	<table border=0 cellpadding=2>
+		<tr>
+			<td><textarea name="issues" rows="20" cols="80" placeholder="Por favor, una issue por linea"></textarea></td>
+			<td>
+				<table border=0 cellpadding=2></table>
+			<tr><td><input type="submit" name="crea" value="CREAR"></td></tr>
+		</table>
+	</div>
+	</form>
+
+</body>
+</html>

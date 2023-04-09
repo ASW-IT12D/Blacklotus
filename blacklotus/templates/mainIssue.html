@@ -72,8 +72,10 @@
             <th><input type="checkbox" name="tag" value="tagson"> Tags<br></th>
             <th></th>
             <th></th>
-             <th><a href="{% url 'newIssue' %}">
+            <th><a href="{% url 'newIssue' %}">
             <button> + New Issue</button></a></th>
+            <th><a href="{% url 'bulkIssue' %}">
+            <button> + Bulk Insert</button></a></th>
             </tr>
         </table>
     <table class="issues">
