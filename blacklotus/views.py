@@ -53,6 +53,7 @@ def BulkIssue(request):
             i.save()
     return redirect(showIssues)
 
+
 @login_required(login_url='login')
 def showIssues(request):
     qs = Issue.objects.all().order_by('-creationdate').filter(creator=request.user.username)
@@ -162,6 +163,13 @@ def showIssues(request):
 
 @login_required(login_url='login')
 def SeeIssue(request, num):
+    bloqued = None
+    if request.method == 'POST':
+        if 'block' in request.POST:
+            bloqued = True
+        elif 'unblock' in request.POST:
+            bloqued = False
+
     issueUpdate = Issue.objects.get(id=num)
     if 'BotonUpdateStatuses' in request.POST:
         if 'status' in request.POST:
@@ -189,7 +197,7 @@ def SeeIssue(request, num):
             lastIssue = Issue.objects.order_by('creationdate').first()
             return redirect(SeeIssue, num=lastIssue.id)
     issue = Issue.objects.filter(id=num).values()
-    return render(request, 'single_issue.html', {'issue' :issue})
+    return render(request, 'single_issue.html', {'issue' : issue,'bloqued' : bloqued})
 
 @login_required(login_url='login')
 def EditIssue(request):
