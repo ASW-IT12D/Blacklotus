@@ -57,11 +57,18 @@ def BulkIssue(request):
 def showIssues(request):
     qs = Issue.objects.all().order_by('-creationdate').filter(creator=request.user.username)
     visible = None
+    ref = None
+    filtrosF = Q()
     filtrosstatus = []
     filtrospriority = []
     filtrostype = []
     filtrosseverity = []
     filtroscreator = []
+
+    if request.method == 'GET':
+        if 'r' in request.GET:
+            ref = request.GET.get('r')
+
     if request.method == 'POST':
         if 'clearfiltros' in request.POST:
             filtros = []
@@ -142,15 +149,13 @@ def showIssues(request):
 
 
             if 'flexRadioInclude' in request.POST:
-                filtros = filtrosS | filtrosP | filtrosT | filtrosSv | filtrosC
+                filtrosF = filtrosS | filtrosP | filtrosT | filtrosSv | filtrosC
             else:
-                filtros = filtrosS & filtrosP & filtrosT & filtrosSv & filtrosC
-            qs = Issue.objects.filter(filtros).order_by('-creationdate').filter(creator=request.user.username)
-          
-    ref = request.GET.get('r')
-    if ref:
-        qs = Issue.objects.filter(Q(subject__icontains=ref))    
-
+                filtrosF = filtrosS & filtrosP & filtrosT & filtrosSv & filtrosC
+    if ref is not None:
+        qs = Issue.objects.filter(filtrosF).order_by('-creationdate').filter(creator=request.user.username).filter(Q(subject__icontains=ref))
+    else:
+        qs = Issue.objects.filter(filtrosF).order_by('-creationdate').filter(creator=request.user.username)
     return render(request, 'mainIssue.html', {'visible': visible,'qs': qs})
     
        
