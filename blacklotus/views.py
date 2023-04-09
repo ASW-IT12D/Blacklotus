@@ -9,14 +9,18 @@ from django.contrib.auth.forms import AuthenticationForm, UserCreationForm, User
 from django.contrib.auth import logout
 from .forms import RegisterForm,EditProfForm
 from django.views import generic
+from django.db.models import Q
 from django.urls import reverse_lazy
 from django.http import HttpResponse
 from django.db.models import Q
+
 # Create your views here.
 
+@login_required(login_url='login')
 def CreateIssueForm(request):
     return render(request, 'newissue.html')
-
+    
+@login_required(login_url='login')
 def BulkIssueForm(request):
     return render(request, 'bulkissue.html')
 
@@ -34,7 +38,6 @@ def CreateIssue(request):
     return redirect(showIssues)
 
 @login_required(login_url='login')
-
 def BulkIssue(request):
     if len(request.POST.get("issues")) > 0:
         textarea_input = request.POST['issues']
@@ -52,13 +55,105 @@ def BulkIssue(request):
 
 @login_required(login_url='login')
 def showIssues(request):
+    qs = Issue.objects.all().order_by('-creationdate').filter(creator=request.user.username)
+    visible = None
+    filtrosstatus = []
+    filtrospriority = []
+    filtrostype = []
+    filtrosseverity = []
+    filtroscreator = []
+    if request.method == 'POST':
+        if 'clearfiltros' in request.POST:
+            filtros = []
+            request.session['filtros_status'] = filtros
+            request.session['filtros_priority'] = filtros
+            request.session['filtros_type'] = filtros
+            request.session['filtros_severity'] = filtros
+            request.session['filtros_creator'] = filtros
+        if 'ocultarfiltros' in request.POST:
+            visible = False
+        elif 'mostrarfiltros' in request.POST:
+            visible = True
+        if 'updatefiltros' in request.POST or ('filtros_status' in request.session or 'filtros_creator' in request.session or 'filtros_severity' in request.session or 'filtros_priority' in request.session or 'filtros_type' in request.session):
+            if 'filtros_status' not in request.session and 'filtros_creator' not in request.session and 'filtros_severity' not in request.session and 'filtros_priority' not in request.session and 'filtros_type' not in request.session:
+                filtrosS = Q()
+                filtrosP = Q()
+                filtrosT = Q()
+                filtrosSv = Q()
+                filtrosC = Q()
+            else:
+                filtrosS = Q()
+                filtrosP = Q()
+                filtrosT = Q()
+                filtrosSv = Q()
+                filtrosC = Q()
+
+                if'filtros_status' in request.session:
+                    filtrosstatus = request.session["filtros_status"]
+                    for filtro in filtrosstatus:
+                        filtrosS = Q(status=filtro) | filtrosS
+
+                if 'filtros_priority' in request.session:
+                    filtrospriority = request.session["filtros_priority"]
+                    for filtro in filtrospriority:
+                        filtrosP = Q(priority=filtro) | filtrosP
+
+                if 'filtros_type' in request.session:
+                    filtrostype = request.session["filtros_type"]
+                    for filtro in filtrostype:
+                        filtrosT = Q(type=filtro) | filtrosT
+
+                if 'filtros_severity' in request.session:
+                    filtrosseverity = request.session["filtros_severity"]
+                    for filtro in filtrosseverity:
+                        filtrosSv = Q(severity=filtro) | filtrosSv
+
+                if 'filtros_creator' in request.session:
+                    filtroscreator = request.session["filtros_creator"]
+                    for filtro in filtroscreator:
+                        filtrosC = Q(creator=filtro) | filtrosC
+
+
+            for filtro in request.POST.getlist("status"):
+                filtrosS = Q(status=filtro) | filtrosS
+                filtrosstatus.append(filtro)
+
+            for filtro in request.POST.getlist("priority"):
+                filtrosP = Q(priority=filtro) | filtrosP
+                filtrospriority.append(filtro)
+
+            for filtro in request.POST.getlist("type"):
+                filtrosT = Q(type=filtro) | filtrosT
+                filtrostype.append(filtro)
+
+            for filtro in request.POST.getlist("severity"):
+                filtrosSv = Q(severity=filtro) | filtrosSv
+                filtrosseverity.append(filtro)
+
+            for filtro in request.POST.getlist("creator"):
+                filtrosC = Q(creator=filtro) | filtrosC
+                filtroscreator.append(filtro)
+
+            request.session['filtros_status'] = filtrosstatus
+            request.session['filtros_priority'] = filtrospriority
+            request.session['filtros_type'] = filtrostype
+            request.session['filtros_severity'] = filtrosseverity
+            request.session['filtros_creator'] = filtroscreator
+
+
+            if 'flexRadioInclude' in request.POST:
+                filtros = filtrosS | filtrosP | filtrosT | filtrosSv | filtrosC
+            else:
+                filtros = filtrosS & filtrosP & filtrosT & filtrosSv & filtrosC
+            qs = Issue.objects.filter(filtros).order_by('-creationdate').filter(creator=request.user.username)
+          
     ref = request.GET.get('r')
     if ref:
-        issues = Issue.objects.filter(Q(subject__icontains=ref))
-    else:
-        issues = Issue.objects.all()
+        qs = Issue.objects.filter(Q(subject__icontains=ref))    
 
-    return render(request, 'mainIssue.html', {'qs': issues})
+    return render(request, 'mainIssue.html', {'visible': visible,'qs': qs})
+    
+       
 
 @login_required(login_url='login')
 def SeeIssue(request, num):
@@ -111,14 +206,6 @@ def DeleteIssue(request, id):
     issue = Issue.objects.get(id=id)
     issue.delete()
     return redirect(showIssues)
-
-@login_required(login_url='login')
-def showFilters(request):
-    visible = False
-    if request.method == 'POST':
-        if 'togglefiltros' in request.POST:
-            visible = not visible
-    return render(request,'mainIssue.html', {'visible': visible})
 
 def log(request):
     if request.method == 'POST':
