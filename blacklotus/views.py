@@ -1,13 +1,11 @@
 from django.contrib.auth.decorators import login_required
 from django.shortcuts import render, redirect
-from .forms import IssueForm
 from .models import Issue
 from django.shortcuts import render, redirect
-from .forms import IssueForm
 from django.contrib.auth import login as auth_login
 from django.contrib.auth.forms import AuthenticationForm, UserCreationForm, UserChangeForm
 from django.contrib.auth import logout
-from .forms import RegisterForm,EditProfForm
+from .forms import RegisterForm,EditProfForm,IssueForm,AssignedTo
 from django.views import generic
 from django.db.models import Q
 from django.urls import reverse_lazy
@@ -195,14 +193,16 @@ def SeeIssue(request, num):
         del request.session['motive']
     else:
         motive = None
-
     if request.method == 'POST':
         if 'block' in request.POST:
             request.session['bloqued'] = True
             return redirect(BlockIssueForm, id=num)
         elif 'unblock' in request.POST:
             bloqued = False
+        form = AssignedTo(request.POST)
 
+    else:
+        form = AssignedTo()
     issueUpdate = Issue.objects.get(id=num)
     if 'BotonUpdateStatuses' in request.POST:
         if 'status' in request.POST:
@@ -230,13 +230,15 @@ def SeeIssue(request, num):
             lastIssue = Issue.objects.order_by('creationdate').first()
             return redirect(SeeIssue, num=lastIssue.id)
     issue = Issue.objects.filter(id=num).values()
-    return render(request, 'single_issue.html', {'issue':issue,'bloqued':bloqued, 'motive': motive})
+    return render(request, 'single_issue.html', {'issue':issue,'bloqued':bloqued, 'motive': motive,'form':form})
 
 @login_required(login_url='login')
 def EditIssue(request):
     ID = request.session.get('id')
     issue = Issue.objects.filter(id=ID).values()
+
     if 'Update' in request.POST:
+
         issueUpdate = Issue.objects.get(id=request.POST.get("idHidden"))
         if request.POST.get("subject") is not None and len(request.POST.get("subject")) >0:
             issueUpdate.subject = request.POST.get("subject")

@@ -1,5 +1,5 @@
 from django.db import models
-
+from django.contrib.auth.models import User
 # Create your models here.
 
 class Issue(models.Model):
@@ -13,6 +13,7 @@ class Issue(models.Model):
     creationdate = models.DateTimeField(auto_now_add=True)
     modifieddate = models.DateTimeField(auto_now=True)
     objects = models.Manager()
+
 
     def getSubject(self):
         return self.subject
@@ -40,3 +41,6 @@ class Issue(models.Model):
     def __str__(self):
         return self.subject + ' ' + self.description
 
+class AsignedTo(models.Model):
+    username = models.ForeignKey(User, on_delete=models.CASCADE)
+    issue = models.ForeignKey(Issue, on_delete=models.CASCADE)

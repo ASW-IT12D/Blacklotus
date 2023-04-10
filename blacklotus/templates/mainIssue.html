@@ -1,11 +1,6 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>Peticiones</title>
-</head>
+{% extends 'base.html' %}
+{% block content %}
 
-<body class="wallbody">
 	<h1 class="walltitle">Peticiones</h1>
     <th><a href="{% url 'profile' %}"> <p>{{user.username}}</p></a></th>
 
@@ -113,7 +108,7 @@
         <th>
             <form method="get">
             <input type="hidden" name="sort" value="type">
-            <button type="submit" name="direction" value="asc">^</button><br>
+            <button type="submit" name="direction" value="asc" >^</button><br>
             <button type="submit" name="direction" value="desc">v</button>
         </form>
         </th>
@@ -172,5 +167,4 @@
 	</div>
         <th><a href="{% url 'logout' %}">
             <button>logout</button></a></th>
-</body>
-</html>
+{% endblock %}
