@@ -31,9 +31,14 @@
             <p>Description: {{ issue.first.description }}</p>
         </div>
         <br>
-        <div>
-            <p>X Attachments <button>+</button></p>
-        </div>
+        <form action="" method="post" enctype="multipart/form-data">
+            {% csrf_token %}
+            <div class="wallissues">
+                <label>X Attachments</label>
+                <input type="file" id="archivo" name="archivo">
+                <button type="submit" class="btn btn-primary btn-sm">Upload</button>
+            </div>
+        </form>
         <br>
         <div class="">
           <a class="active" href="">X Comments</a>

@@ -125,3 +125,15 @@ STATIC_URL = 'static/'
 # https://docs.djangoproject.com/en/4.1/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+# AWS S3 Settings
+AWS_ACCESS_KEY_ID = 'ASIAUOQ5NQL23JMEWGKJ'
+AWS_SECRET_ACCESS_KEY = 'hUoNdux+V+Xi2AjzTF5hMkAH1QrkuyPahSCXwsY5'
+AWS_STORAGE_BUCKET_NAME = 'blacklotusbucket'
+AWS_S3_REGION_NAME = 'us-east-1'
+AWS_SESSION_TOKEN = 'FwoGZXIvYXdzELb//////////wEaDIK0ZZWIZXNpEtDV/CLXAaTzL57C8M1LS2rgILcQpUk7KmO0CfjaR2jZ+sTDm3gjtoBgGZDhO/nc6gpCRm4KBfc5LkXF+8Ec4ZhAeXjP3sVrJ8hsG8mytc9iZ8oOA4tfHOFCpe3L/O/arfh7DKcDjWVL+y/RIYeAw+x6FTrnpwr7JJYjQAjngsPDgUtaavhr31+YuscrAoJC7ZYCVvgX2UswNTA16uA3W1Ct3vG1nENchVoV1Ovcq5wxUJr/WY8cYHweETGkOoUqrqNpa1KhYKLmzwzVpgJb9SOuSpJ2ciD4Ppg4ME9RKMaR0KEGMi2+rsfyaenHevQ0Tuyj9V14YZR3d3Bw6GMqKZCDVVhFghkKwU5rPFBMkMyzZOQ='
+AWS_S3_CUSTOM_DOMAIN = f'{AWS_STORAGE_BUCKET_NAME}.s3.amazonaws.com'
+AWS_DEFAULT_ACL = None
+AWS_S3_OBJECT_PARAMETERS = {
+    'CacheControl': 'max-age=86400',
+}

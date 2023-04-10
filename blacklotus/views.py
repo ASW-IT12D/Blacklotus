@@ -1,17 +1,12 @@
 from django.contrib.auth.decorators import login_required
+from .models import Issue, Attachments
 from django.shortcuts import render, redirect
-from .forms import IssueForm
-from .models import Issue
-from django.shortcuts import render, redirect
-from .forms import IssueForm
 from django.contrib.auth import login as auth_login
-from django.contrib.auth.forms import AuthenticationForm, UserCreationForm, UserChangeForm
+from django.contrib.auth.forms import AuthenticationForm
 from django.contrib.auth import logout
 from .forms import RegisterForm,EditProfForm
 from django.views import generic
-from django.db.models import Q
 from django.urls import reverse_lazy
-from django.http import HttpResponse
 from django.db.models import Q
 
 # Create your views here.
@@ -54,9 +49,10 @@ def BulkIssue(request):
     return redirect(showIssues)
 
 
+
+
 @login_required(login_url='login')
 def showIssues(request):
-    qs = Issue.objects.all().order_by('-creationdate').filter(creator=request.user.username)
     visible = None
     ref = None
     filtrosF = Q()
@@ -184,6 +180,14 @@ def SeeIssue(request, num):
     else:
         motive = None
 
+    if request.method == "POST":
+        if 'archivo' in request.FILES and request.FILES['archivo']:
+            archivo = request.FILES.get('archivo')
+            if len(archivo) > 0:
+                issueUpdate = Issue.objects.get(id=num)
+                document = Attachments(archivo=archivo,username=request.user.username,issue=issueUpdate)
+                document.save()
+
     if request.method == 'POST':
         if 'block' in request.POST:
             request.session['bloqued'] = True
@@ -281,3 +285,4 @@ class UserEditView(generic.UpdateView):
     success_url = reverse_lazy('home')
     def get_object(self):
         return self.request.user
+

@@ -1,3 +1,6 @@
+from django.core.files.storage import default_storage
+from django.conf import settings
+import boto3
 from django.db import models
 
 # Create your models here.
@@ -40,3 +43,20 @@ class Issue(models.Model):
     def __str__(self):
         return self.subject + ' ' + self.description
 
+class Attachments(models.Model):
+    archivo = models.FileField(upload_to='Attachments/')
+    creado_en = models.DateTimeField(auto_now_add=True)
+    username = models.CharField(max_length=100)
+    issue = models.ForeignKey(Issue, on_delete=models.CASCADE)
+
+    def save(self, *args, **kwargs):
+        s3 = boto3.client('s3',
+                          aws_access_key_id=settings.AWS_ACCESS_KEY_ID,
+                          aws_secret_access_key=settings.AWS_SECRET_ACCESS_KEY,
+                          aws_session_token=settings.AWS_SESSION_TOKEN)
+        nombre_archivo = f"Attachments/{self.archivo.name}"
+        with self.archivo.open('rb') as archivo:
+            contenido = archivo.read()
+        s3.put_object(Body=contenido, Bucket=settings.AWS_STORAGE_BUCKET_NAME, Key=nombre_archivo)
+        self.archivo = nombre_archivo
+        super().save(*args, **kwargs)
