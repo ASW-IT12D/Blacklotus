@@ -56,7 +56,8 @@ def BulkIssue(request):
 
 @login_required(login_url='login')
 def showIssues(request):
-    qs = Issue.objects.all().order_by('-creationdate').filter(creator=request.user.username)
+
+    sort_by = None
     visible = None
     ref = None
     filtrosF = Q()
@@ -69,6 +70,11 @@ def showIssues(request):
     if request.method == 'GET':
         if 'r' in request.GET:
             ref = request.GET.get('r')
+        if 'sort' in request.GET:
+            sort_by = request.GET.get('sort')
+            order = request.GET.get('direction')
+            if order == 'desc':
+                sort_by = '-' + sort_by
 
     if request.method == 'POST':
         if 'clearfiltros' in request.POST:
@@ -154,9 +160,15 @@ def showIssues(request):
             else:
                 filtrosF = filtrosS & filtrosP & filtrosT & filtrosSv & filtrosC
     if ref is not None:
-        qs = Issue.objects.filter(filtrosF).order_by('-creationdate').filter(creator=request.user.username).filter(Q(subject__icontains=ref))
+        if sort_by is not None:
+            qs = Issue.objects.filter(filtrosF).order_by(sort_by).filter(creator=request.user.username).filter(Q(subject__icontains=ref))
+        else:
+            qs = Issue.objects.filter(filtrosF).order_by('-creationdate').filter(creator=request.user.username).filter(Q(subject__icontains=ref))
     else:
-        qs = Issue.objects.filter(filtrosF).order_by('-creationdate').filter(creator=request.user.username)
+        if sort_by is not None:
+            qs = Issue.objects.filter(filtrosF).order_by(sort_by).filter(creator=request.user.username)
+        else:
+            qs = Issue.objects.filter(filtrosF).order_by('-creationdate').filter(creator=request.user.username)
     return render(request, 'mainIssue.html', {'visible': visible,'qs': qs})
     
        
