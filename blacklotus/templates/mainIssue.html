@@ -117,9 +117,15 @@
         <th>Modified</th>
         <th>Assign To</th>
         </tr>
-        {% for c in qs %}
+        {% for issue in qs %}
         <tr>
-        <th><p>{{ c.getMessage }}</p></th>
+        <th><p>{{ issue.getType }}</p></th>
+        <th><p>{{ issue.getSeverity  }}</p></th>
+        <th><p>{{ issue.getPriority}}</p></th>
+        <th><a href = "{% url 'seeIssue' issue.getId%}" target = "_self"><p>{{ issue.getSubject }}</p></a></th>
+        <th><p>{{ issue.getStatus }}</p></th>
+        <th><p>{{ issue.getEditionDate }}</p></th>
+        <th><p>{{ issue.getCreator }}</p></th>
         </tr>
         {% endfor %}
     </table>

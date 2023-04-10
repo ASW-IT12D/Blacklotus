@@ -45,3 +45,12 @@ class Comentario(models.Model):
     issue = models.ForeignKey(Issue, on_delete=models.CASCADE)
     creationDate = models.DateTimeField(auto_now_add=True)
     objects = models.Manager()
+
+    def getCreator(self):
+        return self.creator
+
+    def getMessage(self):
+        return self.message
+
+    def getCreationDate(self):
+        return self.creationDate

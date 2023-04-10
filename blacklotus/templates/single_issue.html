@@ -26,30 +26,8 @@
             </b>
         </form>
         </div>
-        <br>
-        <div>
-            <p>Description: {{ issue.first.description }}</p>
-        </div>
-        <br>
-        <div>
-            <p>X Attachments <button>+</button></p>
-        </div>
-        <br>
-        <div class="">
-          <a class="active" href="">X Comments</a>
-          <a href="">X Activities</a>
-            <br>
-            <div class="">
-                <form method="GET">
-                        <input name="comment" placeholder="Type and comment here" type="text" size=30>
-                        <button type="submit">Guardar</button>
-                </form>
-            </div>
-            <div class="">
-                 {{coments}}
-            </div>
-        </div>
     </th>
+
     <th>
         <form method="post" action="{% url 'seeIssue' issue.first.id%}">
               {% csrf_token %}
@@ -96,9 +74,7 @@
                 {% else %}
                 <option value=7 >Postponed</option>
                 {% endif %}
-
             </select>
-
             <br> <a>Type: </a>
             <select name="type">
                 {% if issue.first.type == 1 %}
@@ -119,7 +95,6 @@
                 <option value=3>Disabled</option>
                 {% endif %}
             </select>
-
             <br> <a>Severity: </a>
             <select name="severity">
                 {% if issue.first.severity == 1 %}
@@ -153,9 +128,8 @@
                 {% endif %}
 
                 </select>
-
-                <br> <a>Priority: </a>
-                <select name="priority">
+            <br> <a>Priority: </a>
+            <select name="priority">
                 {% if issue.first.priority == 1 %}
                 <option value=1 selected disabled>Low</option>
                 {% else %}
@@ -174,7 +148,6 @@
                 <option value=3>High</option>
                 {% endif %}
             </select>
-
             <br>
             <input type="hidden" name="BotonUpdateStatuses" value="Update">
             <button type="submit" class="btn btn-primary btn-sm">Update</button>
@@ -206,8 +179,50 @@
             </form>
             <a href="{% url 'deleteIssue' issue.first.id%}">
             <button> Delete</button></a>
+        </div></th>
+    </tr>
+
+    <tr>
+    <td>
+        <br>
+        <div>
+            <p>Description: {{ issue.first.description }}</p>
         </div>
-    </th>
+        <br>
+        <div>
+            <p>X Attachments <button>+</button></p>
+        </div>
+        <br>
+        <div class="">
+          <a class="active" href="">X Comments</a>
+          <a href="">X Activities</a>
+            <br>
+
+            <div class="">
+                <form method="GET">
+                        <input name="comment" placeholder="Type and comment here" type="text" size=30>
+                        <button type="submit">Guardar</button>
+                </form>
+            </div>
+
+            <div class="">
+                <table>
+                 {%for c in coments%}
+                    <tr>
+                        <th>{{ c.getCreator }}</th>
+                        <th>{{ c.getCreationDate}}</th>
+                    </tr>
+                    <tr>
+                        <th>{{ c.getMessage}}</th>
+                    </tr>
+                 {%endfor%}
+                </table>
+            </div>
+        </div>
+    </td>
+
+
 </tr>
+
 </table>
 {% endblock %}
