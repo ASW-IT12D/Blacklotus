@@ -63,22 +63,4 @@ class Attachments(models.Model):
         self.archivo = nombre_archivo
         super().save(*args, **kwargs)
 
-    def download(self, obj_name):
-        s3 = boto3.client('s3',
-                          aws_access_key_id=settings.AWS_ACCESS_KEY_ID,
-                          aws_secret_access_key=settings.AWS_SECRET_ACCESS_KEY,
-                          aws_session_token=settings.AWS_SESSION_TOKEN)
-        object_name = 'Attachments/'+obj_name
-        # Obtener el nombre del archivo a descargar
-        # Obtener la ruta del archivo actual
-        current_file_path = os.path.abspath(__file__)
-
-        # Obtener la ruta del directorio padre
-        parent_dir_path = os.path.dirname(current_file_path)
-
-        # Obtener la ruta del directorio padre del directorio padre (es decir, la raíz del proyecto)
-        project_dir_path = os.path.dirname(parent_dir_path)
-        file_name = project_dir_path+obj_name
-        # Descargar el archivo desde S3
-        s3.download_file(settings.AWS_STORAGE_BUCKET_NAME, object_name, file_name)
 

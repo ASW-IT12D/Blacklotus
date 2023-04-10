@@ -207,8 +207,7 @@ def SeeIssue(request, num):
                 issueUpdate = Issue.objects.get(id=num)
                 document = Attachments(archivo=archivo,username=request.user.username,issue=issueUpdate)
                 document.save()
-                document.download(archivo.name)
-        if 'Download' in request.POST:
+        elif 'Download' in request.POST:
             option_selected = request.POST.get('option')
             if option_selected is not None:
                 s3 = boto3.client('s3',
@@ -216,10 +215,18 @@ def SeeIssue(request, num):
                                   aws_secret_access_key=settings.AWS_SECRET_ACCESS_KEY,
                                   aws_session_token=settings.AWS_SESSION_TOKEN)
                 object_name = 'Attachments/' + option_selected
+                # Obtener el nombre del archivo a descargar
+                # Obtener la ruta del archivo actual
+                current_file_path = os.path.abspath(__file__)
 
-                file_name = '/home/marc/Descargas/' + option_selected
-
+                # Obtener la ruta del directorio padre
+                parent_dir_path = os.path.dirname(current_file_path)
+                # Obtener la ruta del directorio padre del directorio padre (es decir, la raíz del proyecto)
+                project_dir_path = os.path.dirname(parent_dir_path)
+                file_name = project_dir_path + option_selected
                 s3.download_file(settings.AWS_STORAGE_BUCKET_NAME, object_name, file_name)
+
+
     documents = list_documents()
 
     if request.method == 'POST':
