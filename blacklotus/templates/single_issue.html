@@ -13,7 +13,7 @@
                 <button type="submit" class="btn btn-info btn-sm" name="next"> > </button>
             </h1>
                 <div class="alertbloqued" role="alert" {% if not bloqued %} hidden {%endif%}>
-                    Bloqueada:
+                    Bloqueada: {{motive}}
                 </div>
             <b>
                 <div class="created-by">
@@ -46,7 +46,7 @@
         <form method="post" action="{% url 'seeIssue' issue.first.id%}">
               {% csrf_token %}
         <div class="status">
-            <select name="status" multiple>
+            <select name="status" >
                 {% if issue.first.status == 1 %}
                 <option value=1 selected disabled>New</option>
                 {% else %}
@@ -188,7 +188,7 @@
         <br>
         <div class="Options">
             <button>Deadline</button>
-            <form method="post" name = "bloquearissues">
+            <form method="post" name = "bloquearissues" style = "display: inline-block;">
                 {% csrf_token %}
                 {% if bloqued %}
                     <input type="submit" name="unblock" value="Unblock">
