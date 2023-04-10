@@ -1,6 +1,7 @@
 from django.contrib.auth.decorators import login_required
 from django.shortcuts import render, redirect
 from .models import Issue
+from django.contrib.auth.models import User
 from django.shortcuts import render, redirect
 from django.contrib.auth import login as auth_login
 from django.contrib.auth.forms import AuthenticationForm, UserCreationForm, UserChangeForm
@@ -182,7 +183,7 @@ def BlockIssueForm(request, id):
 
 @login_required(login_url='login')
 def SeeIssue(request, num):
-
+    form = AssignedTo()
     if 'bloqued' in request.session:
         bloqued = request.session['bloqued']
         del request.session['bloqued']
@@ -200,12 +201,17 @@ def SeeIssue(request, num):
             return redirect(BlockIssueForm, id=num)
         elif 'unblock' in request.POST:
             bloqued = False
-        form = AssignedTo(request.POST)
-        if form.is_valid():
-            form.save()
+        elif 'BotonUpdateAsign' in request.POST:
 
-    else:
-        form = AssignedTo()
+            formN = AssignedTo(request.POST)
+            if formN.is_valid():
+                names = formN.cleaned_data['asignedTo']
+                aux = Issue.objects.get(id=num)
+                listUsernames = list(names.values_list('username', flat=True))
+                auxU = User.objects.filter(username__in=listUsernames)
+                aux.asignedTo.set(auxU)
+                aux.save()
+
     issueUpdate = Issue.objects.get(id=num)
     if 'BotonUpdateStatuses' in request.POST:
         if 'status' in request.POST:
