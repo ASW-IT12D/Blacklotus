@@ -12,6 +12,9 @@
                 <button type="submit" class="btn btn-info btn-sm" name="previous"><</button>
                 <button type="submit" class="btn btn-info btn-sm" name="next"> > </button>
             </h1>
+                <div class="alertbloqued" role="alert" {% if not bloqued %} hidden {%endif%}>
+                    Bloqueada: {{motive}}
+                </div>
             <b>
                 <div class="created-by">
                     <a>Created by {{ issue.first.creator }}</a>
@@ -28,9 +31,27 @@
             <p>Description: {{ issue.first.description }}</p>
         </div>
         <br>
-        <div>
-            <p>X Attachments <button>+</button></p>
-        </div>
+        <form action="" method="post" enctype="multipart/form-data">
+            {% csrf_token %}
+            <div class="wallissues">
+                <label>{{ documents|length }} Attachments</label>
+                <input type="file" id="archivo" name="archivo">
+                <button type="submit" class="btn btn-primary btn-sm">Upload</button>
+            </div>
+            <div>
+              <ul>
+                {% for document in documents %}
+                     <label>
+                    <input type="radio" name="option" value= "{{ document }}">
+                    {{ document }}
+                  </label>
+                  <br>
+                {% endfor %}
+                </ul>
+                <button name ="Download" type="submit" class="btn btn-primary btn-sm" value="dw">Download</button>
+                <button name ="Delete" type="submit" class="btn btn-primary btn-sm" value="dl">Delete</button>
+            </div>
+        </form>
         <br>
         <div class="">
           <a class="active" href="">X Comments</a>
@@ -43,7 +64,7 @@
         <form method="post" action="{% url 'seeIssue' issue.first.id%}">
               {% csrf_token %}
         <div class="status">
-            <select name="status">
+            <select name="status" >
                 {% if issue.first.status == 1 %}
                 <option value=1 selected disabled>New</option>
                 {% else %}
@@ -185,7 +206,14 @@
         <br>
         <div class="Options">
             <button>Deadline</button>
-            <button>Block</button>
+            <form method="post" name = "bloquearissues" style = "display: inline-block;">
+                {% csrf_token %}
+                {% if bloqued %}
+                    <input type="submit" name="unblock" value="Unblock">
+                {%else%}
+                    <input type="submit" name="block" value="Block">
+                {%endif%}
+            </form>
             <a href="{% url 'deleteIssue' issue.first.id%}">
             <button> Delete</button></a>
         </div>

@@ -1,19 +1,27 @@
+import os
 
-
-from django.shortcuts import render, redirect
 from django.contrib.auth.decorators import login_required
-from .models import Issue
+from .models import Issue, Attachments
 from django.shortcuts import render, redirect
-from .forms import IssueForm
 from django.contrib.auth import login as auth_login
-from django.contrib.auth.forms import AuthenticationForm, UserCreationForm, UserChangeForm
+from django.contrib.auth.forms import AuthenticationForm
 from django.contrib.auth import logout
 from .forms import RegisterForm,EditProfForm
 from django.views import generic
 from django.urls import reverse_lazy
+from django.db.models import Q
+import boto3
+from django.conf import settings
+
+# Create your views here.
+
 @login_required(login_url='login')
 def CreateIssueForm(request):
     return render(request, 'newissue.html')
+    
+@login_required(login_url='login')
+def BulkIssueForm(request):
+    return render(request, 'bulkissue.html')
 
 @login_required(login_url='login')
 def CreateIssue(request):
@@ -27,13 +35,215 @@ def CreateIssue(request):
         i = Issue(subject=sub, description=des, creator=request.user.username, status=status, type=type, severity=severity, priority=priority)
         i.save()
     return redirect(showIssues)
+
+@login_required(login_url='login')
+def BulkIssue(request):
+    if len(request.POST.get("issues")) > 0:
+        textarea_input = request.POST['issues']
+        lines = textarea_input.split('\n')
+        for line in lines:
+            sub = line
+            des = ""
+            type = 1
+            severity = 1
+            priority = 1
+            status = 1
+            i = Issue(subject=sub, description=des, creator=request.user.username, status=status, type=type, severity=severity, priority=priority)
+            i.save()
+    return redirect(showIssues)
+
+
+
+
 @login_required(login_url='login')
 def showIssues(request):
-    qs = Issue.objects.all().order_by('-creationdate').filter(creator=request.user.username)
-    return render(request, 'mainIssue.html', {'qs': qs})
+    visible = None
+    ref = None
+    filtrosF = Q()
+    filtrosstatus = []
+    filtrospriority = []
+    filtrostype = []
+    filtrosseverity = []
+    filtroscreator = []
+
+    if request.method == 'GET':
+        if 'r' in request.GET:
+            ref = request.GET.get('r')
+
+    if request.method == 'POST':
+        if 'clearfiltros' in request.POST:
+            filtros = []
+            request.session['filtros_status'] = filtros
+            request.session['filtros_priority'] = filtros
+            request.session['filtros_type'] = filtros
+            request.session['filtros_severity'] = filtros
+            request.session['filtros_creator'] = filtros
+        if 'ocultarfiltros' in request.POST:
+            visible = False
+        elif 'mostrarfiltros' in request.POST:
+            visible = True
+        if 'updatefiltros' in request.POST or ('filtros_status' in request.session or 'filtros_creator' in request.session or 'filtros_severity' in request.session or 'filtros_priority' in request.session or 'filtros_type' in request.session):
+            if 'filtros_status' not in request.session and 'filtros_creator' not in request.session and 'filtros_severity' not in request.session and 'filtros_priority' not in request.session and 'filtros_type' not in request.session:
+                filtrosS = Q()
+                filtrosP = Q()
+                filtrosT = Q()
+                filtrosSv = Q()
+                filtrosC = Q()
+            else:
+                filtrosS = Q()
+                filtrosP = Q()
+                filtrosT = Q()
+                filtrosSv = Q()
+                filtrosC = Q()
+
+                if'filtros_status' in request.session:
+                    filtrosstatus = request.session["filtros_status"]
+                    for filtro in filtrosstatus:
+                        filtrosS = Q(status=filtro) | filtrosS
+
+                if 'filtros_priority' in request.session:
+                    filtrospriority = request.session["filtros_priority"]
+                    for filtro in filtrospriority:
+                        filtrosP = Q(priority=filtro) | filtrosP
+
+                if 'filtros_type' in request.session:
+                    filtrostype = request.session["filtros_type"]
+                    for filtro in filtrostype:
+                        filtrosT = Q(type=filtro) | filtrosT
+
+                if 'filtros_severity' in request.session:
+                    filtrosseverity = request.session["filtros_severity"]
+                    for filtro in filtrosseverity:
+                        filtrosSv = Q(severity=filtro) | filtrosSv
+
+                if 'filtros_creator' in request.session:
+                    filtroscreator = request.session["filtros_creator"]
+                    for filtro in filtroscreator:
+                        filtrosC = Q(creator=filtro) | filtrosC
+
+
+            for filtro in request.POST.getlist("status"):
+                filtrosS = Q(status=filtro) | filtrosS
+                filtrosstatus.append(filtro)
+
+            for filtro in request.POST.getlist("priority"):
+                filtrosP = Q(priority=filtro) | filtrosP
+                filtrospriority.append(filtro)
+
+            for filtro in request.POST.getlist("type"):
+                filtrosT = Q(type=filtro) | filtrosT
+                filtrostype.append(filtro)
+
+            for filtro in request.POST.getlist("severity"):
+                filtrosSv = Q(severity=filtro) | filtrosSv
+                filtrosseverity.append(filtro)
+
+            for filtro in request.POST.getlist("creator"):
+                filtrosC = Q(creator=filtro) | filtrosC
+                filtroscreator.append(filtro)
+
+            request.session['filtros_status'] = filtrosstatus
+            request.session['filtros_priority'] = filtrospriority
+            request.session['filtros_type'] = filtrostype
+            request.session['filtros_severity'] = filtrosseverity
+            request.session['filtros_creator'] = filtroscreator
+
+
+            if 'flexRadioInclude' in request.POST:
+                filtrosF = filtrosS | filtrosP | filtrosT | filtrosSv | filtrosC
+            else:
+                filtrosF = filtrosS & filtrosP & filtrosT & filtrosSv & filtrosC
+    if ref is not None:
+        qs = Issue.objects.filter(filtrosF).order_by('-creationdate').filter(creator=request.user.username).filter(Q(subject__icontains=ref))
+    else:
+        qs = Issue.objects.filter(filtrosF).order_by('-creationdate').filter(creator=request.user.username)
+    return render(request, 'mainIssue.html', {'visible': visible,'qs': qs})
+    
+       
+@login_required(login_url='login')
+def BlockIssueForm(request, id):
+    if request.method == 'POST':
+        if len(request.POST.get("motive")) > 0:
+            textarea_input = request.POST['motive']
+            request.session['motive'] = textarea_input
+            return redirect(SeeIssue, num=id)
+    return render(request, 'blockissue.html')
+
+def list_documents():
+    s3 = boto3.client('s3',
+                      aws_access_key_id=settings.AWS_ACCESS_KEY_ID,
+                      aws_secret_access_key=settings.AWS_SECRET_ACCESS_KEY,
+                      aws_session_token=settings.AWS_SESSION_TOKEN)
+    bucket_name = settings.AWS_STORAGE_BUCKET_NAME
+    prefix = 'Attachments/'
+    response = s3.list_objects_v2(Bucket=bucket_name, Prefix=prefix)
+    documents = []
+    for content in response.get('Contents', []):
+        if content.get("Key") != 'Attachments/':
+            url = f"{content['Key']}"
+            url = url.replace("Attachments/", "")
+            documents.append(url)
+    return documents
+
 
 @login_required(login_url='login')
 def SeeIssue(request, num):
+    if 'bloqued' in request.session:
+        bloqued = request.session['bloqued']
+        del request.session['bloqued']
+    else:
+        bloqued = None
+
+    if 'motive' in request.session:
+        motive = request.session['motive']
+        del request.session['motive']
+    else:
+        motive = None
+
+    if request.method == "POST":
+        if 'archivo' in request.FILES and request.FILES['archivo']:
+            archivo = request.FILES.get('archivo')
+            if len(archivo) > 0:
+                issueUpdate = Issue.objects.get(id=num)
+                document = Attachments(archivo=archivo,username=request.user.username,issue=issueUpdate)
+                document.save()
+        elif 'Download' in request.POST:
+            option_selected = request.POST.get('option')
+            if option_selected is not None:
+                s3 = boto3.client('s3',
+                                  aws_access_key_id=settings.AWS_ACCESS_KEY_ID,
+                                  aws_secret_access_key=settings.AWS_SECRET_ACCESS_KEY,
+                                  aws_session_token=settings.AWS_SESSION_TOKEN)
+                object_name = 'Attachments/' + option_selected
+                # Obtener el nombre del archivo a descargar
+                # Obtener la ruta del archivo actual
+                current_file_path = os.path.abspath(__file__)
+
+                # Obtener la ruta del directorio padre
+                parent_dir_path = os.path.dirname(current_file_path)
+                # Obtener la ruta del directorio padre del directorio padre (es decir, la raíz del proyecto)
+                project_dir_path = os.path.dirname(parent_dir_path)
+                file_name = project_dir_path + '/Attachments/'+option_selected
+                s3.download_file(settings.AWS_STORAGE_BUCKET_NAME, object_name, file_name)
+
+        elif 'Delete' in request.POST:
+            option_selected = request.POST.get('option')
+            if option_selected is not None:
+                s3 = boto3.client('s3',
+                                  aws_access_key_id=settings.AWS_ACCESS_KEY_ID,
+                                  aws_secret_access_key=settings.AWS_SECRET_ACCESS_KEY,
+                                  aws_session_token=settings.AWS_SESSION_TOKEN)
+                object_name = 'Attachments/' + option_selected
+                response = s3.delete_object(Bucket=settings.AWS_STORAGE_BUCKET_NAME, Key=object_name)
+    documents = list_documents()
+
+    if request.method == 'POST':
+        if 'block' in request.POST:
+            request.session['bloqued'] = True
+            return redirect(BlockIssueForm, id=num)
+        elif 'unblock' in request.POST:
+            bloqued = False
+
     issueUpdate = Issue.objects.get(id=num)
     if 'BotonUpdateStatuses' in request.POST:
         if 'status' in request.POST:
@@ -61,7 +271,7 @@ def SeeIssue(request, num):
             lastIssue = Issue.objects.order_by('creationdate').first()
             return redirect(SeeIssue, num=lastIssue.id)
     issue = Issue.objects.filter(id=num).values()
-    return render(request, 'single_issue.html', {'issue' :issue})
+    return render(request, 'single_issue.html', {'issue':issue,'bloqued':bloqued, 'motive': motive, 'documents':documents})
 
 @login_required(login_url='login')
 def EditIssue(request):
@@ -83,14 +293,6 @@ def DeleteIssue(request, id):
     issue = Issue.objects.get(id=id)
     issue.delete()
     return redirect(showIssues)
-
-@login_required(login_url='login')
-def showFilters(request):
-    visible = False
-    if request.method == 'POST':
-        if 'togglefiltros' in request.POST:
-            visible = not visible
-    return render(request,'mainIssue.html', {'visible': visible})
 
 def log(request):
     if request.method == 'POST':
@@ -132,3 +334,4 @@ class UserEditView(generic.UpdateView):
     success_url = reverse_lazy('home')
     def get_object(self):
         return self.request.user
+

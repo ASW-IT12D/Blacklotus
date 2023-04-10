@@ -4,9 +4,12 @@ from .views import UserEditView
 #URLConf
 urlpatterns = [
     path('newissue/', views.CreateIssueForm, name="newIssue"),
+    path('bulkissue/', views.BulkIssueForm, name="bulkIssue"),
+    path('<int:id>/blockissue/', views.BlockIssueForm, name="blockIssue"),
     path('showIssues/', views.showIssues,name='home'),
     path('delete/<int:id>', views.DeleteIssue, name="deleteIssue"),
     path('newissue/new/', views.CreateIssue),
+    path('bulkissue/new/', views.BulkIssue),
     path('<int:num>/', views.SeeIssue, name="seeIssue"),
     path('register/', views.join, name='register'),
     path('',views.log, name = 'login'),
