@@ -1,5 +1,5 @@
 from django.db import models
-
+from django.contrib.auth.models import User
 # Create your models here.
 
 class Issue(models.Model):
@@ -13,6 +13,7 @@ class Issue(models.Model):
     creationdate = models.DateTimeField(auto_now_add=True)
     modifieddate = models.DateTimeField(auto_now=True)
     objects = models.Manager()
+    asignedTo = models.ManyToManyField(User,blank=True)
 
     def getSubject(self):
         return self.subject
@@ -20,7 +21,8 @@ class Issue(models.Model):
         return self.description
     def getCreator(self):
         return self.creator
-
+    def getAsignedTo(self):
+        return self.asignedTo
     def getStatus(self):
         return self.status
 
@@ -39,4 +41,3 @@ class Issue(models.Model):
         return self.creationdate
     def __str__(self):
         return self.subject + ' ' + self.description
-

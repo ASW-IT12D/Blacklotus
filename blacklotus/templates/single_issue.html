@@ -43,7 +43,7 @@
         </div>
     </th>
     <th>
-        <form method="post" action="{% url 'seeIssue' issue.first.id%}">
+        <form id="form1" method="post" action="{% url 'seeIssue' issue.first.id%}">
               {% csrf_token %}
         <div class="status">
             <select name="status" >
@@ -166,17 +166,28 @@
                 <option value=3>High</option>
                 {% endif %}
             </select>
-
             <br>
             <input type="hidden" name="BotonUpdateStatuses" value="Update">
             <button type="submit" class="btn btn-primary btn-sm">Update</button>
         </div>
         </form>
+        <form id="form2" method="post">
+            {% csrf_token %}
+            <div class="Asign to">
+                <br>
+                {{ form.as_p }}
+            </div>
+            <input type="hidden" name="BotonUpdateAsign" value="UpdateAsign">
+            <button type="submit" class="btn btn-primary btn-sm">Asign</button>
+        </form>
+
         <br>
-        <div class="Asigned">
-            <a>Assigned</a>
-            <br>
-            <button>+ Add assigned</button>
+        <div class="Assigned to">
+
+            <p>Asigned To:</p>
+            {% for us in asignedTo %}
+                <p>{{ us }}</p>
+            {% endfor %}
         </div>
         <br>
         <div class="Watchers">

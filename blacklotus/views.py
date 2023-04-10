@@ -1,13 +1,12 @@
 from django.contrib.auth.decorators import login_required
 from django.shortcuts import render, redirect
-from .forms import IssueForm
 from .models import Issue
+from django.contrib.auth.models import User
 from django.shortcuts import render, redirect
-from .forms import IssueForm
 from django.contrib.auth import login as auth_login
 from django.contrib.auth.forms import AuthenticationForm, UserCreationForm, UserChangeForm
 from django.contrib.auth import logout
-from .forms import RegisterForm,EditProfForm
+from .forms import RegisterForm,EditProfForm,IssueForm,AssignedTo
 from django.views import generic
 from django.db.models import Q
 from django.urls import reverse_lazy
@@ -184,6 +183,7 @@ def BlockIssueForm(request, id):
 
 @login_required(login_url='login')
 def SeeIssue(request, num):
+    form = AssignedTo()
     if 'bloqued' in request.session:
         bloqued = request.session['bloqued']
         del request.session['bloqued']
@@ -195,13 +195,22 @@ def SeeIssue(request, num):
         del request.session['motive']
     else:
         motive = None
-
     if request.method == 'POST':
         if 'block' in request.POST:
             request.session['bloqued'] = True
             return redirect(BlockIssueForm, id=num)
         elif 'unblock' in request.POST:
             bloqued = False
+        elif 'BotonUpdateAsign' in request.POST:
+
+            formN = AssignedTo(request.POST)
+            if formN.is_valid():
+                names = formN.cleaned_data['asignedTo']
+                aux = Issue.objects.get(id=num)
+                listUsernames = list(names.values_list('username', flat=True))
+                auxU = User.objects.filter(username__in=listUsernames)
+                aux.asignedTo.set(auxU)
+                aux.save()
 
     issueUpdate = Issue.objects.get(id=num)
     if 'BotonUpdateStatuses' in request.POST:
@@ -230,7 +239,9 @@ def SeeIssue(request, num):
             lastIssue = Issue.objects.order_by('creationdate').first()
             return redirect(SeeIssue, num=lastIssue.id)
     issue = Issue.objects.filter(id=num).values()
-    return render(request, 'single_issue.html', {'issue':issue,'bloqued':bloqued, 'motive': motive})
+    instance = Issue.objects.get(id=num)
+    asignedTo = instance.asignedTo.all()
+    return render(request, 'single_issue.html', {'issue':issue,'bloqued':bloqued, 'motive': motive,'form':form,'asignedTo':asignedTo})
 
 @login_required(login_url='login')
 def EditIssue(request):
