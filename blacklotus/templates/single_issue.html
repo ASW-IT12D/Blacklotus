@@ -34,9 +34,21 @@
         <form action="" method="post" enctype="multipart/form-data">
             {% csrf_token %}
             <div class="wallissues">
-                <label>X Attachments</label>
+                <label>{{ documents|length }} Attachments</label>
                 <input type="file" id="archivo" name="archivo">
                 <button type="submit" class="btn btn-primary btn-sm">Upload</button>
+            </div>
+            <div>
+              <ul>
+                {% for document in documents %}
+                     <label>
+                    <input type="radio" name="option" value= "{{ document }}">
+                    {{ document }}
+                  </label>
+                  <br>
+                {% endfor %}
+                </ul>
+                <button name ="Download" type="submit" class="btn btn-primary btn-sm" value="dw">Download</button>
             </div>
         </form>
         <br>
