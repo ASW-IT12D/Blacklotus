@@ -5,6 +5,7 @@ from .views import UserEditView
 urlpatterns = [
     path('newissue/', views.CreateIssueForm, name="newIssue"),
     path('bulkissue/', views.BulkIssueForm, name="bulkIssue"),
+    path('<int:id>/blockissue/', views.BlockIssueForm, name="blockIssue"),
     path('showIssues/', views.showIssues,name='home'),
     path('delete/<int:id>', views.DeleteIssue, name="deleteIssue"),
     path('newissue/new/', views.CreateIssue),

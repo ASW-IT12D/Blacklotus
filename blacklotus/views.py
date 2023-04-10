@@ -160,13 +160,34 @@ def showIssues(request):
     return render(request, 'mainIssue.html', {'visible': visible,'qs': qs})
     
        
+@login_required(login_url='login')
+def BlockIssueForm(request, id):
+    if request.method == 'POST':
+        if len(request.POST.get("motive")) > 0:
+            textarea_input = request.POST['motive']
+            request.session['motive'] = textarea_input
+            return redirect(SeeIssue, num=id)
+    return render(request, 'blockissue.html')
+
 
 @login_required(login_url='login')
 def SeeIssue(request, num):
-    bloqued = None
+    if 'bloqued' in request.session:
+        bloqued = request.session['bloqued']
+        del request.session['bloqued']
+    else:
+        bloqued = None
+
+    if 'motive' in request.session:
+        motive = request.session['motive']
+        del request.session['motive']
+    else:
+        motive = None
+
     if request.method == 'POST':
         if 'block' in request.POST:
-            bloqued = True
+            request.session['bloqued'] = True
+            return redirect(BlockIssueForm, id=num)
         elif 'unblock' in request.POST:
             bloqued = False
 
@@ -197,7 +218,7 @@ def SeeIssue(request, num):
             lastIssue = Issue.objects.order_by('creationdate').first()
             return redirect(SeeIssue, num=lastIssue.id)
     issue = Issue.objects.filter(id=num).values()
-    return render(request, 'single_issue.html', {'issue' : issue,'bloqued' : bloqued})
+    return render(request, 'single_issue.html', {'issue':issue,'bloqued':bloqued, 'motive': motive})
 
 @login_required(login_url='login')
 def EditIssue(request):
