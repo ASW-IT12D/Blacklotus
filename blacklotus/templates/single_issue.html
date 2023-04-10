@@ -173,9 +173,15 @@
         </div>
         </form>
         <br>
-        <div class="Asigned">
+        <div class="Asign to">
             <br>
             {{ form.as_p }}
+        </div>
+        <div class="Assigned to">
+            <p>Asigned To:</p>
+            {% for us in asignedTo %}
+                <p>{{ us }}</p>
+            {% endfor %}
         </div>
         <br>
         <div class="Watchers">

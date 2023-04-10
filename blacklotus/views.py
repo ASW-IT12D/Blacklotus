@@ -182,6 +182,7 @@ def BlockIssueForm(request, id):
 
 @login_required(login_url='login')
 def SeeIssue(request, num):
+
     if 'bloqued' in request.session:
         bloqued = request.session['bloqued']
         del request.session['bloqued']
@@ -200,6 +201,8 @@ def SeeIssue(request, num):
         elif 'unblock' in request.POST:
             bloqued = False
         form = AssignedTo(request.POST)
+        if form.is_valid():
+            form.save()
 
     else:
         form = AssignedTo()
@@ -230,15 +233,15 @@ def SeeIssue(request, num):
             lastIssue = Issue.objects.order_by('creationdate').first()
             return redirect(SeeIssue, num=lastIssue.id)
     issue = Issue.objects.filter(id=num).values()
-    return render(request, 'single_issue.html', {'issue':issue,'bloqued':bloqued, 'motive': motive,'form':form})
+    instance = Issue.objects.get(id=num)
+    asignedTo = instance.asignedTo.all()
+    return render(request, 'single_issue.html', {'issue':issue,'bloqued':bloqued, 'motive': motive,'form':form,'asignedTo':asignedTo})
 
 @login_required(login_url='login')
 def EditIssue(request):
     ID = request.session.get('id')
     issue = Issue.objects.filter(id=ID).values()
-
     if 'Update' in request.POST:
-
         issueUpdate = Issue.objects.get(id=request.POST.get("idHidden"))
         if request.POST.get("subject") is not None and len(request.POST.get("subject")) >0:
             issueUpdate.subject = request.POST.get("subject")
