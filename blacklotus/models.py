@@ -1,3 +1,5 @@
+import os
+
 from django.core.files.storage import default_storage
 from django.conf import settings
 import boto3
@@ -60,3 +62,5 @@ class Attachments(models.Model):
         s3.put_object(Body=contenido, Bucket=settings.AWS_STORAGE_BUCKET_NAME, Key=nombre_archivo)
         self.archivo = nombre_archivo
         super().save(*args, **kwargs)
+
+

@@ -1,3 +1,5 @@
+import os
+
 from django.contrib.auth.decorators import login_required
 from .models import Issue, Attachments
 from django.shortcuts import render, redirect
@@ -8,6 +10,8 @@ from .forms import RegisterForm,EditProfForm
 from django.views import generic
 from django.urls import reverse_lazy
 from django.db.models import Q
+import boto3
+from django.conf import settings
 
 # Create your views here.
 
@@ -165,6 +169,22 @@ def BlockIssueForm(request, id):
             return redirect(SeeIssue, num=id)
     return render(request, 'blockissue.html')
 
+def list_documents():
+    s3 = boto3.client('s3',
+                      aws_access_key_id=settings.AWS_ACCESS_KEY_ID,
+                      aws_secret_access_key=settings.AWS_SECRET_ACCESS_KEY,
+                      aws_session_token=settings.AWS_SESSION_TOKEN)
+    bucket_name = settings.AWS_STORAGE_BUCKET_NAME
+    prefix = 'Attachments/'
+    response = s3.list_objects_v2(Bucket=bucket_name, Prefix=prefix)
+    documents = []
+    for content in response.get('Contents', []):
+        if content.get("Key") != 'Attachments/':
+            url = f"{content['Key']}"
+            url = url.replace("Attachments/", "")
+            documents.append(url)
+    return documents
+
 
 @login_required(login_url='login')
 def SeeIssue(request, num):
@@ -187,6 +207,35 @@ def SeeIssue(request, num):
                 issueUpdate = Issue.objects.get(id=num)
                 document = Attachments(archivo=archivo,username=request.user.username,issue=issueUpdate)
                 document.save()
+        elif 'Download' in request.POST:
+            option_selected = request.POST.get('option')
+            if option_selected is not None:
+                s3 = boto3.client('s3',
+                                  aws_access_key_id=settings.AWS_ACCESS_KEY_ID,
+                                  aws_secret_access_key=settings.AWS_SECRET_ACCESS_KEY,
+                                  aws_session_token=settings.AWS_SESSION_TOKEN)
+                object_name = 'Attachments/' + option_selected
+                # Obtener el nombre del archivo a descargar
+                # Obtener la ruta del archivo actual
+                current_file_path = os.path.abspath(__file__)
+
+                # Obtener la ruta del directorio padre
+                parent_dir_path = os.path.dirname(current_file_path)
+                # Obtener la ruta del directorio padre del directorio padre (es decir, la raíz del proyecto)
+                project_dir_path = os.path.dirname(parent_dir_path)
+                file_name = project_dir_path + '/Attachments/'+option_selected
+                s3.download_file(settings.AWS_STORAGE_BUCKET_NAME, object_name, file_name)
+
+        elif 'Delete' in request.POST:
+            option_selected = request.POST.get('option')
+            if option_selected is not None:
+                s3 = boto3.client('s3',
+                                  aws_access_key_id=settings.AWS_ACCESS_KEY_ID,
+                                  aws_secret_access_key=settings.AWS_SECRET_ACCESS_KEY,
+                                  aws_session_token=settings.AWS_SESSION_TOKEN)
+                object_name = 'Attachments/' + option_selected
+                response = s3.delete_object(Bucket=settings.AWS_STORAGE_BUCKET_NAME, Key=object_name)
+    documents = list_documents()
 
     if request.method == 'POST':
         if 'block' in request.POST:
@@ -222,7 +271,7 @@ def SeeIssue(request, num):
             lastIssue = Issue.objects.order_by('creationdate').first()
             return redirect(SeeIssue, num=lastIssue.id)
     issue = Issue.objects.filter(id=num).values()
-    return render(request, 'single_issue.html', {'issue':issue,'bloqued':bloqued, 'motive': motive})
+    return render(request, 'single_issue.html', {'issue':issue,'bloqued':bloqued, 'motive': motive, 'documents':documents})
 
 @login_required(login_url='login')
 def EditIssue(request):
