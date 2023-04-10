@@ -188,7 +188,7 @@
         <br>
         <div class="Options">
             <button>Deadline</button>
-            <form method="post" name = "bloquearissues">
+            <form method="post" name = "bloquearissues" style = "display: inline-block;">
                 {% csrf_token %}
                 {% if bloqued %}
                     <input type="submit" name="unblock" value="Unblock">
