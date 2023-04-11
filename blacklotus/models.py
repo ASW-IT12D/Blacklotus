@@ -1,10 +1,13 @@
 import os
 
+from django.core.files.base import ContentFile
 from django.core.files.storage import default_storage
 from django.conf import settings
 import boto3
 from django.db import models
 from django.contrib.auth.models import User
+from django.db.models.signals import post_save
+from django.dispatch import receiver
 # Create your models here.
 
 class Issue(models.Model):
@@ -59,6 +62,10 @@ class Issue(models.Model):
     def __str__(self):
         return self.subject + ' ' + self.description
 
+@receiver(post_save, sender=User)
+def create_profile(sender, instance, created, **kwargs):
+    if created:
+        Profile.objects.create(user=instance)
 class Activity(models.Model):
     creationdate = models.DateTimeField(auto_now_add=True)
     field = models.CharField(max_length=100)
@@ -121,5 +128,26 @@ class Comentario(models.Model):
 class Profile(models.Model):
     user = models.OneToOneField(User,null = True,on_delete=models.CASCADE)
     bio = models.TextField()
+    image = models.ImageField(upload_to='Images/')
+    objects = models.Manager()
+
     def __str__(self):
         return str(self.user)
+
+    def saveImage(self, *args, **kwargs):
+        s3 = boto3.client('s3',
+                          aws_access_key_id=settings.AWS_ACCESS_KEY_ID,
+                          aws_secret_access_key=settings.AWS_SECRET_ACCESS_KEY,
+                          aws_session_token=settings.AWS_SESSION_TOKEN)
+        nombre_archivo = f"Images/{self.image.name}"
+        with self.image.open('rb') as archivo:
+            contenido = archivo.read()
+        s3.put_object(Body=contenido, Bucket=settings.AWS_STORAGE_BUCKET_NAME, Key=nombre_archivo)
+
+        # Crea un archivo temporal en memoria
+        archivo_temp = ContentFile(contenido)
+        # Asigna el archivo temporal al campo ImageField
+        self.image.save(nombre_archivo, archivo_temp, save=False)
+
+        super().save(*args, **kwargs)
+
