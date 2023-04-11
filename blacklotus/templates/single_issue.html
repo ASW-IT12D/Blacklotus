@@ -19,6 +19,9 @@
                 <div class="created-by">
                     <a>Created by {{ issue.first.creator }}</a>
                     <div class="creatinDate">{{ issue.first.creationdate }}</div>
+                    {% if issue.first.deadlinedate %}
+                    <div class="deadlineDate">Deadline: {{ issue.first.deadlinedate|date:"F j, Y" }}</div>
+                    {%endif%}
                 </div>
                 <div>
                     <a><img src="https://cdn.pixabay.com/photo/2015/04/23/22/00/tree-736885__480.jpg" alt="Italian Trulli" style="width:50px;height:50px;"></a>
@@ -187,17 +190,17 @@
         </div>
         <br>
         <div class="Options">
-            <a href="{% url 'deadline' issue.first.id %}">
-                <button>Deadline</button>
-            </a>
-            <form method="post" name = "bloquearissues" style = "display: inline-block;">
-                {% csrf_token %}
+           <form method="post" name = "bloquearissues" style = "display: inline-block;">
+               {% csrf_token %}
+                <input type="hidden" name="deadline" value="deadline">
+                    <button type="submit">Deadline</button>
                 {% if bloqued %}
                     <input type="submit" name="unblock" value="Unblock">
                 {%else%}
                     <input type="submit" name="block" value="Block">
                 {%endif%}
             </form>
+
             <a href="{% url 'deleteIssue' issue.first.id%}">
             <button> Delete</button></a>
         </div>

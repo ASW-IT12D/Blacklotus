@@ -200,7 +200,8 @@ def SeeIssue(request, num):
             return redirect(BlockIssueForm, id=num)
         elif 'unblock' in request.POST:
             bloqued = False
-
+        elif 'deadline' in request.POST:
+            return redirect(deadLineForm, id=num)
     issueUpdate = Issue.objects.get(id=num)
     if 'BotonUpdateStatuses' in request.POST:
         if 'status' in request.POST:
@@ -297,8 +298,8 @@ def deadLineForm(request, id):
     current_year = datetime.now().year
 
     days = [str(day) for day in range (1, 32)]
-    months = ["Enero", 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio',
-              'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre']
+    months = ['January', 'February', 'March', 'April', 'May', 'June',
+              'July', 'August', 'September', 'October', 'November', 'December']
     years = [str(year) for year in range (current_year, current_year + 10)]
 
     context = {
