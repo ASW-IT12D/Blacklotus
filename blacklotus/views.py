@@ -216,8 +216,18 @@ def SeeIssue(request, num):
         del request.session['motive']
     else:
         motive = None
+    if 'commentsOn' in request.session:
+        commentsOn = request.session['commentsOn']
+    else:
+        commentsOn = True
 
     if request.method == "POST":
+        if 'comments' in request.POST:
+            request.session['commentsOn'] = True
+            commentsOn = True
+        elif 'activity' in request.POST:
+            request.session['commentsOn'] = False
+            commentsOn = False
         if 'archivo' in request.FILES and request.FILES['archivo']:
             archivo = request.FILES.get('archivo')
             if len(archivo) > 0:
@@ -261,7 +271,6 @@ def SeeIssue(request, num):
         elif 'unblock' in request.POST:
             bloqued = False
         elif 'BotonUpdateAsign' in request.POST:
-
             formN = AssignedTo(request.POST)
             if formN.is_valid():
                 names = formN.cleaned_data['asignedTo']
@@ -327,7 +336,7 @@ def SeeIssue(request, num):
 
     instance = Issue.objects.get(id=num)
     asignedTo = instance.asignedTo.all()
-    return render(request, 'single_issue.html', {'issue':issue,'bloqued':bloqued, 'motive': motive,'form':form,'asignedTo':asignedTo, 'coments': coments})
+    return render(request, 'single_issue.html', {'issue':issue,'bloqued':bloqued, 'motive': motive,'form':form,'asignedTo':asignedTo, 'coments': coments, 'activity':activity, 'commentsOn': commentsOn,'documents':documents})
 
 
 @login_required(login_url='login')
