@@ -227,7 +227,7 @@
                     {% csrf_token %}
                     {% if issue.first.blocked %}
                     <input type="hidden" name="unblock" value="Unblock">
-                    <button type="submit" class="btn btn-secondary btn-sm"> Unblock</button>
+                    <button type="submit" class="btn btn-danger btn-sm"> Unblock</button>
                     {%else%}
                     <input type="hidden" name="block" value="Block">
                     <button type="submit" class="btn btn-secondary btn-sm"> Block</button>

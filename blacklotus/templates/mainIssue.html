@@ -155,7 +155,11 @@
         <th></th>
         <th><p>{{ issue.getPriority}}</p></th>
         <th></th>
-        <th><a href = "{% url 'seeIssue' issue.getId%}" target = "_self"><p>{{ issue.getSubject }}</p></a></th>
+        <th><a href = "{% url 'seeIssue' issue.getId%}" target = "_self"><p>{{ issue.getSubject }}
+                {%if issue.blocked%}
+                    B
+                {%endif%}
+        </p></a></th>
         <th><p>{{ issue.getStatus }}</p></th>
         <th></th>
         <th><p>{{ issue.getEditionDate }}</p></th>
