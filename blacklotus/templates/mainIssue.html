@@ -1,11 +1,6 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>Peticiones</title>
-</head>
+{% extends 'base.html' %}
+{% block content %}
 
-<body class="wallbody">
 	<h1 class="walltitle">Peticiones</h1>
     <th><a href="{% url 'profile' %}"> <p>{{user.username}}</p></a></th>
 
@@ -110,21 +105,61 @@
     <table class="issues">
         <tr>
         <th>Type</th>
+        <th>
+            <form method="get">
+            <input type="hidden" name="sort" value="type">
+            <button type="submit" name="direction" value="asc" >^</button><br>
+            <button type="submit" name="direction" value="desc">v</button>
+        </form>
+        </th>
         <th>Severity</th>
+        <th>
+            <form method="get">
+            <input type="hidden" name="sort" value="severity">
+            <button type="submit" name="direction" value="asc">^</button><br>
+            <button type="submit" name="direction" value="desc">v</button>
+        </form>
+        </th>
         <th>Priority</th>
+        <th>
+            <form method="get">
+            <input type="hidden" name="sort" value="priority">
+            <button type="submit" name="direction" value="asc">^</button><br>
+            <button type="submit" name="direction" value="desc">v</button>
+        </form>
+        </th>
         <th>Issue</th>
         <th>Status</th>
+        <th>
+            <form method="get">
+            <input type="hidden" name="sort" value="status">
+            <button type="submit" name="direction" value="asc">^</button><br>
+            <button type="submit" name="direction" value="desc">v</button>
+        </form>
+        </th>
         <th>Modified</th>
+        <th>
+            <form method="get">
+            <input type="hidden" name="sort" value="modifieddate">
+            <button type="submit" name="direction" value="asc">^</button><br>
+            <button type="submit" name="direction" value="desc">v</button>
+        </form>
+        </th>
         <th>Assign To</th>
         </tr>
         {% for issue in qs %}
         <tr>
         <th><p>{{ issue.getType }}</p></th>
+        <th></th>
         <th><p>{{ issue.getSeverity  }}</p></th>
+        <th></th>
         <th><p>{{ issue.getPriority}}</p></th>
+        <th></th>
         <th><a href = "{% url 'seeIssue' issue.getId%}" target = "_self"><p>{{ issue.getSubject }}</p></a></th>
         <th><p>{{ issue.getStatus }}</p></th>
+        <th></th>
         <th><p>{{ issue.getEditionDate }}</p></th>
+        <th></th>
         <th><p>{{ issue.getCreator }}</p></th>
         </tr>
         {% endfor %}
@@ -132,5 +167,4 @@
 	</div>
         <th><a href="{% url 'logout' %}">
             <button>logout</button></a></th>
-</body>
-</html>
+{% endblock %}
