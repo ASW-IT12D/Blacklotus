@@ -1,18 +1,17 @@
 import os
 
 from django.contrib.auth.decorators import login_required
-from .models import Issue, Attachments, Activity
+from .models import Issue, Attachments, Activity, Profile
 from django.shortcuts import render, redirect
-from .forms import IssueForm
+from .forms import IssueForm,EditProfileInfoForm
 from .models import Issue, Comentario
-from .models import Issue
 from django.contrib.auth.models import User
 
 from django.shortcuts import render, redirect
 from django.contrib.auth import login as auth_login
 from django.contrib.auth.forms import AuthenticationForm
 from django.contrib.auth import logout
-from .forms import RegisterForm,EditProfForm,IssueForm,AssignedTo
+from .forms import RegisterForm,IssueForm,AssignedTo
 from django.views import generic
 from django.urls import reverse_lazy
 from django.db.models import Q
@@ -405,10 +404,12 @@ def showProfile(request):
 def redirectLogin(request):
     return redirect(log)
 
-class UserEditView(generic.UpdateView):
-    form_class = EditProfForm
-    template_name = 'editProfile.html'
-    success_url = reverse_lazy('home')
+
+
+class ProfileEditView(generic.UpdateView):
+    form_class = EditProfileInfoForm
+    template_name = 'editUser.html'
+    success_url = reverse_lazy('profile')
     def get_object(self):
         return self.request.user
 

@@ -1,13 +1,19 @@
 {% extends 'base.html' %}
 {% block content %}
 
-    <p>@{{ user.username }}</p>
-    <p>{{ user.first_name }}</p>
-    <p>{{ user.second_name }}</p>
-    <p>{{ user.email }}</p>
+<h>@{{ user.username }}</h>
+<p>{{ user.first_name }}</p>
+<p>{{ user.email }}</p>
+<p>{{ user.profile.bio}}</p>
+<th>
 
-    <th><a href="{% url 'editprofile' %}">
-            <button>EDIT PROFILE</button></a></th>
-    <th><a href="{% url 'home' %}">
-                <button>BACK TO SHOW ISSUES</button></a></th>
+    <a href="{% url 'editprofile' %}">
+        <button>EDIT PROFILE</button>
+    </a>
+</th>
+<th>
+    <a href="{% url 'home' %}">
+        <button>BACK TO SHOW ISSUES</button>
+    </a>
+</th>
 {% endblock %}
