@@ -85,7 +85,7 @@ class Attachments(models.Model):
     creado_en = models.DateTimeField(auto_now_add=True)
     username = models.CharField(max_length=100)
     issue = models.ForeignKey(Issue, on_delete=models.CASCADE)
-
+    objects = models.Manager()
     def save(self, *args, **kwargs):
         s3 = boto3.client('s3',
                           aws_access_key_id=settings.AWS_ACCESS_KEY_ID,
