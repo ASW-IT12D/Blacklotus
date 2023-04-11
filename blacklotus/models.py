@@ -20,9 +20,9 @@ class Issue(models.Model):
     objects = models.Manager()
     asignedTo = models.ManyToManyField(User,blank=True)
     blocked = models.BooleanField(default= False)
-    blockmotive = models.CharField(blank=True, max_length=100)
+    blockmotive = models.CharField(null=True, max_length=100, blank=True)
     deadline = models.BooleanField(default= False)
-    deadlinedate = models.DateTimeField(blank=True,null=True)
+    deadlinedate = models.DateTimeField(null=True)
 
     def getSubject(self):
         return self.subject
