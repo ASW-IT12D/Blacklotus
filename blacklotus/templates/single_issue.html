@@ -190,10 +190,13 @@
         </div>
         <br>
         <div class="Options">
+            <form method="post" name = "deadlineIssues" style = "display: inline-block;">
+                 {% csrf_token %}
+                <input type="hidden" name="deadline" value="deadline">
+                <button type="submit">Deadline</button>
+            </form>
            <form method="post" name = "bloquearissues" style = "display: inline-block;">
                {% csrf_token %}
-                <input type="hidden" name="deadline" value="deadline">
-                    <button type="submit">Deadline</button>
                 {% if bloqued %}
                     <input type="submit" name="unblock" value="Unblock">
                 {%else%}
