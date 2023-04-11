@@ -318,7 +318,6 @@ def deadLineForm(request, id):
         if deadline_date < now:
             return render(request, 'newDeadLine.html', context)
 
-
         issue = Issue.objects.get(id=id)
         issue.deadlinedate = deadline_date
 
