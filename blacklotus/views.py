@@ -181,8 +181,9 @@ def showIssues(request):
 def BlockIssueForm(request, id):
     if request.method == 'POST':
         if len(request.POST.get("motive")) > 0:
-            textarea_input = request.POST['motive']
-            request.session['motive'] = textarea_input
+            issueUpdate = Issue.objects.get(id=id)
+            issueUpdate.blockmotive = request.POST['motive']
+            issueUpdate.save()
             return redirect(SeeIssue, num=id)
     return render(request, 'blockissue.html')
 
@@ -205,17 +206,6 @@ def list_documents():
 @login_required(login_url='login')
 def SeeIssue(request, num):
     form = AssignedTo()
-    if 'bloqued' in request.session:
-        bloqued = request.session['bloqued']
-        del request.session['bloqued']
-    else:
-        bloqued = None
-
-    if 'motive' in request.session:
-        motive = request.session['motive']
-        del request.session['motive']
-    else:
-        motive = None
     if 'commentsOn' in request.session:
         commentsOn = request.session['commentsOn']
     else:
@@ -264,12 +254,17 @@ def SeeIssue(request, num):
                 response = s3.delete_object(Bucket=settings.AWS_STORAGE_BUCKET_NAME, Key=object_name)
     documents = list_documents()
 
+    issueUpdate = Issue.objects.get(id=num)
+
     if request.method == 'POST':
         if 'block' in request.POST:
-            request.session['bloqued'] = True
+            issueUpdate.blocked = True
+            issueUpdate.save()
             return redirect(BlockIssueForm, id=num)
         elif 'unblock' in request.POST:
-            bloqued = False
+            issueUpdate.blocked = False
+            issueUpdate.blockmotive = ""
+            issueUpdate.save()
         elif 'BotonUpdateAsign' in request.POST:
             formN = AssignedTo(request.POST)
             if formN.is_valid():
@@ -280,7 +275,6 @@ def SeeIssue(request, num):
                 aux.asignedTo.set(auxU)
                 aux.save()
 
-    issueUpdate = Issue.objects.get(id=num)
     if 'BotonUpdateStatuses' in request.POST:
         user = request.user.username
         if 'status' in request.POST:
@@ -336,7 +330,7 @@ def SeeIssue(request, num):
 
     instance = Issue.objects.get(id=num)
     asignedTo = instance.asignedTo.all()
-    return render(request, 'single_issue.html', {'issue':issue,'bloqued':bloqued, 'motive': motive,'form':form,'asignedTo':asignedTo, 'coments': coments, 'activity':activity, 'commentsOn': commentsOn,'documents':documents})
+    return render(request, 'single_issue.html', {'issue':issue,'form':form,'asignedTo':asignedTo, 'coments': coments, 'activity':activity, 'commentsOn': commentsOn,'documents':documents})
 
 
 @login_required(login_url='login')
