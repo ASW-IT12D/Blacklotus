@@ -163,16 +163,20 @@ def showIssues(request):
                 filtrosF = filtrosS | filtrosP | filtrosT | filtrosSv | filtrosC
             else:
                 filtrosF = filtrosS & filtrosP & filtrosT & filtrosSv & filtrosC
+
+    filtroscreator = Q(creator=request.user.username) | Q(asignedTo__username=request.user.username)
     if ref is not None:
         if sort_by is not None:
-            qs = Issue.objects.filter(filtrosF).order_by(sort_by).filter(creator=request.user.username).filter(Q(subject__icontains=ref))
+            qs = Issue.objects.filter(filtrosF).order_by(sort_by).filter(filtroscreator).filter(Q(subject__icontains=ref))
         else:
-            qs = Issue.objects.filter(filtrosF).order_by('-creationdate').filter(creator=request.user.username).filter(Q(subject__icontains=ref))
+            qs = Issue.objects.filter(filtrosF).order_by('-creationdate').filter(filtroscreator).filter(Q(subject__icontains=ref))
     else:
+
         if sort_by is not None:
-            qs = Issue.objects.filter(filtrosF).order_by(sort_by).filter(creator=request.user.username)
+            qs = Issue.objects.filter(filtrosF).order_by(sort_by).filter(filtroscreator)
         else:
-            qs = Issue.objects.filter(filtrosF).order_by('-creationdate').filter(creator=request.user.username)
+            qs = Issue.objects.filter(filtrosF).order_by('-creationdate').filter(filtroscreator)
+
     return render(request, 'mainIssue.html', {'visible': visible,'qs': qs})
     
        

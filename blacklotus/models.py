@@ -24,6 +24,8 @@ class Issue(models.Model):
     deadline = models.BooleanField(default= False)
     deadlinedate = models.DateTimeField(blank=True,null=True)
 
+    def getFirstAsign(self):
+        return self.asignedTo.first()
     def getSubject(self):
         return self.subject
     def getBlocked(self):
@@ -119,6 +121,5 @@ class Comentario(models.Model):
 class Profile(models.Model):
     user = models.OneToOneField(User,null = True,on_delete=models.CASCADE)
     bio = models.TextField()
-
     def __str__(self):
         return str(self.user)
