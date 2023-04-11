@@ -1,21 +1,31 @@
+import os
+import tempfile
+from io import BytesIO
+
 from django.contrib.auth.decorators import login_required
-from django.shortcuts import render, redirect
-from .forms import IssueForm
-from .models import Issue
-from django.shortcuts import render, redirect
-from .forms import IssueForm
-from django.contrib.auth import login as auth_login
-from django.contrib.auth.forms import AuthenticationForm, UserCreationForm, UserChangeForm
-from django.contrib.auth import logout
-from .forms import RegisterForm,EditProfForm
-from django.views import generic
-from django.db.models import Q
-from django.urls import reverse_lazy
 from django.http import HttpResponse
+
+from .models import Issue, Attachments, Activity
+from django.shortcuts import render, redirect
+from .forms import IssueForm
+from .models import Issue, Comentario
+from .models import Issue
+from django.contrib.auth.models import User
+
+from django.shortcuts import render, redirect
+from django.contrib.auth import login as auth_login
+from django.contrib.auth.forms import AuthenticationForm
+from django.contrib.auth import logout
+from .forms import RegisterForm,EditProfForm,IssueForm,AssignedTo
+from django.views import generic
+from django.urls import reverse_lazy
 from django.db.models import Q
+import boto3
+from django.conf import settings
+from datetime import datetime
+import calendar
 
 # Create your views here.
-
 @login_required(login_url='login')
 def CreateIssueForm(request):
     return render(request, 'newissue.html')
