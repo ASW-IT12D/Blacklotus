@@ -37,7 +37,7 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'blacklotus'
+    'blacklotus',
 
 ]
 
@@ -120,8 +120,21 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/4.1/howto/static-files/
 
 STATIC_URL = 'static/'
+STATICFILES_DIRS = [BASE_DIR / "static"]
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/4.1/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+# AWS S3 Settings
+AWS_ACCESS_KEY_ID = 'ASIAUOQ5NQL2VAQE7HKQ'
+AWS_SECRET_ACCESS_KEY = 'ViOQdP0+yMdIqXBWBBerjVT2c5rDJF7j4ET8+ZE6'
+AWS_STORAGE_BUCKET_NAME = 'blacklotusbucket2'
+AWS_S3_REGION_NAME = 'us-east-1'
+AWS_SESSION_TOKEN = 'FwoGZXIvYXdzEMz//////////wEaDPRCnm8MnnKT+c8U2CLXAepuSruHanTNX9EE41QdPNMt+R2rFJ6xm92e+XArGsRKncE31GIFXsl2I1J3esR5qpvbyeWlH82zymoaqbD7pQLFbvAZHQrOIKdFUa3EHGmo+K/VoGxIC0GSrKvhw46KiU6iGqVKKyMktchE5UbWH7RABGOWIX/raMvH/DK2PfiY1cdZJlWM3cRTeSxOKGX1nbwgdUXPrDzPw1cxv4s0nSCxoR93LLci6RpglbT5PAGcmmhYDHgTUsvWRtOGiVTuz52y90R7b+en8+6KcK9FCSe4u7g2c5c9KO361KEGMi2gkmU4ecFdk9A6LzCxs8Ixy7uqRy5pUGmoX1UX8djqDvlhYCQYrffCUtJZJEU='
+AWS_S3_CUSTOM_DOMAIN = f'{AWS_STORAGE_BUCKET_NAME}.s3.amazonaws.com'
+AWS_DEFAULT_ACL = None
+AWS_S3_OBJECT_PARAMETERS = {
+    'CacheControl': 'max-age=86400',
+}

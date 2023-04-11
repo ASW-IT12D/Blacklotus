@@ -1,4 +1,7 @@
+import os
+
 from django.contrib.auth.decorators import login_required
+from .models import Issue, Attachments, Activity
 from django.shortcuts import render, redirect
 from .forms import IssueForm
 from .models import Issue, Comentario
@@ -7,14 +10,14 @@ from django.contrib.auth.models import User
 
 from django.shortcuts import render, redirect
 from django.contrib.auth import login as auth_login
-from django.contrib.auth.forms import AuthenticationForm, UserCreationForm, UserChangeForm
+from django.contrib.auth.forms import AuthenticationForm
 from django.contrib.auth import logout
 from .forms import RegisterForm,EditProfForm,IssueForm,AssignedTo
 from django.views import generic
-from django.db.models import Q
 from django.urls import reverse_lazy
-from django.http import HttpResponse
 from django.db.models import Q
+import boto3
+from django.conf import settings
 
 # Create your views here.
 
@@ -183,6 +186,21 @@ def BlockIssueForm(request, id):
             return redirect(SeeIssue, num=id)
     return render(request, 'blockissue.html')
 
+def list_documents():
+    s3 = boto3.client('s3',
+                      aws_access_key_id=settings.AWS_ACCESS_KEY_ID,
+                      aws_secret_access_key=settings.AWS_SECRET_ACCESS_KEY,
+                      aws_session_token=settings.AWS_SESSION_TOKEN)
+    bucket_name = settings.AWS_STORAGE_BUCKET_NAME
+    prefix = 'Attachments/'
+    response = s3.list_objects_v2(Bucket=bucket_name, Prefix=prefix)
+    documents = []
+    for content in response.get('Contents', []):
+        if content.get("Key") != 'Attachments/':
+            url = f"{content['Key']}"
+            url = url.replace("Attachments/", "")
+            documents.append(url)
+    return documents
 
 @login_required(login_url='login')
 def SeeIssue(request, num):
@@ -198,6 +216,54 @@ def SeeIssue(request, num):
         del request.session['motive']
     else:
         motive = None
+    if 'commentsOn' in request.session:
+        commentsOn = request.session['commentsOn']
+    else:
+        commentsOn = True
+
+    if request.method == "POST":
+        if 'comments' in request.POST:
+            request.session['commentsOn'] = True
+            commentsOn = True
+        elif 'activity' in request.POST:
+            request.session['commentsOn'] = False
+            commentsOn = False
+        if 'archivo' in request.FILES and request.FILES['archivo']:
+            archivo = request.FILES.get('archivo')
+            if len(archivo) > 0:
+                issueUpdate = Issue.objects.get(id=num)
+                document = Attachments(archivo=archivo,username=request.user.username,issue=issueUpdate)
+                document.save()
+        elif 'Download' in request.POST:
+            option_selected = request.POST.get('option')
+            if option_selected is not None:
+                s3 = boto3.client('s3',
+                                  aws_access_key_id=settings.AWS_ACCESS_KEY_ID,
+                                  aws_secret_access_key=settings.AWS_SECRET_ACCESS_KEY,
+                                  aws_session_token=settings.AWS_SESSION_TOKEN)
+                object_name = 'Attachments/' + option_selected
+                # Obtener el nombre del archivo a descargar
+                # Obtener la ruta del archivo actual
+                current_file_path = os.path.abspath(__file__)
+
+                # Obtener la ruta del directorio padre
+                parent_dir_path = os.path.dirname(current_file_path)
+                # Obtener la ruta del directorio padre del directorio padre (es decir, la raíz del proyecto)
+                project_dir_path = os.path.dirname(parent_dir_path)
+                file_name = project_dir_path + '/Attachments/'+option_selected
+                s3.download_file(settings.AWS_STORAGE_BUCKET_NAME, object_name, file_name)
+
+        elif 'Delete' in request.POST:
+            option_selected = request.POST.get('option')
+            if option_selected is not None:
+                s3 = boto3.client('s3',
+                                  aws_access_key_id=settings.AWS_ACCESS_KEY_ID,
+                                  aws_secret_access_key=settings.AWS_SECRET_ACCESS_KEY,
+                                  aws_session_token=settings.AWS_SESSION_TOKEN)
+                object_name = 'Attachments/' + option_selected
+                response = s3.delete_object(Bucket=settings.AWS_STORAGE_BUCKET_NAME, Key=object_name)
+    documents = list_documents()
+
     if request.method == 'POST':
         if 'block' in request.POST:
             request.session['bloqued'] = True
@@ -205,7 +271,6 @@ def SeeIssue(request, num):
         elif 'unblock' in request.POST:
             bloqued = False
         elif 'BotonUpdateAsign' in request.POST:
-
             formN = AssignedTo(request.POST)
             if formN.is_valid():
                 names = formN.cleaned_data['asignedTo']
@@ -217,12 +282,28 @@ def SeeIssue(request, num):
 
     issueUpdate = Issue.objects.get(id=num)
     if 'BotonUpdateStatuses' in request.POST:
+        user = request.user.username
         if 'status' in request.POST:
+            field = "status"
+            old = issueUpdate.getStatus()
+            new = request.POST.get("status")
+            act = Activity(field=field, change=new, old=old, user=user, issueChanged=issueUpdate)
+            act.save()
             issueUpdate.status = request.POST.get("status")
         if 'severity' in request.POST:
+            field = "severity"
+            old = issueUpdate.getStatus()
+            new = request.POST.get("severity")
+            act = Activity(field=field, change=new, old=old, user=user, issueChanged=issueUpdate)
+            act.save()
             issueUpdate.severity = request.POST.get("severity")
         if 'type' in request.POST:
-                issueUpdate.type = request.POST.get("type")
+            field = "type"
+            old = issueUpdate.getStatus()
+            new = request.POST.get("type")
+            act = Activity(field=field, change=new, old=old, user=user, issueChanged=issueUpdate)
+            act.save()
+            issueUpdate.type = request.POST.get("type")
         issueUpdate.save()
     elif 'EditContent' in request.POST:
         request.session['id'] = num
@@ -242,7 +323,8 @@ def SeeIssue(request, num):
             lastIssue = Issue.objects.order_by('creationdate').first()
             return redirect(SeeIssue, num=lastIssue.id)
     issue = Issue.objects.filter(id=num).values()
-
+    issueAct = Issue.objects.get(id=num)
+    activity = Activity.objects.filter(issueChanged=issueAct).order_by('-creationdate').values()
     coment = None
     if request.method == 'GET':
         if 'comment' in request.GET:
@@ -254,7 +336,7 @@ def SeeIssue(request, num):
 
     instance = Issue.objects.get(id=num)
     asignedTo = instance.asignedTo.all()
-    return render(request, 'single_issue.html', {'issue':issue,'bloqued':bloqued, 'motive': motive,'form':form,'asignedTo':asignedTo, 'coments': coments})
+    return render(request, 'single_issue.html', {'issue':issue,'bloqued':bloqued, 'motive': motive,'form':form,'asignedTo':asignedTo, 'coments': coments, 'activity':activity, 'commentsOn': commentsOn,'documents':documents})
 
 
 @login_required(login_url='login')
@@ -262,10 +344,21 @@ def EditIssue(request):
     ID = request.session.get('id')
     issue = Issue.objects.filter(id=ID).values()
     if 'Update' in request.POST:
+        user = request.user.username
         issueUpdate = Issue.objects.get(id=request.POST.get("idHidden"))
         if request.POST.get("subject") is not None and len(request.POST.get("subject")) >0:
+            field = "subject"
+            old = issueUpdate.getSubject()
+            new = request.POST.get("subject")
+            act = Activity(field=field, change=new,old=old,user=user, issueChanged=issueUpdate)
+            act.save()
             issueUpdate.subject = request.POST.get("subject")
         if request.POST.get("description") is not None and len(request.POST.get("description")) >0:
+            field = "description"
+            old = issueUpdate.getDescription()
+            new = request.POST.get("description")
+            act = Activity(field=field, change=new, old=old, user=user, issueChanged=issueUpdate)
+            act.save()
             issueUpdate.description = request.POST.get("description")
         issueUpdate.save()
         return redirect(SeeIssue,num=request.POST.get("idHidden"))
@@ -318,3 +411,4 @@ class UserEditView(generic.UpdateView):
     success_url = reverse_lazy('home')
     def get_object(self):
         return self.request.user
+
