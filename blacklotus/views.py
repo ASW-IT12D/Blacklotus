@@ -1,7 +1,7 @@
 import os
 
 from django.contrib.auth.decorators import login_required
-from .models import Issue, Attachments
+from .models import Issue, Attachments, Activity
 from django.shortcuts import render, redirect
 from django.contrib.auth import login as auth_login
 from django.contrib.auth.forms import AuthenticationForm
@@ -51,9 +51,6 @@ def BulkIssue(request):
             i = Issue(subject=sub, description=des, creator=request.user.username, status=status, type=type, severity=severity, priority=priority)
             i.save()
     return redirect(showIssues)
-
-
-
 
 @login_required(login_url='login')
 def showIssues(request):
@@ -153,6 +150,7 @@ def showIssues(request):
                 filtrosF = filtrosS | filtrosP | filtrosT | filtrosSv | filtrosC
             else:
                 filtrosF = filtrosS & filtrosP & filtrosT & filtrosSv & filtrosC
+
     if ref is not None:
         qs = Issue.objects.filter(filtrosF).order_by('-creationdate').filter(creator=request.user.username).filter(Q(subject__icontains=ref))
     else:
@@ -184,7 +182,6 @@ def list_documents():
             url = url.replace("Attachments/", "")
             documents.append(url)
     return documents
-
 
 @login_required(login_url='login')
 def SeeIssue(request, num):
@@ -246,12 +243,28 @@ def SeeIssue(request, num):
 
     issueUpdate = Issue.objects.get(id=num)
     if 'BotonUpdateStatuses' in request.POST:
+        user = request.user.username
         if 'status' in request.POST:
+            field = "status"
+            old = issueUpdate.getStatus()
+            new = request.POST.get("status")
+            act = Activity(field=field, change=new, old=old, user=user, issueChanged=issueUpdate)
+            act.save()
             issueUpdate.status = request.POST.get("status")
         if 'severity' in request.POST:
+            field = "severity"
+            old = issueUpdate.getStatus()
+            new = request.POST.get("severity")
+            act = Activity(field=field, change=new, old=old, user=user, issueChanged=issueUpdate)
+            act.save()
             issueUpdate.severity = request.POST.get("severity")
         if 'type' in request.POST:
-                issueUpdate.type = request.POST.get("type")
+            field = "type"
+            old = issueUpdate.getStatus()
+            new = request.POST.get("type")
+            act = Activity(field=field, change=new, old=old, user=user, issueChanged=issueUpdate)
+            act.save()
+            issueUpdate.type = request.POST.get("type")
         issueUpdate.save()
     elif 'EditContent' in request.POST:
         request.session['id'] = num
@@ -270,18 +283,32 @@ def SeeIssue(request, num):
         except:
             lastIssue = Issue.objects.order_by('creationdate').first()
             return redirect(SeeIssue, num=lastIssue.id)
+
     issue = Issue.objects.filter(id=num).values()
-    return render(request, 'single_issue.html', {'issue':issue,'bloqued':bloqued, 'motive': motive, 'documents':documents})
+    issueAct = Issue.objects.get(id=num)
+    activity = Activity.objects.filter(issueChanged=issueAct).order_by('-creationdate').values()
+    return render(request, 'single_issue.html', {'issue':issue,'bloqued':bloqued, 'motive': motive, 'documents':documents, 'activity':activity})
 
 @login_required(login_url='login')
 def EditIssue(request):
     ID = request.session.get('id')
     issue = Issue.objects.filter(id=ID).values()
     if 'Update' in request.POST:
+        user = request.user.username
         issueUpdate = Issue.objects.get(id=request.POST.get("idHidden"))
         if request.POST.get("subject") is not None and len(request.POST.get("subject")) >0:
+            field = "subject"
+            old = issueUpdate.getSubject()
+            new = request.POST.get("subject")
+            act = Activity(field=field, change=new,old=old,user=user, issueChanged=issueUpdate)
+            act.save()
             issueUpdate.subject = request.POST.get("subject")
         if request.POST.get("description") is not None and len(request.POST.get("description")) >0:
+            field = "description"
+            old = issueUpdate.getDescription()
+            new = request.POST.get("description")
+            act = Activity(field=field, change=new, old=old, user=user, issueChanged=issueUpdate)
+            act.save()
             issueUpdate.description = request.POST.get("description")
         issueUpdate.save()
         return redirect(SeeIssue,num=request.POST.get("idHidden"))

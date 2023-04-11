@@ -45,6 +45,29 @@ class Issue(models.Model):
     def __str__(self):
         return self.subject + ' ' + self.description
 
+class Activity(models.Model):
+    creationdate = models.DateTimeField(auto_now_add=True)
+    field = models.CharField(max_length=100)
+    change = models.CharField(max_length=100)
+    old = models.CharField(max_length=100)
+    user = models.CharField(max_length=100)
+    issueChanged = models.ForeignKey(Issue, on_delete=models.CASCADE)
+    objects = models.Manager()
+
+    def getUser(self):
+        return self.user
+    def getField(self):
+        return self.field
+
+    def getChange(self):
+        return self.change
+
+    def getOld(self):
+        return self.old
+
+    def getDate(self):
+        return self.creationdate
+
 class Attachments(models.Model):
     archivo = models.FileField(upload_to='Attachments/')
     creado_en = models.DateTimeField(auto_now_add=True)

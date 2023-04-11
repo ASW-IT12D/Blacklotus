@@ -1,223 +1,254 @@
 {% extends 'base.html' %}
 {% block content %}
-<table class = "SingleIssue">
-<tr>
-    <th style="width:80%">
-        <div>
-            <form method="post">
-              {% csrf_token %}
-            <h1>#{{ issue.first.id }} {{ issue.first.subject }}
-                <input type="hidden" name="id" value=" {{ issue.first.id }}">
-                <button type="submit" name="EditContent" class="btn btn-primary btn-sm">Edit</button>
-                <button type="submit" class="btn btn-info btn-sm" name="previous"><</button>
-                <button type="submit" class="btn btn-info btn-sm" name="next"> > </button>
-            </h1>
-                <div class="alertbloqued" role="alert" {% if not bloqued %} hidden {%endif%}>
-                    Bloqueada: {{motive}}
+<table class="SingleIssue">
+    <tr>
+        <th style="width:80%">
+            <div>
+                <form method="post">
+                    {% csrf_token %}
+                    <h1>#{{ issue.first.id }} {{ issue.first.subject }}
+                        <input type="hidden" name="id" value=" {{ issue.first.id }}">
+                        <button type="submit" name="EditContent" class="btn btn-primary btn-sm">Edit</button>
+                        <button type="submit" class="btn btn-info btn-sm" name="previous"><</button>
+                        <button type="submit" class="btn btn-info btn-sm" name="next"> ></button>
+                    </h1>
+                    <div class="alertbloqued" role="alert" {% if not bloqued %} hidden {%endif%}>
+                        Bloqueada: {{motive}}
+                    </div>
+                    <b>
+                        <div class="created-by">
+                            <a>Created by {{ issue.first.creator }}</a>
+                            <div class="creatinDate">{{ issue.first.creationdate }}</div>
+                        </div>
+                        <div>
+                            <a><img src="https://cdn.pixabay.com/photo/2015/04/23/22/00/tree-736885__480.jpg"
+                                    alt="Italian Trulli" style="width:50px;height:50px;"></a>
+                        </div>
+                    </b>
+                </form>
+            </div>
+        </th>
+        <th>
+            <form method="post" action="{% url 'seeIssue' issue.first.id%}">
+                {% csrf_token %}
+                <div class="status">
+                    <select name="status">
+                        {% if issue.first.status == 1 %}
+                        <option value=1 selected disabled>New</option>
+                        {% else %}
+                        <option value=1>New</option>
+                        {% endif %}
+
+                        {% if issue.first.status == 2 %}
+                        <option value=2 selected disabled>In progress</option>
+                        {%else%}
+                        <option value=2>In progress</option>
+                        {% endif %}
+
+                        {% if issue.first.status == 3 %}
+                        <option value=3 selected disabled>Ready for test</option>
+                        {% else %}
+                        <option value=3>Ready for test</option>
+                        {% endif %}
+
+                        {% if issue.first.status == 4 %}
+                        <option value=4 disabled selected>Closed</option>
+                        {% else %}
+                        <option value=4>Closed</option>
+                        {% endif %}
+
+                        {% if issue.first.status == 5 %}
+                        <option value=5 disabled selected>Needs info</option>
+                        {% else %}
+                        <option value=5>Needs info</option>
+                        {% endif %}
+
+                        {% if issue.first.status == 6 %}
+                        <option value=6 disabled selected>Rejected</option>
+                        {% else %}
+                        <option value=6>Rejected</option>
+                        {% endif %}
+
+                        {% if issue.first.status == 7 %}
+                        <option value=7 disabled selected>Postponed</option>
+                        {% else %}
+                        <option value=7>Postponed</option>
+                        {% endif %}
+
+                    </select>
+
+                    <br> <a>Type: </a>
+                    <select name="type">
+                        {% if issue.first.type == 1 %}
+                        <option value=1 selected disabled>Bug</option>
+                        {% else %}
+                        <option value=1>Bug</option>
+                        {% endif %}
+
+                        {% if issue.first.type == 2 %}
+                        <option value=2 selected disabled>Question</option>
+                        {%else%}
+                        <option value=2>Question</option>
+                        {% endif %}
+
+                        {% if issue.first.type == 3 %}
+                        <option value=3 selected disabled>Disabled</option>
+                        {% else %}
+                        <option value=3>Disabled</option>
+                        {% endif %}
+                    </select>
+
+                    <br> <a>Severity: </a>
+                    <select name="severity">
+                        {% if issue.first.severity == 1 %}
+                        <option value=1 selected disabled>Whishlist</option>
+                        {% else %}
+                        <option value=1>Whishlist</option>
+                        {% endif %}
+
+                        {% if issue.first.severity == 2 %}
+                        <option value=2 selected disabled>Minor</option>
+                        {%else%}
+                        <option value=2>Minor</option>
+                        {% endif %}
+
+                        {% if issue.first.severity == 3 %}
+                        <option value=3 selected disabled>Normal</option>
+                        {% else %}
+                        <option value=3>Normal</option>
+                        {% endif %}
+
+                        {% if issue.first.severity == 4 %}
+                        <option value=4 disabled selected>Important</option>
+                        {% else %}
+                        <option value=4>Important</option>
+                        {% endif %}
+
+                        {% if issue.first.severity == 5 %}
+                        <option value=5 disabled selected>Critical</option>
+                        {% else %}
+                        <option value=5>Critical</option>
+                        {% endif %}
+
+                    </select>
+
+                    <br> <a>Priority: </a>
+                    <select name="priority">
+                        {% if issue.first.priority == 1 %}
+                        <option value=1 selected disabled>Low</option>
+                        {% else %}
+                        <option value=1>Low</option>
+                        {% endif %}
+
+                        {% if issue.first.priority == 2 %}
+                        <option value=2 selected disabled>Normal</option>
+                        {%else%}
+                        <option value=2>Normal</option>
+                        {% endif %}
+
+                        {% if issue.first.priority == 3 %}
+                        <option value=3 selected disabled>High</option>
+                        {% else %}
+                        <option value=3>High</option>
+                        {% endif %}
+                    </select><br>
+
+                    <br>
+                    <input type="hidden" name="BotonUpdateStatuses" value="Update">
+                    <button type="submit" class="btn btn-primary btn-sm">Update</button>
                 </div>
-            <b>
-                <div class="created-by">
-                    <a>Created by {{ issue.first.creator }}</a>
-                    <div class="creatinDate">{{ issue.first.creationdate }}</div>
+            </form>
+        </th>
+    </tr>
+
+    <tr>
+        <th>
+            <br>
+            <div>
+                <p>Description: {{ issue.first.description }}</p>
+            </div>
+            <br>
+            <form action="" method="post" enctype="multipart/form-data">
+                {% csrf_token %}
+                <div class="wallissues">
+                    <label>{{ documents|length }} Attachments</label>
+                    <input type="file" id="archivo" name="archivo">
+                    <button type="submit" class="btn btn-primary btn-sm">Upload</button>
                 </div>
                 <div>
-                    <a><img src="https://cdn.pixabay.com/photo/2015/04/23/22/00/tree-736885__480.jpg" alt="Italian Trulli" style="width:50px;height:50px;"></a>
+                    <ul>
+                        {% for document in documents %}
+                        <label>
+                            <input type="radio" name="option" value="{{ document }}">
+                            {{ document }}
+                        </label>
+                        <br>
+                        {% endfor %}
+                    </ul>
+                    <button name="Download" type="submit" class="btn btn-primary btn-sm" value="dw">Download</button>
+                    <button name="Delete" type="submit" class="btn btn-primary btn-sm" value="dl">Delete</button>
                 </div>
-            </b>
-        </form>
-        </div>
-        <br>
-        <div>
-            <p>Description: {{ issue.first.description }}</p>
-        </div>
-        <br>
-        <form action="" method="post" enctype="multipart/form-data">
-            {% csrf_token %}
-            <div class="wallissues">
-                <label>{{ documents|length }} Attachments</label>
-                <input type="file" id="archivo" name="archivo">
-                <button type="submit" class="btn btn-primary btn-sm">Upload</button>
-            </div>
-            <div>
-              <ul>
-                {% for document in documents %}
-                     <label>
-                    <input type="radio" name="option" value= "{{ document }}">
-                    {{ document }}
-                  </label>
-                  <br>
-                {% endfor %}
-                </ul>
-                <button name ="Download" type="submit" class="btn btn-primary btn-sm" value="dw">Download</button>
-                <button name ="Delete" type="submit" class="btn btn-primary btn-sm" value="dl">Delete</button>
-            </div>
-        </form>
-        <br>
-        <div class="">
-          <a class="active" href="">X Comments</a>
-          <a href="">X Activities</a>
-            <br>
-        <input name="comment" placeholder="Type and comment here" type="text" size=30>
-        </div>
-    </th>
-    <th>
-        <form method="post" action="{% url 'seeIssue' issue.first.id%}">
-              {% csrf_token %}
-        <div class="status">
-            <select name="status" >
-                {% if issue.first.status == 1 %}
-                <option value=1 selected disabled>New</option>
-                {% else %}
-                <option value=1>New</option>
-                {% endif %}
-
-                {% if issue.first.status == 2 %}
-                <option value=2 selected disabled>In progress</option>
-                {%else%}
-                <option value=2>In progress</option>
-                {% endif %}
-
-                {% if issue.first.status == 3 %}
-                <option value=3 selected disabled>Ready for test</option>
-                {% else %}
-                <option value=3>Ready for test</option>
-                {% endif %}
-
-                {% if issue.first.status == 4 %}
-                <option value=4 disabled selected>Closed</option>
-                {% else %}
-                <option value=4>Closed</option>
-                {% endif %}
-
-                {% if issue.first.status == 5 %}
-                <option value=5 disabled selected>Needs info</option>
-                {% else %}
-                <option value=5>Needs info</option>
-                {% endif %}
-
-                {% if issue.first.status == 6 %}
-                <option value=6 disabled selected>Rejected</option>
-                {% else %}
-                <option value=6>Rejected</option>
-                {% endif %}
-
-                {% if issue.first.status == 7 %}
-                <option value=7 disabled selected>Postponed</option>
-                {% else %}
-                <option value=7 >Postponed</option>
-                {% endif %}
-
-            </select>
-
-            <br> <a>Type: </a>
-            <select name="type">
-                {% if issue.first.type == 1 %}
-                <option value=1 selected disabled>Bug</option>
-                {% else %}
-                <option value=1>Bug</option>
-                {% endif %}
-
-                {% if issue.first.type == 2 %}
-                <option value=2 selected disabled>Question</option>
-                {%else%}
-                <option value=2>Question</option>
-                {% endif %}
-
-                {% if issue.first.type == 3 %}
-                <option value=3 selected disabled>Disabled</option>
-                {% else %}
-                <option value=3>Disabled</option>
-                {% endif %}
-            </select>
-
-            <br> <a>Severity: </a>
-            <select name="severity">
-                {% if issue.first.severity == 1 %}
-                <option value=1 selected disabled>Whishlist</option>
-                {% else %}
-                <option value=1>Whishlist</option>
-                {% endif %}
-
-                {% if issue.first.severity == 2 %}
-                <option value=2 selected disabled>Minor</option>
-                {%else%}
-                <option value=2>Minor</option>
-                {% endif %}
-
-                {% if issue.first.severity == 3 %}
-                <option value=3 selected disabled>Normal</option>
-                {% else %}
-                <option value=3>Normal</option>
-                {% endif %}
-
-                {% if issue.first.severity == 4 %}
-                <option value=4 disabled selected>Important</option>
-                {% else %}
-                <option value=4>Important</option>
-                {% endif %}
-
-                {% if issue.first.severity == 5 %}
-                <option value=5 disabled selected>Critical</option>
-                {% else %}
-                <option value=5>Critical</option>
-                {% endif %}
-
-                </select>
-
-                <br> <a>Priority: </a>
-                <select name="priority">
-                {% if issue.first.priority == 1 %}
-                <option value=1 selected disabled>Low</option>
-                {% else %}
-                <option value=1>Low</option>
-                {% endif %}
-
-                {% if issue.first.priority == 2 %}
-                <option value=2 selected disabled>Normal</option>
-                {%else%}
-                <option value=2>Normal</option>
-                {% endif %}
-
-                {% if issue.first.priority == 3 %}
-                <option value=3 selected disabled>High</option>
-                {% else %}
-                <option value=3>High</option>
-                {% endif %}
-            </select>
-
-            <br>
-            <input type="hidden" name="BotonUpdateStatuses" value="Update">
-            <button type="submit" class="btn btn-primary btn-sm">Update</button>
-        </div>
-        </form>
-        <br>
-        <div class="Asigned">
-            <a>Assigned</a>
-            <br>
-            <button>+ Add assigned</button>
-        </div>
-        <br>
-        <div class="Watchers">
-            <a>Watchers</a>
-            <br>
-            <button>+ Add Watchers</button>
-            <button>Unwatch</button>
-        </div>
-        <br>
-        <div class="Options">
-            <button>Deadline</button>
-            <form method="post" name = "bloquearissues" style = "display: inline-block;">
-                {% csrf_token %}
-                {% if bloqued %}
-                    <input type="submit" name="unblock" value="Unblock">
-                {%else%}
-                    <input type="submit" name="block" value="Block">
-                {%endif%}
             </form>
-            <a href="{% url 'deleteIssue' issue.first.id%}">
-            <button> Delete</button></a>
-        </div>
-    </th>
-</tr>
+            <br>
+
+        </th>
+
+        <th>
+            <br>
+            <div class="Asigned">
+                <a>Assigned</a>
+                <br>
+                <button>+ Add assigned</button>
+            </div>
+            <br>
+            <div class="Watchers">
+                <a>Watchers</a>
+                <br>
+                <button>+ Add Watchers</button>
+                <button>Unwatch</button>
+            </div>
+            <br>
+            <div class="Options">
+                <button>Deadline</button>
+                <form method="post" name="bloquearissues" style="display: inline-block;">
+                    {% csrf_token %}
+                    {% if bloqued %}
+                    <input type="hidden" name="unblock" value="Unblock">
+                    <button type="submit"> Unblock</button>
+                    {%else%}
+                    <input type="hidden" name="block" value="Block">
+                     <button type="submit"> Block</button>
+                    {%endif%}
+                </form>
+                <a href="{% url 'deleteIssue' issue.first.id%}">
+                    <button> Delete</button>
+                </a>
+            </div>
+        </th>
+    </tr>
+    <tr>
+        <th>
+            <div class="">
+                <a class="active" href="">X Comments</a>
+                <a href="">{{ activity|length }} Activities</a>
+
+                {% for act in activity %}
+                <div>
+                    <br>
+                    <p>
+                        <a>{{ act.user }}</a>
+                        <a>{{ act.creationdate }}</a></p>
+                    <p>
+                        <a>{{ act.field }}</a>
+                        <a>{{ act.old }}</a>
+                        <a> > </a>
+                        <a>{{ act.change }}</a>
+                    </p>
+                    {% endfor %}
+                </div>
+                <br>
+            </div>
+        </th>
+    </tr>
 </table>
 {% endblock %}
