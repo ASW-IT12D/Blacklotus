@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Add Deadline</title>
+</head>
+<body class="wallbody">
+    <h1 class="walltitle">Fecha de vencimiento</h1>
+    <form method="post">
+        {% csrf_token %}
+        <label for="day">Día:</label>
+        <select name="day" id="day">
+            {% for day in days %}
+            <option value="{{ day }}">{{ day }}</option>
+            {% endfor %}
+        </select><br><br>
+
+        <label for="month">Mes:</label>
+        <select name="month" id="month">
+            {% for month in months %}
+            <option value="{{ month }}">{{ month }}</option>
+            {% endfor %}
+        </select><br><br>
+
+        <label for="year">Año:</label>
+        <select name="year" id="year">
+            {% for year in years %}
+            <option value="{{ year }}">{{ year }}</option>
+            {% endfor %}
+        </select><br><br>
+
+        <input type="submit" value="Guardar">
+    </form>
+
+</body>
+</html>

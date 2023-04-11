@@ -12,6 +12,7 @@ class Issue(models.Model):
     priority = models.IntegerField()
     creationdate = models.DateTimeField(auto_now_add=True)
     modifieddate = models.DateTimeField(auto_now=True)
+    deadlinedate = models.DateTimeField(null=True, blank=True)
     objects = models.Manager()
 
     def getSubject(self):

@@ -187,7 +187,9 @@
         </div>
         <br>
         <div class="Options">
-            <button>Deadline</button>
+            <a href="{% url 'deadline' issue.first.id %}">
+                <button>Deadline</button>
+            </a>
             <form method="post" name = "bloquearissues" style = "display: inline-block;">
                 {% csrf_token %}
                 {% if bloqued %}

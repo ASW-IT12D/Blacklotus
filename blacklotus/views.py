@@ -12,7 +12,8 @@ from django.views import generic
 from django.db.models import Q
 from django.urls import reverse_lazy
 from django.http import HttpResponse
-from django.db.models import Q
+from datetime import datetime
+import calendar
 
 # Create your views here.
 
@@ -293,3 +294,38 @@ class UserEditView(generic.UpdateView):
     success_url = reverse_lazy('home')
     def get_object(self):
         return self.request.user
+
+@login_required(login_url='login')
+def deadLineForm(request, id):
+    current_year = datetime.now().year
+
+    days = [str(day) for day in range (1, 32)]
+    months = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio',
+              'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre']
+    years = [str(year) for year in range (current_year, current_year + 10)]
+
+    context = {
+        'days': days,
+        'months': months,
+        'years': years,
+    }
+
+    return render(request, 'newDeadLine.html', context)
+
+def addDeadline(request, id):
+    if request.method == 'POST':
+        day = request.POST['day']
+        month = request.POST['month']
+        year = request.POST['year']
+
+        max_days = calendar.monthrange(int(year), list(calendar.month_name).index(month))[1]
+        if int(day) > max_days:
+            return HttpResponse("Fecha inválida")
+
+        deadline_date = datetime.strptime(f"{day} {month} {year}", "%d %B %Y")
+
+        issue = Issue.objects.get(id=id)
+        issue.deadlinedate = deadline_date
+        issue.save()
+        print(issue.deadlinedate)
+        return redirect(id)

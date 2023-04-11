@@ -17,5 +17,6 @@ urlpatterns = [
     path('logout/',views.custom_logout, name='logout'),
     path('profile/',views.showProfile, name = 'profile'),
     path('editprofile/',UserEditView.as_view(), name='editprofile'),
-    path('/edit', views.EditIssue, name='edit')
+    path('/edit', views.EditIssue, name='edit'),
+    path('<int:id>/deadline/', views.deadLineForm, name = 'deadline')
 ]
