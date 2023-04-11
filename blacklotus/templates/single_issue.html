@@ -217,24 +217,24 @@
             <div class="Watchers">
                 <a>Watchers</a>
                 <br>
-                <button>+ Add Watchers</button>
-                <button>Unwatch</button>
+                <button class="btn btn-secondary btn-sm">+ Add Watchers</button>
+                <button class="btn btn-secondary btn-sm">Unwatch</button>
             </div>
             <br>
             <div class="Options">
-                <button>Deadline</button>
+                <button class="btn btn-secondary btn-sm">Deadline</button>
                 <form method="post" name="bloquearissues" style="display: inline-block;">
                     {% csrf_token %}
                     {% if bloqued %}
                     <input type="hidden" name="unblock" value="Unblock">
-                    <button type="submit"> Unblock</button>
+                    <button type="submit" class="btn btn-secondary btn-sm"> Unblock</button>
                     {%else%}
                     <input type="hidden" name="block" value="Block">
-                    <button type="submit"> Block</button>
+                    <button type="submit" class="btn btn-secondary btn-sm"> Block</button>
                     {%endif%}
                 </form>
                 <a href="{% url 'deleteIssue' issue.first.id%}">
-                    <button> Delete</button>
+                    <button class="btn btn-danger btn-sm"> Delete</button>
                 </a>
             </div>
         </th>
@@ -246,34 +246,39 @@
                 <form method="post" name="cambiarCommen" style="display: inline-block;">
                     {% csrf_token %}
                     <input type="hidden" name="comments" value="Comentarios">
-                    <button type="submit" name="Comment">{{ coments|length }}  Comments</button>
+                    <button type="submit" name="Comment" class="btn btn-outline-primary">{{ coments|length }} Comments
+                    </button>
                 </form>
                 <form method="post" name="cambiarAct" style="display: inline-block;">
                     {% csrf_token %}
                     <input type="hidden" name="activity" value="Actividades">
-                    <button type="submit" name="Activity"> {{ activity|length }}  Activities</button>
+                    <button type="submit" name="Activity" class="btn btn-outline-primary"> {{ activity|length }}
+                        Activities
+                    </button>
                 </form>
                 {% if commentsOn %}
                 <div class="">
-                <form method="GET">
+                    <form method="GET">
+                        <br>
                         <input name="comment" placeholder="Type and comment here" type="text" size=30>
-                        <button type="submit">Guardar</button>
-                </form>
-            </div>
+                        <button type="submit" class="btn btn-primary btn-sm">Guardar</button>
+                        <br><br>
+                    </form>
+                </div>
 
-            <div class="">
-                <table>
-                 {%for c in coments%}
-                    <tr>
-                        <th>{{ c.getCreator }}</th>
-                        <th>{{ c.getCreationDate}}</th>
-                    </tr>
-                    <tr>
-                        <th>{{ c.getMessage}}</th>
-                    </tr>
-                 {%endfor%}
-                </table>
-            </div>
+                <div class="">
+                    <table>
+                        {%for c in coments%}
+                        <tr>
+                            <th>{{ c.getCreator }}</th>
+                            <th>{{ c.getCreationDate}}</th>
+                        </tr>
+                        <tr>
+                            <th>{{ c.getMessage}}</th>
+                        </tr>
+                        {%endfor%}
+                    </table>
+                </div>
                 {%else%}
                 {% for act in activity %}
                 <div>
@@ -282,10 +287,10 @@
                         <a>{{ act.user }}</a>
                         <a>{{ act.creationdate }}</a></p>
                     <p>
-                        <p>{{ act.field }}</p>
-                        <a>{{ act.old }}</a>
-                        <a> > </a>
-                        <a>{{ act.change }}</a>
+                    <p>{{ act.field }}</p>
+                    <a>{{ act.old }}</a>
+                    <a> > </a>
+                    <a>{{ act.change }}</a>
                     </p>
                     {% endfor %}
                 </div>
