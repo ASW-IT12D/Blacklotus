@@ -191,7 +191,7 @@ def BlockIssueForm(request, id):
             return redirect(SeeIssue, num=id)
     return render(request, 'blockissue.html')
 
-def list_documents():
+def list_documents(num):
     s3 = boto3.client('s3',
                       aws_access_key_id=settings.AWS_ACCESS_KEY_ID,
                       aws_secret_access_key=settings.AWS_SECRET_ACCESS_KEY,
@@ -202,9 +202,12 @@ def list_documents():
     documents = []
     for content in response.get('Contents', []):
         if content.get("Key") != 'Attachments/':
-            url = f"{content['Key']}"
-            url = url.replace("Attachments/", "")
-            documents.append(url)
+            i = Issue.objects.get(id=num)
+            a = Attachments.objects.all().filter(issue=i, archivo=content.get("Key"))
+            if (len(a) > 0):
+                url = f"{content['Key']}"
+                url = url.replace("Attachments/", "")
+                documents.append(url)
     return documents
 
 @login_required(login_url='login')
@@ -252,8 +255,14 @@ def SeeIssue(request, num):
                                   aws_secret_access_key=settings.AWS_SECRET_ACCESS_KEY,
                                   aws_session_token=settings.AWS_SESSION_TOKEN)
                 object_name = 'Attachments/' + option_selected
-                response = s3.delete_object(Bucket=settings.AWS_STORAGE_BUCKET_NAME, Key=object_name)
-    documents = list_documents()
+                i = Issue.objects.get(id=num)
+                a = Attachments.objects.all().filter(issue=i, archivo=object_name)
+                if (len(a) > 1):
+                    a.delete()
+                elif (len(a)==1):
+                    a.delete()
+                    response = s3.delete_object(Bucket=settings.AWS_STORAGE_BUCKET_NAME, Key=object_name)
+    documents = list_documents(num)
 
     issueUpdate = Issue.objects.get(id=num)
 
