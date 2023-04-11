@@ -1,9 +1,6 @@
 from django.contrib.auth.decorators import login_required
-from django.shortcuts import render, redirect
-from .forms import IssueForm
 from .models import Issue
 from django.shortcuts import render, redirect
-from .forms import IssueForm
 from django.contrib.auth import login as auth_login
 from django.contrib.auth.forms import AuthenticationForm, UserCreationForm, UserChangeForm
 from django.contrib.auth import logout
@@ -300,7 +297,7 @@ def deadLineForm(request, id):
     current_year = datetime.now().year
 
     days = [str(day) for day in range (1, 32)]
-    months = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio',
+    months = ["Enero", 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio',
               'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre']
     years = [str(year) for year in range (current_year, current_year + 10)]
 
@@ -310,9 +307,6 @@ def deadLineForm(request, id):
         'years': years,
     }
 
-    return render(request, 'newDeadLine.html', context)
-
-def addDeadline(request, id):
     if request.method == 'POST':
         day = request.POST['day']
         month = request.POST['month']
@@ -328,4 +322,5 @@ def addDeadline(request, id):
         issue.deadlinedate = deadline_date
         issue.save()
         print(issue.deadlinedate)
-        return redirect(id)
+        return redirect(SeeIssue,num=id)
+    return render(request, 'newDeadLine.html', context)
