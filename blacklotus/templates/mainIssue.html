@@ -1,96 +1,90 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>Peticiones</title>
-</head>
+{% extends 'base.html' %}
+{% block content %}
+<h1 class="walltitle">Peticiones</h1>
+<th><a href="{% url 'profile' %}"><p>{{user.username}}</p></a></th>
 
-<body class="wallbody">
-	<h1 class="walltitle">Peticiones</h1>
-    <th><a href="{% url 'profile' %}"> <p>{{user.username}}</p></a></th>
-
-	<div class="wallmain">
-        <table class="default">
-            <tr>
-            <form method="post" name = "mostrarfiltros">
+<div class="wallmain">
+    <table class="default">
+        <tr>
+            <form method="post" name="mostrarfiltros">
                 {% csrf_token %}
                 <input type="submit" name="clearfiltros" value="Clean Filters">
                 {% if visible%}
-                    <input type="submit" name="ocultarfiltros" value="Hide Filters">
-                    <input type="submit" name="updatefiltros" value="Update Filtros">
-                    <div class="from-check">
-                        <input class="form-check-input" type="radio" name="flexRadioDefault" id="flexRadioInclude" checked>
-                        <label class="form-check-label" for="flexRadioInclude">Include</label>
-                    </div>
+                <input type="submit" name="ocultarfiltros" value="Hide Filters">
+                <input type="submit" name="updatefiltros" value="Update Filtros">
+                <div class="from-check">
+                    <input class="form-check-input" type="radio" name="flexRadioDefault" id="flexRadioInclude" checked>
+                    <label class="form-check-label" for="flexRadioInclude">Include</label>
+                </div>
 
-                    <div class="from-check">
-                        <input class="form-check-input" type="radio" name="flexRadioDefault" id="flexRadioExclude">
-                        <label class="form-check-label" for="flexRadioExclude">Exclude</label>
-                    </div>
+                <div class="from-check">
+                    <input class="form-check-input" type="radio" name="flexRadioDefault" id="flexRadioExclude">
+                    <label class="form-check-label" for="flexRadioExclude">Exclude</label>
+                </div>
                 {%else%}
-                    <input type="submit" name="mostrarfiltros" value="Filters">
+                <input type="submit" name="mostrarfiltros" value="Filters">
                 {%endif%}
 
-            <ul id="listafiltros"{% if not visible%}hidden{%endif%}>
-                <li>
-                    <select name="type" id="Type" multiple>
-                         <option value="type" disabled>Type</option>
-                         <option value="1">Bug</option>
-                         <option value="2">Question</option>
-                         <option value="3">Enchancement</option>
-                     </select>
-                </li>
-                <li>
-                    <select name="severity" id="severity" multiple>
-                         <option value="severity" disabled>Severity</option>
-                         <option value="1">Wishlist</option>
-                         <option value="2">Minor</option>
-                         <option value="3">Normal</option>
-                         <option value="4">Important</option>
-                         <option value="5">Critical</option>
-                     </select>
-                </li>
+                <ul id="listafiltros" {% if not visible%}hidden{%endif%}>
+                    <li>
+                        <select name="type" id="Type" multiple>
+                            <option value="type" disabled>Type</option>
+                            <option value="1">Bug</option>
+                            <option value="2">Question</option>
+                            <option value="3">Enchancement</option>
+                        </select>
+                    </li>
+                    <li>
+                        <select name="severity" id="severity" multiple>
+                            <option value="severity" disabled>Severity</option>
+                            <option value="1">Wishlist</option>
+                            <option value="2">Minor</option>
+                            <option value="3">Normal</option>
+                            <option value="4">Important</option>
+                            <option value="5">Critical</option>
+                        </select>
+                    </li>
 
-                 <li>
-                    <select name="priority" id="priority" multiple>
-                         <option value="priority" disabled>Priority</option>
-                         <option value="1">Low</option>
-                         <option value="2">Normal</option>
-                         <option value="3">High</option>
-                     </select>
-                </li>
+                    <li>
+                        <select name="priority" id="priority" multiple>
+                            <option value="priority" disabled>Priority</option>
+                            <option value="1">Low</option>
+                            <option value="2">Normal</option>
+                            <option value="3">High</option>
+                        </select>
+                    </li>
 
-                <li>
-                    <select name="status" id="status" multiple>
-                       <option value="status" disabled>Status</option>
-                       <option value="1">New</option>
-                       <option value="2">In Progress </option>
-                       <option value="3">Ready to Test</option>
-                       <option value="4">Closed</option>
-                       <option value="5">Needs Info</option>
-                       <option value="6">Rejected</option>
-                       <option value="7">Postponed</option>
-                    </select>
-                </li>
+                    <li>
+                        <select name="status" id="status" multiple>
+                            <option value="status" disabled>Status</option>
+                            <option value="1">New</option>
+                            <option value="2">In Progress</option>
+                            <option value="3">Ready to Test</option>
+                            <option value="4">Closed</option>
+                            <option value="5">Needs Info</option>
+                            <option value="6">Rejected</option>
+                            <option value="7">Postponed</option>
+                        </select>
+                    </li>
 
-                <li>
-                    <select name="assignations" id="assignations" multiple>
-                        <option value="assignations" disabled> Assignations</option>
-                        <option value="1">Assigned</option>
-                        <option value="2">Unassigned</option>
-                    </select>
-                </li>
+                    <li>
+                        <select name="assignations" id="assignations" multiple>
+                            <option value="assignations" disabled> Assignations</option>
+                            <option value="1">Assigned</option>
+                            <option value="2">Unassigned</option>
+                        </select>
+                    </li>
 
-                <li>
-                    <select name="creator" id="creator" multiple>
-                        <option value="creator" disabled>Created By</option>
-                             {% for issue in qs %}
-                                <option value="{{issue.getCreator}}">{{ issue.getCreator }}</option>
+                    <li>
+                        <select name="creator" id="creator" multiple>
+                            <option value="creator" disabled>Created By</option>
+                            {% for issue in qs %}
+                            <option value="{{issue.getCreator}}">{{ issue.getCreator }}</option>
                             {% endfor %}
 
-                    </select>
-                </li>
-            </ul>
+                        </select>
+                    </li>
+                </ul>
             </form>
             <th>
                 <form method="GET">
@@ -102,35 +96,37 @@
             <th></th>
             <th></th>
             <th><a href="{% url 'newIssue' %}">
-            <button> + New Issue</button></a></th>
+                <button> + New Issue</button>
+            </a></th>
             <th><a href="{% url 'bulkIssue' %}">
-            <button> + Bulk Insert</button></a></th>
-            </tr>
-        </table>
+                <button> + Bulk Insert</button>
+            </a></th>
+        </tr>
+    </table>
     <table class="issues">
         <tr>
-        <th>Type</th>
-        <th>Severity</th>
-        <th>Priority</th>
-        <th>Issue</th>
-        <th>Status</th>
-        <th>Modified</th>
-        <th>Assign To</th>
+            <th>Type</th>
+            <th>Severity</th>
+            <th>Priority</th>
+            <th>Issue</th>
+            <th>Status</th>
+            <th>Modified</th>
+            <th>Assign To</th>
         </tr>
         {% for issue in qs %}
         <tr>
-        <th><p>{{ issue.getType }}</p></th>
-        <th><p>{{ issue.getSeverity  }}</p></th>
-        <th><p>{{ issue.getPriority}}</p></th>
-        <th><a href = "{% url 'seeIssue' issue.getId%}" target = "_self"><p>{{ issue.getSubject }}</p></a></th>
-        <th><p>{{ issue.getStatus }}</p></th>
-        <th><p>{{ issue.getEditionDate }}</p></th>
-        <th><p>{{ issue.getCreator }}</p></th>
+            <th><p>{{ issue.getType }}</p></th>
+            <th><p>{{ issue.getSeverity }}</p></th>
+            <th><p>{{ issue.getPriority}}</p></th>
+            <th><a href="{% url 'seeIssue' issue.getId%}" target="_self"><p>{{ issue.getSubject }}</p></a></th>
+            <th><p>{{ issue.getStatus }}</p></th>
+            <th><p>{{ issue.getEditionDate }}</p></th>
+            <th><p>{{ issue.getCreator }}</p></th>
         </tr>
         {% endfor %}
     </table>
-	</div>
-        <th><a href="{% url 'logout' %}">
-            <button>logout</button></a></th>
-</body>
-</html>
+</div>
+<th><a href="{% url 'logout' %}">
+    <button>logout</button>
+</a></th>
+{% endblock %}
