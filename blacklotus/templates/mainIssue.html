@@ -73,16 +73,18 @@
                         <option value="assignations" disabled> Assignations</option>
                         <option value="1">Assigned</option>
                         <option value="2">Unassigned</option>
+                            {% for user in allUsers %}
+                                <option value="{{user.user}}">{{ user.username }}</option>
+                            {%endfor%}
                     </select>
                 </li>
 
                 <li>
                     <select name="creator" id="creator" multiple>
                         <option value="creator" disabled>Created By</option>
-                             {% for issue in qs %}
-                                <option value="{{issue.getCreator}}">{{ issue.getCreator }}</option>
-                            {% endfor %}
-
+                            {% for user in allUsers %}
+                                <option value="{{user.username}}">{{ user.username }}</option>
+                            {%endfor%}
                     </select>
                 </li>
             </ul>
