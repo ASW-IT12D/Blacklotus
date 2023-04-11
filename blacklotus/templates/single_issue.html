@@ -195,10 +195,23 @@
 
         <th>
             <br>
-            <div class="Asigned">
-                <a>Assigned</a>
-                <br>
-                <button>+ Add assigned</button>
+            <form id="form2" method="post">
+                {% csrf_token %}
+                <div class="Asign to">
+                    <br>
+                    {{ form.as_p }}
+                </div>
+                <input type="hidden" name="BotonUpdateAsign" value="UpdateAsign">
+                <button type="submit" class="btn btn-primary btn-sm">Asign</button>
+            </form>
+
+            <br>
+            <div class="Assigned to">
+
+                <p>Asigned To:</p>
+                {% for us in asignedTo %}
+                <p>{{ us }}</p>
+                {% endfor %}
             </div>
             <br>
             <div class="Watchers">
@@ -217,7 +230,7 @@
                     <button type="submit"> Unblock</button>
                     {%else%}
                     <input type="hidden" name="block" value="Block">
-                     <button type="submit"> Block</button>
+                    <button type="submit"> Block</button>
                     {%endif%}
                 </form>
                 <a href="{% url 'deleteIssue' issue.first.id%}">
@@ -226,12 +239,23 @@
             </div>
         </th>
     </tr>
+
     <tr>
         <th>
             <div class="">
-                <a class="active" href="">X Comments</a>
-                <a href="">{{ activity|length }} Activities</a>
-
+                <form method="post" name="cambiarCommen" style="display: inline-block;">
+                    {% csrf_token %}
+                    <input type="hidden" name="comments" value="Comentarios">
+                    <button type="submit" name="Comment">X Comments</button>
+                </form>
+                <form method="post" name="cambiarAct" style="display: inline-block;">
+                    {% csrf_token %}
+                    <input type="hidden" name="activity" value="Actividades">
+                    <button type="submit" name="Activity"> X Activities</button>
+                </form>
+                {% if commentsOn %}
+                <h1>Hola</h1>
+                {%else%}
                 {% for act in activity %}
                 <div>
                     <br>
@@ -246,6 +270,9 @@
                     </p>
                     {% endfor %}
                 </div>
+                {%endif%}
+
+
                 <br>
             </div>
         </th>

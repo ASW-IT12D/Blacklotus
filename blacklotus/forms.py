@@ -24,3 +24,9 @@ class EditProfForm(UserChangeForm):
     class Meta:
         model = User
         fields = ['username','first_name','second_name','email']
+
+class AssignedTo(forms.ModelForm):
+    asignedTo = forms.ModelMultipleChoiceField(queryset=User.objects.all(), to_field_name='username')
+    class Meta:
+        model = Issue
+        fields = ['asignedTo']

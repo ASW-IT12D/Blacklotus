@@ -3,6 +3,7 @@ import os
 from django.core.files.storage import default_storage
 from django.conf import settings
 import boto3
+from django.contrib.auth.models import User
 from django.db import models
 
 # Create your models here.
@@ -17,6 +18,7 @@ class Issue(models.Model):
     priority = models.IntegerField()
     creationdate = models.DateTimeField(auto_now_add=True)
     modifieddate = models.DateTimeField(auto_now=True)
+    asignedTo = models.ManyToManyField(User, blank=True)
     objects = models.Manager()
 
     def getSubject(self):
@@ -25,7 +27,8 @@ class Issue(models.Model):
         return self.description
     def getCreator(self):
         return self.creator
-
+    def getAsignedTo(self):
+        return self.asignedTo
     def getStatus(self):
         return self.status
 
@@ -86,4 +89,19 @@ class Attachments(models.Model):
         self.archivo = nombre_archivo
         super().save(*args, **kwargs)
 
+class Comentario(models.Model):
+    message = models.CharField(max_length=100)
+    creator = models.CharField(max_length=100)
+    issue = models.ForeignKey(Issue, on_delete=models.CASCADE)
+    creationDate = models.DateTimeField(auto_now_add=True)
+    objects = models.Manager()
+
+    def getCreator(self):
+        return self.creator
+
+    def getMessage(self):
+        return self.message
+
+    def getCreationDate(self):
+        return self.creationDate
 

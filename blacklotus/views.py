@@ -1,17 +1,20 @@
 import os
 
 from django.contrib.auth.decorators import login_required
-from .models import Issue, Attachments, Activity
+from django.contrib.auth.models import User
+from .models import Issue, Attachments, Activity, Comentario
 from django.shortcuts import render, redirect
 from django.contrib.auth import login as auth_login
-from django.contrib.auth.forms import AuthenticationForm
+from django.contrib.auth.forms import AuthenticationForm, UserCreationForm, UserChangeForm
 from django.contrib.auth import logout
-from .forms import RegisterForm,EditProfForm
+from .forms import RegisterForm,EditProfForm, IssueForm,AssignedTo
 from django.views import generic
 from django.urls import reverse_lazy
+from django.http import HttpResponse
 from django.db.models import Q
 import boto3
 from django.conf import settings
+
 
 # Create your views here.
 
@@ -66,7 +69,6 @@ def showIssues(request):
     if request.method == 'GET':
         if 'r' in request.GET:
             ref = request.GET.get('r')
-
     if request.method == 'POST':
         if 'clearfiltros' in request.POST:
             filtros = []
@@ -185,6 +187,7 @@ def list_documents():
 
 @login_required(login_url='login')
 def SeeIssue(request, num):
+    form = AssignedTo()
     if 'bloqued' in request.session:
         bloqued = request.session['bloqued']
         del request.session['bloqued']
@@ -196,8 +199,27 @@ def SeeIssue(request, num):
         del request.session['motive']
     else:
         motive = None
-
+    if 'commentsOn' in request.session:
+        commentsOn = request.session['commentsOn']
+    else:
+        commentsOn = True
     if request.method == "POST":
+        if 'comments' in request.POST:
+            request.session['commentsOn'] = True
+            commentsOn = True
+        elif 'activity' in request.POST:
+            request.session['commentsOn'] = False
+            commentsOn = False
+        elif 'BotonUpdateAsign' in request.POST:
+            formN = AssignedTo(request.POST)
+            if formN.is_valid():
+                names = formN.cleaned_data['asignedTo']
+                aux = Issue.objects.get(id=num)
+                listUsernames = list(names.values_list('username', flat=True))
+                auxU = User.objects.filter(username__in=listUsernames)
+                aux.asignedTo.set(auxU)
+                aux.save()
+
         if 'archivo' in request.FILES and request.FILES['archivo']:
             archivo = request.FILES.get('archivo')
             if len(archivo) > 0:
@@ -284,10 +306,12 @@ def SeeIssue(request, num):
             lastIssue = Issue.objects.order_by('creationdate').first()
             return redirect(SeeIssue, num=lastIssue.id)
 
+    instance = Issue.objects.get(id=num)
+    asignedTo = instance.asignedTo.all()
     issue = Issue.objects.filter(id=num).values()
     issueAct = Issue.objects.get(id=num)
     activity = Activity.objects.filter(issueChanged=issueAct).order_by('-creationdate').values()
-    return render(request, 'single_issue.html', {'issue':issue,'bloqued':bloqued, 'motive': motive, 'documents':documents, 'activity':activity})
+    return render(request, 'single_issue.html', {'issue':issue,'bloqued':bloqued, 'motive': motive, 'documents':documents, 'activity':activity, 'commentsOn': commentsOn,'asignedTo':asignedTo})
 
 @login_required(login_url='login')
 def EditIssue(request):
