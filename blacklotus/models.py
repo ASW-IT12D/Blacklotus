@@ -22,7 +22,7 @@ class Issue(models.Model):
     blocked = models.BooleanField(default= False)
     blockmotive = models.CharField(blank=True, max_length=100)
     deadline = models.BooleanField(default= False)
-    deadlinedate = models.DateTimeField(blank=True)
+    deadlinedate = models.DateTimeField(blank=True,null=True)
 
     def getSubject(self):
         return self.subject
@@ -115,3 +115,10 @@ class Comentario(models.Model):
 
     def getCreationDate(self):
         return self.creationDate
+
+class Profile(models.Model):
+    user = models.OneToOneField(User,null = True,on_delete=models.CASCADE)
+    bio = models.TextField()
+
+    def __str__(self):
+        return str(self.user)
