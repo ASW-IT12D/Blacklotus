@@ -19,6 +19,9 @@
                         <div class="created-by">
                             <a>Created by {{ issue.first.creator }}</a>
                             <div class="creatinDate">{{ issue.first.creationdate }}</div>
+                            {% if issue.first.deadlinedate %}
+                            <div class="deadlineDate">Deadline: {{ issue.first.deadlinedate|date:"F j, Y" }}</div>
+                            {%endif%}
                         </div>
                         <div>
                             <a><img src="https://cdn.pixabay.com/photo/2015/04/23/22/00/tree-736885__480.jpg"
@@ -130,7 +133,7 @@
                         <option value=5>Critical</option>
                         {% endif %}
 
-                    </select>
+                </select>
 
                     <br> <a>Priority: </a>
                     <select name="priority">
@@ -222,7 +225,12 @@
             </div>
             <br>
             <div class="Options">
-                <button class="btn btn-secondary btn-sm">Deadline</button>
+                <form method="post" name = "deadlineIssues" style = "display: inline-block;">
+                    {% csrf_token %}
+                    <input type="hidden" name="deadline" value="deadline">
+                    <button type="submit">Deadline</button>
+                </form>
+
                 <form method="post" name="bloquearissues" style="display: inline-block;">
                     {% csrf_token %}
                     {% if issue.first.blocked %}

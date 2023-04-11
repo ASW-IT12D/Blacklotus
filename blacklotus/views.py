@@ -1,34 +1,25 @@
-import os
-import tempfile
-from io import BytesIO
-
 from django.contrib.auth.decorators import login_required
-from django.http import HttpResponse
-
-from .models import Issue, Attachments, Activity
 from django.shortcuts import render, redirect
 from .forms import IssueForm
-from .models import Issue, Comentario
 from .models import Issue
-from django.contrib.auth.models import User
-
 from django.shortcuts import render, redirect
+from .forms import IssueForm
 from django.contrib.auth import login as auth_login
-from django.contrib.auth.forms import AuthenticationForm
+from django.contrib.auth.forms import AuthenticationForm, UserCreationForm, UserChangeForm
 from django.contrib.auth import logout
-from .forms import RegisterForm,EditProfForm,IssueForm,AssignedTo
+from .forms import RegisterForm,EditProfForm
 from django.views import generic
-from django.urls import reverse_lazy
 from django.db.models import Q
-import boto3
-from django.conf import settings
+from django.urls import reverse_lazy
+from django.http import HttpResponse
+from django.db.models import Q
 
 # Create your views here.
 
 @login_required(login_url='login')
 def CreateIssueForm(request):
     return render(request, 'newissue.html')
-
+    
 @login_required(login_url='login')
 def BulkIssueForm(request):
     return render(request, 'bulkissue.html')
@@ -276,6 +267,10 @@ def SeeIssue(request, num):
                 aux.asignedTo.set(auxU)
                 aux.save()
 
+            bloqued = False
+        elif 'deadline' in request.POST:
+            return redirect(deadLineForm, id=num)
+    issueUpdate = Issue.objects.get(id=num)
     if 'BotonUpdateStatuses' in request.POST:
         user = request.user.username
         if 'status' in request.POST:
@@ -406,4 +401,40 @@ class UserEditView(generic.UpdateView):
     success_url = reverse_lazy('home')
     def get_object(self):
         return self.request.user
+
+@login_required(login_url='login')
+def deadLineForm(request, id):
+    current_year = datetime.now().year
+
+    days = [str(day) for day in range (1, 32)]
+    months = ['January', 'February', 'March', 'April', 'May', 'June',
+              'July', 'August', 'September', 'October', 'November', 'December']
+    years = [str(year) for year in range (current_year, current_year + 10)]
+
+    context = {
+        'days': days,
+        'months': months,
+        'years': years,
+    }
+
+    if request.method == 'POST':
+        day = request.POST['day']
+        month = request.POST['month']
+        year = request.POST['year']
+
+        deadline_date = datetime.strptime(f"{day} {month} {year}", "%d %B %Y")
+        now = datetime.now()
+        if deadline_date < now:
+            return render(request, 'newDeadLine.html', context)
+
+        issue = Issue.objects.get(id=id)
+        issue.deadlinedate = deadline_date
+
+        if len(request.POST.get("motive")) > 0:
+            textarea_input = request.POST['motive']
+            issue.deadlinemotive = textarea_input
+        issue.save()
+        return redirect(SeeIssue,num=id)
+    return render(request, 'newDeadLine.html', context)
+
 
