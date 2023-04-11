@@ -1,6 +1,10 @@
 import os
+import tempfile
+from io import BytesIO
 
 from django.contrib.auth.decorators import login_required
+from django.http import HttpResponse
+
 from .models import Issue, Attachments, Activity
 from django.shortcuts import render, redirect
 from .forms import IssueForm
@@ -24,7 +28,7 @@ from django.conf import settings
 @login_required(login_url='login')
 def CreateIssueForm(request):
     return render(request, 'newissue.html')
-    
+
 @login_required(login_url='login')
 def BulkIssueForm(request):
     return render(request, 'bulkissue.html')
@@ -175,8 +179,8 @@ def showIssues(request):
         else:
             qs = Issue.objects.filter(filtrosF).order_by('-creationdate').filter(creator=request.user.username)
     return render(request, 'mainIssue.html', {'visible': visible,'qs': qs})
-    
-       
+
+
 @login_required(login_url='login')
 def BlockIssueForm(request, id):
     if request.method == 'POST':
@@ -241,17 +245,14 @@ def SeeIssue(request, num):
                                   aws_access_key_id=settings.AWS_ACCESS_KEY_ID,
                                   aws_secret_access_key=settings.AWS_SECRET_ACCESS_KEY,
                                   aws_session_token=settings.AWS_SESSION_TOKEN)
-                object_name = 'Attachments/' + option_selected
-                # Obtener el nombre del archivo a descargar
-                # Obtener la ruta del archivo actual
-                current_file_path = os.path.abspath(__file__)
 
-                # Obtener la ruta del directorio padre
-                parent_dir_path = os.path.dirname(current_file_path)
-                # Obtener la ruta del directorio padre del directorio padre (es decir, la raíz del proyecto)
-                project_dir_path = os.path.dirname(parent_dir_path)
-                file_name = project_dir_path + '/Attachments/'+option_selected
-                s3.download_file(settings.AWS_STORAGE_BUCKET_NAME, object_name, file_name)
+                object_name = 'Attachments/' + option_selected
+                with tempfile.NamedTemporaryFile(delete=False) as temp_file:
+                    s3.download_file(settings.AWS_STORAGE_BUCKET_NAME, object_name, temp_file.name)
+                with open(temp_file.name, 'rb') as f:
+                    response = HttpResponse(f.read(), content_type='application/octet-stream')
+                    response['Content-Disposition'] = 'attachment; filename="{}"'.format(option_selected)
+                return response
 
         elif 'Delete' in request.POST:
             option_selected = request.POST.get('option')
