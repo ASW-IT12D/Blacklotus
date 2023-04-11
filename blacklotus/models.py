@@ -13,6 +13,7 @@ class Issue(models.Model):
     creationdate = models.DateTimeField(auto_now_add=True)
     modifieddate = models.DateTimeField(auto_now=True)
     deadlinedate = models.DateTimeField(null=True, blank=True)
+    deadlinemotive = models.CharField(max_length=100)
     objects = models.Manager()
 
     def getSubject(self):

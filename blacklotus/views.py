@@ -321,7 +321,11 @@ def deadLineForm(request, id):
 
         issue = Issue.objects.get(id=id)
         issue.deadlinedate = deadline_date
+
+        if len(request.POST.get("motive")) > 0:
+            textarea_input = request.POST['motive']
+            issue.deadlinemotive = textarea_input
+
         issue.save()
-        print(issue.deadlinedate)
         return redirect(SeeIssue,num=id)
     return render(request, 'newDeadLine.html', context)
