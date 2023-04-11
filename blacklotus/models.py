@@ -20,6 +20,7 @@ class Issue(models.Model):
     objects = models.Manager()
     asignedTo = models.ManyToManyField(User,blank=True)
     blocked = models.BooleanField(default= False)
+    blockmotive = models.CharField(blank=True, max_length=100)
     deadline = models.BooleanField(default= False)
     deadlinedate = models.DateTimeField(blank=True)
 
