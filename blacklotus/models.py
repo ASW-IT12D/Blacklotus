@@ -41,3 +41,20 @@ class Issue(models.Model):
         return self.creationdate
     def __str__(self):
         return self.subject + ' ' + self.description
+
+
+class Comentario(models.Model):
+    message = models.CharField(max_length=100)
+    creator = models.CharField(max_length=100)
+    issue = models.ForeignKey(Issue, on_delete=models.CASCADE)
+    creationDate = models.DateTimeField(auto_now_add=True)
+    objects = models.Manager()
+
+    def getCreator(self):
+        return self.creator
+
+    def getMessage(self):
+        return self.message
+
+    def getCreationDate(self):
+        return self.creationDate
