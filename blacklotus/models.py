@@ -19,9 +19,18 @@ class Issue(models.Model):
     modifieddate = models.DateTimeField(auto_now=True)
     objects = models.Manager()
     asignedTo = models.ManyToManyField(User,blank=True)
+    blocked = models.BooleanField(default= False)
+    deadline = models.BooleanField(default= False)
+    deadlinedate = models.DateTimeField(blank=True)
 
     def getSubject(self):
         return self.subject
+    def getBlocked(self):
+        return self.blocked
+    def getDeadline(self):
+        return self.deadline
+    def getDateDeadLine(self):
+        return self.deadlinedate
     def getDescription(self):
         return self.description
     def getCreator(self):
