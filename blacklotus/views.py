@@ -313,11 +313,11 @@ def deadLineForm(request, id):
         month = request.POST['month']
         year = request.POST['year']
 
-        max_days = calendar.monthrange(int(year), list(calendar.month_name).index(month))[1]
-        if int(day) > max_days:
-            return HttpResponse("Fecha inválida")
-
         deadline_date = datetime.strptime(f"{day} {month} {year}", "%d %B %Y")
+        now = datetime.now()
+        if deadline_date < now:
+            return render(request, 'newDeadLine.html', context)
+
 
         issue = Issue.objects.get(id=id)
         issue.deadlinedate = deadline_date
@@ -325,7 +325,6 @@ def deadLineForm(request, id):
         if len(request.POST.get("motive")) > 0:
             textarea_input = request.POST['motive']
             issue.deadlinemotive = textarea_input
-
         issue.save()
         return redirect(SeeIssue,num=id)
     return render(request, 'newDeadLine.html', context)
