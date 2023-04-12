@@ -71,10 +71,9 @@
                 <li>
                     <select name="assignations" id="assignations" multiple>
                         <option value="assignations" disabled> Assignations</option>
-                        <option value="1">Assigned</option>
-                        <option value="2">Unassigned</option>
+                        <option value="Unassigned"> Unassigned </option>
                             {% for user in allUsers %}
-                                <option value="{{user.user}}">{{ user.username }}</option>
+                                <option value="{{user.username}}">{{ user.username }}</option>
                             {%endfor%}
                     </select>
                 </li>

@@ -139,9 +139,16 @@ def showIssues(request):
                         filtrosC = Q(creator=filtro) | filtrosC
 
                 if 'filtros_asignedTo' in request.session:
-                    filtrosasigned= request.session["filtros_asignedTo"]
+                    filtrosasigned = request.session["filtros_asignedTo"]
                     for filtro in filtrosasigned:
-                        filtrosA = Q(asignedTo=filtro) | filtrosA
+                        if filtro == "Unassigned" or filtro == None:
+                            filtrosA = Q(asignedTo=None) | filtrosA
+                        else:
+                            if isinstance(filtro, int):
+                                filtrosA = Q(asignedTo=filtro) | filtrosA
+                            else:
+                                user = User.objects.get(username=filtro)
+                                filtrosA = Q(asignedTo=user.id) | filtrosA
 
 
             for filtro in request.POST.getlist("status"):
@@ -165,8 +172,17 @@ def showIssues(request):
                 filtroscreator.append(filtro)
 
             for filtro in request.POST.getlist("assignations"):
-                filtrosA = Q(asignedTo=filtro) | filtrosA
-                filtrosasigned.append(filtro)
+                if filtro == "Unassigned" or filtro == None:
+                    filtrosA = Q(asignedTo = None)| filtrosA
+                    filtrosasigned.append(None)
+                else:
+                    if isinstance(filtro, int):
+                        filtrosA = Q(asignedTo=filtro) | filtrosA
+                        filtrosasigned.append(filtro)
+                    else:
+                        user = User.objects.get(username=filtro)
+                        filtrosA = Q(asignedTo=user.id) | filtrosA
+                        filtrosasigned.append(user.id)
 
             request.session['filtros_status'] = filtrosstatus
             request.session['filtros_priority'] = filtrospriority
