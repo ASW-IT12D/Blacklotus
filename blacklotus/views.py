@@ -448,7 +448,7 @@ def deadLineForm(request, id):
             return render(request, 'newDeadLine.html', context)
 
         now = datetime.now()
-        last_day = calendar.monthrange(year, months_dict[int(month)])[1]
+        last_day = calendar.monthrange(year, months_dict[month])[1]
 
         if deadline_date < now or day > last_day:
             return render(request, 'newDeadLine.html', context)

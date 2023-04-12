@@ -159,6 +159,9 @@
                 {%if issue.blocked%}
                     B
                 {%endif%}
+                {%if issue.deadline%}
+                    D
+                {%endif%}
         </p></a></th>
         <th><p>{{ issue.getStatus }}</p></th>
         <th></th>
