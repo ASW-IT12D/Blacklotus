@@ -19,7 +19,7 @@
                         <div class="created-by">
                             <a>Created by {{ issue.first.creator }}</a>
                             <div class="creatinDate">{{ issue.first.creationdate }}</div>
-                            {% if issue.first.deadlinedate %}
+                            {% if issue.first.deadline %}
                             <div class="deadlineDate">Deadline: {{ issue.first.deadlinedate|date:"F j, Y" }}</div>
                             {%endif%}
                         </div>
@@ -228,11 +228,11 @@
                 <form method="post" name = "deadlineIssues" style="display: inline-block;">
                     {% csrf_token %}
                     {% if issue.first.deadline %}
+                    <input type="hidden" name="deldeadline" value="deldeadline">
+                    <button type="submit" class="btn btn-danger btn-sm">Deadline</button>
+                    {%else%}
                     <input type="hidden" name="deadline" value="deadline">
                     <button type="submit" class="btn btn-secondary btn-sm">Deadline</button>
-                    {%else%}
-                    <input type="hidden" name="deldeadline" value="deldeadline">
-                    <button type="submit" class="btn btn-danger btn-sm">Eliminar Deadline</button>
                     {%endif%}
                 </form>
 

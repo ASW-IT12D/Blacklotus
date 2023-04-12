@@ -280,6 +280,11 @@ def SeeIssue(request, num):
             bloqued = False
         elif 'deadline' in request.POST:
             return redirect(deadLineForm, id=num)
+        elif 'deldeadline' in request.POST:
+
+            issueUpdate.deadline = False
+            issueUpdate.deadlinemotive = ""
+            issueUpdate.save()
     issueUpdate = Issue.objects.get(id=num)
     if 'BotonUpdateStatuses' in request.POST:
         user = request.user.username
@@ -421,6 +426,9 @@ def deadLineForm(request, id):
               'July', 'August', 'September', 'October', 'November', 'December']
     years = [str(year) for year in range (current_year, current_year + 10)]
 
+    months_dict = {'January': 1, 'February': 2, 'March': 3, 'April': 4, 'May': 5, 'June': 6,
+                   'July': 7, 'August': 8, 'September': 9, 'October': 10, 'November': 11, 'December': 12}
+
     context = {
         'days': days,
         'months': months,
@@ -430,31 +438,32 @@ def deadLineForm(request, id):
     issue = Issue.objects.get(id=id)
 
     if request.method == 'POST':
-        if 'deadline' in request.POST:
-            day = request.POST['day']
-            month = request.POST['month']
-            year = request.POST['year']
+        day = int(request.POST['day'])
+        month = request.POST['month']
+        year = int(request.POST['year'])
 
+        try:
             deadline_date = datetime.strptime(f"{day} {month} {year}", "%d %B %Y")
-            now = datetime.now()
-            last_day = calendar.monthrange(year, month)[1]
-            if deadline_date < now or day > last_day:
-                return render(request, 'newDeadLine.html', context)
+        except ValueError:
+            return render(request, 'newDeadLine.html', context)
+
+        now = datetime.now()
+        last_day = calendar.monthrange(year, months_dict[int(month)])[1]
+
+        if deadline_date < now or day > last_day:
+            return render(request, 'newDeadLine.html', context)
 
 
-            issue.deadlinedate = deadline_date
-            issue.deadline = True
+        issue.deadlinedate = deadline_date
+        issue.deadline = True
 
-            if len(request.POST.get("motive")) > 0:
-                textarea_input = request.POST['motive']
-                issue.deadlinemotive = textarea_input
-            issue.save()
-            return redirect(SeeIssue, num=id)
-        elif 'deldeadline' in request.POST:
-            issue.deadline = False
-            issue.deadlinemotive = ""
-            issue.save()
-            return redirect(SeeIssue, num=id)
+        if len(request.POST.get("motive")) > 0:
+            textarea_input = request.POST['motive']
+            issue.deadlinemotive = textarea_input
+
+        issue.save()
+
+        return redirect(SeeIssue, num=id)
 
     return render(request, 'newDeadLine.html', context)
 
