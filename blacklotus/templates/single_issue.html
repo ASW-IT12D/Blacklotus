@@ -267,8 +267,15 @@
 
                 <div class="">
                     <table>
+
                         {%for c in coments%}
                         <tr>
+                            {% for comment_id, image_url in images.items %}
+                                {%if comment_id == c %}
+                                     <th><a><img src="{{ image_url }}" alt="Profile Image" style="width:50px;height:50px;"></a></th>
+                                {%endif%}
+                            {% endfor %}
+
                             <th>{{ c.getCreator }}</th>
                             <th>{{ c.getCreationDate}}</th>
                         </tr>

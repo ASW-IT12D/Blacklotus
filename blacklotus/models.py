@@ -128,10 +128,11 @@ class Attachments(models.Model):
 
 class Comentario(models.Model):
     message = models.CharField(max_length=100)
-    creator = models.CharField(max_length=100)
+    creator = models.ForeignKey(User, on_delete=models.CASCADE)
     issue = models.ForeignKey(Issue, on_delete=models.CASCADE)
     creationDate = models.DateTimeField(auto_now_add=True)
     objects = models.Manager()
+
 
     def getCreator(self):
         return self.creator

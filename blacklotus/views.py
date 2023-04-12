@@ -346,10 +346,19 @@ def SeeIssue(request, num):
     if request.method == 'GET':
         if 'comment' in request.GET:
             coment = request.GET.get('comment')
-            iss = Issue.objects.get(id=num)
-            c = Comentario(message=coment, creator=request.user.username, issue=iss)
-            c.save()
+            if len(coment) > 0:
+                iss = Issue.objects.get(id=num)
+                user = User.objects.get(username=request.user.username)
+                c = Comentario(message=coment, creator=user, issue=iss)
+                c.save()
     coments = Comentario.objects.all().order_by('-creationDate').filter(issue=num)
+
+    images = {}
+    for c in coments:
+        creator = User.objects.get(id=c.creator_id)
+        profileUserc = Profile.objects.get(user=creator)
+        imageUserc = profileUserc.get_url_image()
+        images[c] = imageUserc
 
     instance = Issue.objects.get(id=num)
     asignedTo = instance.asignedTo.all()
@@ -359,7 +368,7 @@ def SeeIssue(request, num):
     return render(request, 'single_issue.html',
                   {'image_url': image_url, 'issue': issue, 'form': form,
                    'asignedTo': asignedTo, 'coments': coments, 'activity': activity, 'commentsOn': commentsOn,
-                   'documents': documents})
+                   'documents': documents, 'images': images})
 
 @login_required(login_url='login')
 def EditIssue(request):
