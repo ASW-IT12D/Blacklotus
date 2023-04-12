@@ -427,24 +427,35 @@ def deadLineForm(request, id):
         'years': years,
     }
 
+    issue = Issue.objects.get(id=id)
+
     if request.method == 'POST':
-        day = request.POST['day']
-        month = request.POST['month']
-        year = request.POST['year']
+        if 'deadline' in request.POST:
+            day = request.POST['day']
+            month = request.POST['month']
+            year = request.POST['year']
 
-        deadline_date = datetime.strptime(f"{day} {month} {year}", "%d %B %Y")
-        now = datetime.now()
-        if deadline_date < now:
-            return render(request, 'newDeadLine.html', context)
+            deadline_date = datetime.strptime(f"{day} {month} {year}", "%d %B %Y")
+            now = datetime.now()
+            last_day = calendar.monthrange(year, month)[1]
+            if deadline_date < now or day > last_day:
+                return render(request, 'newDeadLine.html', context)
 
-        issue = Issue.objects.get(id=id)
-        issue.deadlinedate = deadline_date
 
-        if len(request.POST.get("motive")) > 0:
-            textarea_input = request.POST['motive']
-            issue.deadlinemotive = textarea_input
-        issue.save()
-        return redirect(SeeIssue,num=id)
+            issue.deadlinedate = deadline_date
+            issue.deadline = True
+
+            if len(request.POST.get("motive")) > 0:
+                textarea_input = request.POST['motive']
+                issue.deadlinemotive = textarea_input
+            issue.save()
+            return redirect(SeeIssue, num=id)
+        elif 'deldeadline' in request.POST:
+            issue.deadline = False
+            issue.deadlinemotive = ""
+            issue.save()
+            return redirect(SeeIssue, num=id)
+
     return render(request, 'newDeadLine.html', context)
 
 

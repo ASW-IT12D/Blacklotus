@@ -227,8 +227,13 @@
             <div class="Options">
                 <form method="post" name = "deadlineIssues" style="display: inline-block;">
                     {% csrf_token %}
+                    {% if issue.first.deadline %}
                     <input type="hidden" name="deadline" value="deadline">
                     <button type="submit" class="btn btn-secondary btn-sm">Deadline</button>
+                    {%else%}
+                    <input type="hidden" name="deldeadline" value="deldeadline">
+                    <button type="submit" class="btn btn-danger btn-sm">Eliminar Deadline</button>
+                    {%endif%}
                 </form>
 
                 <form method="post" name="bloquearissues" style="display: inline-block;">

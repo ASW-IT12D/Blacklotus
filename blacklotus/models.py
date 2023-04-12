@@ -24,7 +24,6 @@ class Issue(models.Model):
     blocked = models.BooleanField(default= False)
     blockmotive = models.CharField(null=True, max_length=100, blank=True)
     deadline = models.BooleanField(default= False)
-    deadlinedate = models.DateTimeField(null=True)
 
     def getSubject(self):
         return self.subject
