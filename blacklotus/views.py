@@ -32,7 +32,6 @@ def CreateIssueForm(request):
     return render(request, 'newissue.html')
 
 
-
 @login_required(login_url='login')
 def BulkIssueForm(request):
     return render(request, 'bulkissue.html')
@@ -73,7 +72,6 @@ def BulkIssue(request):
 
 @login_required(login_url='login')
 def showIssues(request):
-
     sort_by = None
     visible = None
     ref = None
@@ -171,7 +169,6 @@ def showIssues(request):
             request.session['filtros_severity'] = filtrosseverity
             request.session['filtros_creator'] = filtroscreator
 
-
             if 'flexRadioInclude' in request.POST:
                 filtrosF = filtrosS | filtrosP | filtrosT | filtrosSv | filtrosC
             else:
@@ -205,6 +202,7 @@ def BlockIssueForm(request, id):
             return redirect(SeeIssue, num=id)
     return render(request, 'blockissue.html')
 
+
 def list_documents(num):
     s3 = boto3.client('s3',
                       aws_access_key_id=settings.AWS_ACCESS_KEY_ID,
@@ -223,6 +221,7 @@ def list_documents(num):
                 url = url.replace("Attachments/", "")
                 documents.append(url)
     return documents
+
 
 @login_required(login_url='login')
 def SeeIssue(request, num):
@@ -272,7 +271,7 @@ def SeeIssue(request, num):
                 a = Attachments.objects.all().filter(issue=i, archivo=object_name)
                 if (len(a) > 1):
                     a.delete()
-                elif (len(a)==1):
+                elif (len(a) == 1):
                     a.delete()
                     response = s3.delete_object(Bucket=settings.AWS_STORAGE_BUCKET_NAME, Key=object_name)
     documents = list_documents(num)
@@ -357,11 +356,9 @@ def SeeIssue(request, num):
     profile = Profile.objects.get(user=user)
     image_url = profile.get_url_image()
     return render(request, 'single_issue.html',
-                  {'image_url': image_url, 'issue': issue, 'bloqued': bloqued, 'motive': motive, 'form': form,
+                  {'image_url': image_url, 'issue': issue, 'form': form,
                    'asignedTo': asignedTo, 'coments': coments, 'activity': activity, 'commentsOn': commentsOn,
                    'documents': documents})
-    return render(request, 'single_issue.html', {'issue':issue,'form':form,'asignedTo':asignedTo, 'coments': coments, 'activity':activity, 'commentsOn': commentsOn,'documents':documents})
-
 
 @login_required(login_url='login')
 def EditIssue(request):
@@ -395,6 +392,7 @@ def DeleteIssue(request, id):
     issue = Issue.objects.get(id=id)
     issue.delete()
     return redirect(showIssues)
+
 
 def log(request):
     if request.method == 'POST':
@@ -441,4 +439,3 @@ class ProfileEditView(generic.UpdateView):
 
     def get_object(self):
         return self.request.user
-
