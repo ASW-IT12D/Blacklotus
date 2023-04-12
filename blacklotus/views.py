@@ -268,10 +268,11 @@ def SeeIssue(request, num):
                                   aws_session_token=settings.AWS_SESSION_TOKEN)
                 object_name = 'Attachments/' + option_selected
                 i = Issue.objects.get(id=num)
+                allAt = Attachments.objects.all().filter(archivo=object_name)
                 a = Attachments.objects.all().filter(issue=i, archivo=object_name)
-                if (len(a) > 1):
+                if (len(allAt) > 1):
                     a.delete()
-                elif (len(a) == 1):
+                elif (len(allAt) == 1):
                     a.delete()
                     response = s3.delete_object(Bucket=settings.AWS_STORAGE_BUCKET_NAME, Key=object_name)
     documents = list_documents(num)
