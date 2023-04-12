@@ -353,6 +353,7 @@ def SeeIssue(request, num):
                 c.save()
     coments = Comentario.objects.all().order_by('-creationDate').filter(issue=num)
 
+
     images = {}
     for c in coments:
         creator = User.objects.get(id=c.creator_id)

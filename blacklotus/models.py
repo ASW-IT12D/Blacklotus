@@ -125,7 +125,6 @@ class Attachments(models.Model):
         self.archivo = nombre_archivo
         super().save(*args, **kwargs)
 
-
 class Comentario(models.Model):
     message = models.CharField(max_length=100)
     creator = models.ForeignKey(User, on_delete=models.CASCADE)
