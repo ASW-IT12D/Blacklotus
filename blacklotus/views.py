@@ -350,32 +350,11 @@ def SeeIssue(request, num):
     asignedTo = instance.asignedTo.all()
     user = User.objects.get(username=request.user.username)
     profile = Profile.objects.get(user=user)
-    if bool(profile.image):
-        image_url = profile.image.url
-    else:
-        image_url = get_s3_object_url()
+    image_url = profile.get_url_image()
     return render(request, 'single_issue.html',
                   {'image_url': image_url, 'issue': issue, 'bloqued': bloqued, 'motive': motive, 'form': form,
                    'asignedTo': asignedTo, 'coments': coments, 'activity': activity, 'commentsOn': commentsOn,
                    'documents': documents})
-
-
-def get_s3_object_url():
-    s3 = boto3.client('s3',
-                      aws_access_key_id=settings.AWS_ACCESS_KEY_ID,
-                      aws_secret_access_key=settings.AWS_SECRET_ACCESS_KEY,
-                      aws_session_token=settings.AWS_SESSION_TOKEN)
-
-    filename = 'oso-malayo-cara.jpg'
-    url = ''
-    try:
-        url = s3.generate_presigned_url('get_object',
-                                        Params={'Bucket': settings.AWS_STORAGE_BUCKET_NAME,
-                                                'Key': 'Images/' + filename},
-                                        ExpiresIn=3600)  # la URL expirará en 1 hora
-        return url
-    except ClientError as e:
-        print(e)
 
 
 @login_required(login_url='login')

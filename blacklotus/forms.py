@@ -17,14 +17,17 @@ class RegisterForm(UserCreationForm):
         fields = ['username','first_name','email','password1','password2']
 
 
+
 class EditProfileInfoForm(forms.ModelForm):
     username = forms.CharField(max_length=80, widget=forms.TextInput(attrs={'class': 'form-control'}))
     email = forms.EmailField(widget=forms.EmailInput(attrs={'class' : 'form-control'}))
     first_name = forms.CharField(max_length=80,widget=forms.TextInput(attrs={'class' : 'form-control'}))
-    bio = forms.TextInput()
+    bio = forms.CharField(widget=forms.Textarea(attrs={'class': 'form-control', 'rows': 7, 'placeholder': 'Optional'}), required=False)
+    image = forms.ImageField(required=False, widget=forms.FileInput(
+        attrs={'class': 'form-control-file', 'id': 'archivo', 'name': 'archivo'}))
     class Meta:
         model = Profile
-        fields = ['username','email','first_name','bio']
+        fields = ['username','email','first_name','bio', 'image']
 
     def save(self, commit=True):
         user = super(EditProfileInfoForm,self).save(commit=False)
@@ -34,9 +37,10 @@ class EditProfileInfoForm(forms.ModelForm):
         user.save()
         profile = user.profile
         profile.bio = self.cleaned_data['bio']
+        profile.image = self.cleaned_data['image']
         profile.save()
 
-        return user
+        return profile
 class AssignedTo(forms.ModelForm):
     asignedTo = forms.ModelMultipleChoiceField(queryset=User.objects.all(), to_field_name='username')
     class Meta:
