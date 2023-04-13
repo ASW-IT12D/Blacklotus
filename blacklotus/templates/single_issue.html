@@ -132,7 +132,7 @@
                         <option value=5>Critical</option>
                         {% endif %}
 
-                </select>
+                    </select>
 
                     <br> <a>Priority: </a>
                     <select name="priority">
@@ -219,7 +219,7 @@
             <div class="Watchers">
                 <br>
                 <form id="form3" method="post">
-                        {% csrf_token %}
+                    {% csrf_token %}
                     <div class="watchers">
                         <br>
                         {{ form2.as_p }}
@@ -227,17 +227,17 @@
                     <br>
                     <a>Watchers: </a>
                     <br>
-                        {% for us in watchers %}
-                        <p>{{ us }}</p>
-                        {% endfor %}
+                    {% for us in watchers %}
+                    <li>{{ us }}</li>
+                    {% endfor %}
                     <br>
-                    <input type="hidden" name="BotonUpdateWatchers" value="UpdateWatchers">
-                        <button class="btn btn-primary btn-sm">Add Watcher</button>
+                    <button type="submit" name="BotonUpdateWatchers" value="add" class="btn btn-primary btn-sm">Add Watcher</button>
+                    <button type="submit" name="BotonUpdateWatchers" value="delete" class="btn btn-danger btn-sm">Delete Watcher</button>
                 </form>
             </div>
             <br>
             <div class="Options">
-                <form method="post" name = "deadlineIssues" style="display: inline-block;">
+                <form method="post" name="deadlineIssues" style="display: inline-block;">
                     {% csrf_token %}
                     {% if issue.first.deadline %}
                     <input type="hidden" name="deldeadline" value="deldeadline">
@@ -296,9 +296,10 @@
                         {%for c in coments%}
                         <tr>
                             {% for comment_id, image_url in images.items %}
-                                {%if comment_id == c %}
-                                     <th><a><img src="{{ image_url }}" alt="Profile Image" style="width:50px;height:50px;"></a></th>
-                                {%endif%}
+                            {%if comment_id == c %}
+                            <th><a><img src="{{ image_url }}" alt="Profile Image" style="width:50px;height:50px;"></a>
+                            </th>
+                            {%endif%}
                             {% endfor %}
 
                             <th>{{ c.getCreator }}</th>

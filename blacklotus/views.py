@@ -339,14 +339,29 @@ def SeeIssue(request, num):
                 aux.asignedTo.set(auxU)
                 aux.save()
         elif 'BotonUpdateWatchers' in request.POST:
-            formW = Watchers(request.POST)
-            if formW.is_valid():
-                names = formW.cleaned_data['watchers']
-                aux = Issue.objects.get(id=num)
-                listUsernames = list(names.values_list('username', flat=True))
-                auxU = User.objects.filter(username__in=listUsernames)
-                aux.watchers.set(auxU)
-                aux.save()
+            action = request.POST.get('BotonUpdateWatchers')
+            if (action == 'add'):
+                formW = Watchers(request.POST)
+                if formW.is_valid():
+                    names = formW.cleaned_data['watchers']
+                    aux = Issue.objects.get(id=num)
+                    listUsernames = list(names.values_list('username', flat=True))
+                    users = aux.watchers.all()
+                    for u in users:
+                        listUsernames.append(u.username)
+                    auxU = User.objects.filter(username__in=listUsernames)
+                    aux.watchers.set(auxU)
+                    aux.save()
+            else:
+                formW = Watchers(request.POST)
+                if formW.is_valid():
+                    names = formW.cleaned_data['watchers']
+                    listUsernames = list(names.values_list('username', flat=True))
+                    users = User.objects.filter(username__in=listUsernames)
+                    aux = Issue.objects.get(id=num)
+                    aux.watchers.remove(*users)
+                    aux.save()
+
 
         elif 'deadline' in request.POST:
             return redirect(deadLineForm, id=num)
