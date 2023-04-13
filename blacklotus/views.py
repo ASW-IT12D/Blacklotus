@@ -33,6 +33,7 @@ import calendar
 def github_auth(request):
     # Autenticación de GitHub en segundo plano
     return redirect(showIssues)
+
 @login_required(login_url='login')
 def CreateIssueForm(request):
     return render(request, 'newissue.html')
@@ -57,6 +58,7 @@ def CreateIssue(request):
                   severity=severity, priority=priority)
         i.save()
     return redirect(showIssues)
+
 
 @login_required(login_url='login')
 def BulkIssue(request):
@@ -221,14 +223,15 @@ def showIssues(request):
             qs = Issue.objects.filter(filtrosF).order_by('-creationdate').filter(filtroscreator).filter(
                 Q(subject__icontains=ref))
     else:
+
         if sort_by is not None:
             qs = Issue.objects.filter(filtrosF).order_by(sort_by).filter(filtroscreator)
         else:
             qs = Issue.objects.filter(filtrosF).order_by('-creationdate').filter(filtroscreator)
     allUsers = User.objects.all()
     return render(request, 'mainIssue.html', {'visible': visible,'qs': qs, 'allUsers': allUsers})
-    
-       
+
+
 @login_required(login_url='login')
 def BlockIssueForm(request, id):
     if request.method == 'POST':
@@ -401,10 +404,20 @@ def SeeIssue(request, num):
     if request.method == 'GET':
         if 'comment' in request.GET:
             coment = request.GET.get('comment')
-            iss = Issue.objects.get(id=num)
-            c = Comentario(message=coment, creator=request.user.username, issue=iss)
-            c.save()
+            if len(coment) > 0:
+                iss = Issue.objects.get(id=num)
+                user = User.objects.get(username=request.user.username)
+                c = Comentario(message=coment, creator=user, issue=iss)
+                c.save()
     coments = Comentario.objects.all().order_by('-creationDate').filter(issue=num)
+
+
+    images = {}
+    for c in coments:
+        creator = User.objects.get(id=c.creator_id)
+        profileUserc = Profile.objects.get(user=creator)
+        imageUserc = profileUserc.get_url_image()
+        images[c] = imageUserc
 
     instance = Issue.objects.get(id=num)
     asignedTo = instance.asignedTo.all()
@@ -415,7 +428,7 @@ def SeeIssue(request, num):
     return render(request, 'single_issue.html',
                   {'image_url': image_url, 'issue': issue, 'form': form, 'form2': form2,
                    'asignedTo': asignedTo, 'coments': coments, 'activity': activity, 'commentsOn': commentsOn,
-                   'documents': documents, 'watchers': watchers})
+                   'documents': documents, 'watchers': watchers,'images': images})
 
 @login_required(login_url='login')
 def EditIssue(request):
