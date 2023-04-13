@@ -24,6 +24,8 @@ from django.db.models import Q
 import boto3
 from django.conf import settings
 from social_django.utils import psa
+from datetime import datetime
+import calendar
 
 # Create your views here.
 
@@ -34,6 +36,7 @@ def github_auth(request):
 @login_required(login_url='login')
 def CreateIssueForm(request):
     return render(request, 'newissue.html')
+
 
 
 @login_required(login_url='login')
@@ -312,6 +315,14 @@ def SeeIssue(request, num):
                 aux.watchers.set(auxU)
                 aux.save()
 
+        elif 'deadline' in request.POST:
+            return redirect(deadLineForm, id=num)
+        elif 'deldeadline' in request.POST:
+
+            issueUpdate.deadline = False
+            issueUpdate.deadlinemotive = ""
+            issueUpdate.save()
+    issueUpdate = Issue.objects.get(id=num)
     if 'BotonUpdateStatuses' in request.POST:
         user = request.user.username
         if 'status' in request.POST:
@@ -458,3 +469,55 @@ class ProfileEditView(generic.UpdateView):
 
     def get_object(self):
         return self.request.user
+
+@login_required(login_url='login')
+def deadLineForm(request, id):
+    current_year = datetime.now().year
+
+    days = [str(day) for day in range (1, 32)]
+    months = ['January', 'February', 'March', 'April', 'May', 'June',
+              'July', 'August', 'September', 'October', 'November', 'December']
+    years = [str(year) for year in range (current_year, current_year + 10)]
+
+    months_dict = {'January': 1, 'February': 2, 'March': 3, 'April': 4, 'May': 5, 'June': 6,
+                   'July': 7, 'August': 8, 'September': 9, 'October': 10, 'November': 11, 'December': 12}
+
+    context = {
+        'days': days,
+        'months': months,
+        'years': years,
+    }
+
+    issue = Issue.objects.get(id=id)
+
+    if request.method == 'POST':
+        day = int(request.POST['day'])
+        month = request.POST['month']
+        year = int(request.POST['year'])
+
+        try:
+            deadline_date = datetime.strptime(f"{day} {month} {year}", "%d %B %Y")
+        except ValueError:
+            return render(request, 'newDeadLine.html', context)
+
+        now = datetime.now()
+        last_day = calendar.monthrange(year, months_dict[month])[1]
+
+        if deadline_date < now or day > last_day:
+            return render(request, 'newDeadLine.html', context)
+
+
+        issue.deadlinedate = deadline_date
+        issue.deadline = True
+
+        if len(request.POST.get("motive")) > 0:
+            textarea_input = request.POST['motive']
+            issue.deadlinemotive = textarea_input
+
+        issue.save()
+
+        return redirect(SeeIssue, num=id)
+
+    return render(request, 'newDeadLine.html', context)
+
+
