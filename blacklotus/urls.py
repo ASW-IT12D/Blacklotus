@@ -1,6 +1,8 @@
 from django.urls import path
 from . import views
 from .views import ProfileEditView
+from django.urls import path, include
+from django.conf import settings
 #URLConf
 urlpatterns = [
     path('newissue/', views.CreateIssueForm, name="newIssue"),
@@ -14,6 +16,7 @@ urlpatterns = [
     path('register/', views.join, name='register'),
     path('',views.log, name = 'login'),
     path('login/',views.redirectLogin, name = 'login'),
+    path('login/github/', include('social_django.urls', namespace='social')),
     path('logout/',views.custom_logout, name='logout'),
     path('profile/',views.showProfile, name = 'profile'),
     path('editprofile/',ProfileEditView.as_view(), name='editprofile'),

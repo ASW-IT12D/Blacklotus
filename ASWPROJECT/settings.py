@@ -69,8 +69,12 @@ TEMPLATES = [
     },
 ]
 AUTHENTICATION_BACKENDS = [
-    'django.contrib.auth.backends.ModelBackend'
+    'social_core.backends.github.GithubOAuth2',
+    'django.contrib.auth.backends.ModelBackend',
 ]
+
+SOCIAL_AUTH_GITHUB_KEY = '3e6cd38f8521781f34e8'
+SOCIAL_AUTH_GITHUB_SECRET = '77fdf313638863511bc62d8c30fb4242df254151'
 
 WSGI_APPLICATION = 'ASWPROJECT.wsgi.application'
 
