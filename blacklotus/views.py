@@ -58,22 +58,21 @@ def CreateIssue(request):
         i.save()
     return redirect(showIssues)
 
-
 @login_required(login_url='login')
 def BulkIssue(request):
     if len(request.POST.get("issues")) > 0:
         textarea_input = request.POST['issues']
         lines = textarea_input.split('\n')
         for line in lines:
-            sub = line
-            des = ""
-            type = 1
-            severity = 1
-            priority = 1
-            status = 1
-            i = Issue(subject=sub, description=des, creator=request.user.username, status=status, type=type,
-                      severity=severity, priority=priority)
-            i.save()
+            if len(line) > 0:
+                sub = line
+                des = ""
+                type = 1
+                severity = 1
+                priority = 1
+                status = 1
+                i = Issue(subject=sub, description=des, creator=request.user.username, status=status, type=type, severity=severity, priority=priority)
+                i.save()
     return redirect(showIssues)
 
 
@@ -88,6 +87,7 @@ def showIssues(request):
     filtrostype = []
     filtrosseverity = []
     filtroscreator = []
+    filtrosasigned = []
 
     if request.method == 'GET':
         if 'r' in request.GET:
@@ -106,26 +106,29 @@ def showIssues(request):
             request.session['filtros_type'] = filtros
             request.session['filtros_severity'] = filtros
             request.session['filtros_creator'] = filtros
+            request.session['filtros_asignedTo'] = filtros
         if 'ocultarfiltros' in request.POST:
             visible = False
         elif 'mostrarfiltros' in request.POST:
             visible = True
-        if 'updatefiltros' in request.POST or (
-                'filtros_status' in request.session or 'filtros_creator' in request.session or 'filtros_severity' in request.session or 'filtros_priority' in request.session or 'filtros_type' in request.session):
-            if 'filtros_status' not in request.session and 'filtros_creator' not in request.session and 'filtros_severity' not in request.session and 'filtros_priority' not in request.session and 'filtros_type' not in request.session:
+        if 'updatefiltros' in request.POST or ('filtros_status' in request.session or 'filtros_creator' in request.session or 'filtros_asignedTo' in request.session or 'filtros_severity' in request.session or 'filtros_priority' in request.session or 'filtros_type' in request.session):
+            if 'filtros_status' not in request.session and 'filtros_asignedTo' not in request.session and 'filtros_creator' not in request.session and 'filtros_severity' not in request.session and 'filtros_priority' not in request.session and 'filtros_type' not in request.session:
                 filtrosS = Q()
                 filtrosP = Q()
                 filtrosT = Q()
                 filtrosSv = Q()
                 filtrosC = Q()
+                filtrosA = Q()
+
             else:
                 filtrosS = Q()
                 filtrosP = Q()
                 filtrosT = Q()
                 filtrosSv = Q()
                 filtrosC = Q()
+                filtrosA = Q()
 
-                if 'filtros_status' in request.session:
+                if'filtros_status' in request.session:
                     filtrosstatus = request.session["filtros_status"]
                     for filtro in filtrosstatus:
                         filtrosS = Q(status=filtro) | filtrosS
@@ -150,6 +153,19 @@ def showIssues(request):
                     for filtro in filtroscreator:
                         filtrosC = Q(creator=filtro) | filtrosC
 
+                if 'filtros_asignedTo' in request.session:
+                    filtrosasigned = request.session["filtros_asignedTo"]
+                    for filtro in filtrosasigned:
+                        if filtro == "Unassigned" or filtro == None:
+                            filtrosA = Q(asignedTo=None) | filtrosA
+                        else:
+                            if isinstance(filtro, int):
+                                filtrosA = Q(asignedTo=filtro) | filtrosA
+                            else:
+                                user = User.objects.get(username=filtro)
+                                filtrosA = Q(asignedTo=user.id) | filtrosA
+
+
             for filtro in request.POST.getlist("status"):
                 filtrosS = Q(status=filtro) | filtrosS
                 filtrosstatus.append(filtro)
@@ -170,16 +186,31 @@ def showIssues(request):
                 filtrosC = Q(creator=filtro) | filtrosC
                 filtroscreator.append(filtro)
 
+            for filtro in request.POST.getlist("assignations"):
+                if filtro == "Unassigned" or filtro == None:
+                    filtrosA = Q(asignedTo = None)| filtrosA
+                    filtrosasigned.append(None)
+                else:
+                    if isinstance(filtro, int):
+                        filtrosA = Q(asignedTo=filtro) | filtrosA
+                        filtrosasigned.append(filtro)
+                    else:
+                        user = User.objects.get(username=filtro)
+                        filtrosA = Q(asignedTo=user.id) | filtrosA
+                        filtrosasigned.append(user.id)
+
             request.session['filtros_status'] = filtrosstatus
             request.session['filtros_priority'] = filtrospriority
             request.session['filtros_type'] = filtrostype
             request.session['filtros_severity'] = filtrosseverity
             request.session['filtros_creator'] = filtroscreator
+            request.session['filtros_asignedTo'] = filtrosasigned
+
 
             if 'flexRadioInclude' in request.POST:
-                filtrosF = filtrosS | filtrosP | filtrosT | filtrosSv | filtrosC
+                filtrosF = filtrosS | filtrosP | filtrosT | filtrosSv | filtrosC | filtrosA
             else:
-                filtrosF = filtrosS & filtrosP & filtrosT & filtrosSv & filtrosC
+                filtrosF = filtrosS & filtrosP & filtrosT & filtrosSv & filtrosC & filtrosA
 
     filtroscreator = Q(creator=request.user.username) | Q(asignedTo__username=request.user.username) | Q(watchers__username=request.user.username)
     if ref is not None:
@@ -190,15 +221,14 @@ def showIssues(request):
             qs = Issue.objects.filter(filtrosF).order_by('-creationdate').filter(filtroscreator).filter(
                 Q(subject__icontains=ref))
     else:
-
         if sort_by is not None:
             qs = Issue.objects.filter(filtrosF).order_by(sort_by).filter(filtroscreator)
         else:
             qs = Issue.objects.filter(filtrosF).order_by('-creationdate').filter(filtroscreator)
-
-    return render(request, 'mainIssue.html', {'visible': visible, 'qs': qs})
-
-
+    allUsers = User.objects.all()
+    return render(request, 'mainIssue.html', {'visible': visible,'qs': qs, 'allUsers': allUsers})
+    
+       
 @login_required(login_url='login')
 def BlockIssueForm(request, id):
     if request.method == 'POST':
