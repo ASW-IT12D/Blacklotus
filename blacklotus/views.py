@@ -17,7 +17,7 @@ from django.shortcuts import render, redirect
 from django.contrib.auth import login as auth_login
 from django.contrib.auth.forms import AuthenticationForm
 from django.contrib.auth import logout
-from .forms import RegisterForm, IssueForm, AssignedTo
+from .forms import RegisterForm, IssueForm, AssignedTo, Watchers
 from django.views import generic
 from django.urls import reverse_lazy
 from django.db.models import Q
@@ -174,7 +174,7 @@ def showIssues(request):
             else:
                 filtrosF = filtrosS & filtrosP & filtrosT & filtrosSv & filtrosC
 
-    filtroscreator = Q(creator=request.user.username) | Q(asignedTo__username=request.user.username)
+    filtroscreator = Q(creator=request.user.username) | Q(asignedTo__username=request.user.username) | Q(watchers__username=request.user.username)
     if ref is not None:
         if sort_by is not None:
             qs = Issue.objects.filter(filtrosF).order_by(sort_by).filter(filtroscreator).filter(
@@ -226,6 +226,7 @@ def list_documents(num):
 @login_required(login_url='login')
 def SeeIssue(request, num):
     form = AssignedTo()
+    form2 = Watchers()
     if 'commentsOn' in request.session:
         commentsOn = request.session['commentsOn']
     else:
@@ -297,6 +298,15 @@ def SeeIssue(request, num):
                 auxU = User.objects.filter(username__in=listUsernames)
                 aux.asignedTo.set(auxU)
                 aux.save()
+        elif 'BotonUpdateWatchers' in request.POST:
+            formW = Watchers(request.POST)
+            if formW.is_valid():
+                names = formW.cleaned_data['watchers']
+                aux = Issue.objects.get(id=num)
+                listUsernames = list(names.values_list('username', flat=True))
+                auxU = User.objects.filter(username__in=listUsernames)
+                aux.watchers.set(auxU)
+                aux.save()
 
     if 'BotonUpdateStatuses' in request.POST:
         user = request.user.username
@@ -356,10 +366,11 @@ def SeeIssue(request, num):
     user = User.objects.get(username=request.user.username)
     profile = Profile.objects.get(user=user)
     image_url = profile.get_url_image()
+    watchers = instance.watchers.all()
     return render(request, 'single_issue.html',
-                  {'image_url': image_url, 'issue': issue, 'form': form,
+                  {'image_url': image_url, 'issue': issue, 'form': form, 'form2': form2,
                    'asignedTo': asignedTo, 'coments': coments, 'activity': activity, 'commentsOn': commentsOn,
-                   'documents': documents})
+                   'documents': documents, 'watchers': watchers})
 
 @login_required(login_url='login')
 def EditIssue(request):

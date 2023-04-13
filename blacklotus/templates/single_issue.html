@@ -214,17 +214,22 @@
             </div>
             <br>
             <div class="Watchers">
-                <a>Watchers</a>
                 <br>
                 <form id="form3" method="post">
                         {% csrf_token %}
                     <div class="watchers">
                         <br>
-                        {{ form.as_p }}
+                        {{ form2.as_p }}
                     </div>
+                    <br>
+                    <a>Watchers: </a>
+                    <br>
+                        {% for us in watchers %}
+                        <p>{{ us }}</p>
+                        {% endfor %}
+                    <br>
                     <input type="hidden" name="BotonUpdateWatchers" value="UpdateWatchers">
-                        <button class="btn btn-secondary btn-sm">Add Watchers</button>
-                        <button class="btn btn-secondary btn-sm">Unwatch</button>
+                        <button class="btn btn-primary btn-sm">Add Watcher</button>
                 </form>
             </div>
             <br>
