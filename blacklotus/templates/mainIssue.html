@@ -1,9 +1,8 @@
-{% extends 'base.html' %}
+{% extends 'baseIssue.html' %}
 {% block content %}
 
 	<h1 class="walltitle">Peticiones</h1>
-    <th><a href="{% url 'profile' %}"> <p>{{user.username}}</p></a></th>
-
+<br>
 	<div class="wallmain">
         <table class="default">
             <tr>
@@ -99,7 +98,7 @@
             <th><a href="{% url 'newIssue' %}">
             <button> + New Issue</button></a></th>
             <th><a href="{% url 'bulkIssue' %}">
-            <button> + Bulk Insert</button></a></th>
+            <button/home/marc/PycharmProjects/Blacklotus> + Bulk Insert</button></a></th>
             </tr>
         </table>
     <table class="issues">

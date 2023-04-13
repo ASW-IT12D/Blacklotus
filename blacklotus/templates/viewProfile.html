@@ -1,8 +1,7 @@
-{% extends 'base.html' %}
+{% extends 'baseIssue.html' %}
 {% block content %}
-
-<a><img src="{{ image_url }}" alt="Profile Image" style="width:250px;height:250px;"></a>
-<h1>@{{ user.username }}</h1>
+<h1><a><img src="{{ image_url }}" alt="Profile Image" style="width:250px;height:250px;"></a></h1>
+<h2>@{{ user.username }}</h2>
 
 <p>{{ user.first_name }}</p>
 <p>{{ user.email }}</p>
@@ -12,9 +11,5 @@
         <button>EDIT PROFILE</button>
     </a>
 </th>
-<th>
-    <a href="{% url 'home' %}">
-        <button>BACK TO SHOW ISSUES</button>
-    </a>
-</th>
+
 {% endblock %}
