@@ -23,10 +23,14 @@ from django.urls import reverse_lazy
 from django.db.models import Q
 import boto3
 from django.conf import settings
-
+from social_django.utils import psa
 
 # Create your views here.
 
+@psa('github')
+def github_auth(request):
+    # Autenticación de GitHub en segundo plano
+    return redirect(showIssues)
 @login_required(login_url='login')
 def CreateIssueForm(request):
     return render(request, 'newissue.html')
