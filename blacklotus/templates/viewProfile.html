@@ -1,7 +1,9 @@
 {% extends 'base.html' %}
 {% block content %}
 
-<h>@{{ user.username }}</h>
+<a><img src="{{ image_url }}" alt="Profile Image" style="width:250px;height:250px;"></a>
+<h1>@{{ user.username }}</h1>
+
 <p>{{ user.first_name }}</p>
 <p>{{ user.email }}</p>
 <p>{{ user.profile.bio}}</p>

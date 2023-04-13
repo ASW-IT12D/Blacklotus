@@ -426,7 +426,10 @@ def custom_logout(request):
 
 @login_required
 def showProfile(request):
-    return render(request, 'viewProfile.html')
+    user = User.objects.get(username=request.user.username)
+    profile = Profile.objects.get(user=user)
+    image_url = profile.get_url_image()
+    return render(request, 'viewProfile.html', {'image_url':image_url})
 
 
 def redirectLogin(request):
