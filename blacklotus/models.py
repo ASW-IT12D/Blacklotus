@@ -23,11 +23,12 @@ class Issue(models.Model):
     creationdate = models.DateTimeField(auto_now_add=True)
     modifieddate = models.DateTimeField(auto_now=True)
     objects = models.Manager()
-    asignedTo = models.ManyToManyField(User,blank=True)
+    asignedTo = models.ManyToManyField(User,blank=True, related_name="assigned_issues")
     blocked = models.BooleanField(default= False)
     blockmotive = models.CharField(null=True, max_length=100, blank=True,default=False)
     deadline = models.BooleanField(default= False)
     deadlinedate = models.DateTimeField(null=True)
+    watchers = models.ManyToManyField(User, blank=True, related_name ="watchers_issue")
 
     def getFirstAsign(self):
         return self.asignedTo.first()

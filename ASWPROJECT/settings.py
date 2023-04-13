@@ -69,12 +69,8 @@ TEMPLATES = [
     },
 ]
 AUTHENTICATION_BACKENDS = [
-    'social_core.backends.github.GithubOAuth2',
-    'django.contrib.auth.backends.ModelBackend',
+    'django.contrib.auth.backends.ModelBackend'
 ]
-
-SOCIAL_AUTH_GITHUB_KEY = '3e6cd38f8521781f34e8'
-SOCIAL_AUTH_GITHUB_SECRET = '77fdf313638863511bc62d8c30fb4242df254151'
 
 WSGI_APPLICATION = 'ASWPROJECT.wsgi.application'
 
@@ -124,6 +120,7 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/4.1/howto/static-files/
 
 STATIC_URL = 'static/'
+STATICFILES_DIRS = [BASE_DIR / "static"]
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/4.1/ref/settings/#default-auto-field
@@ -131,11 +128,11 @@ STATIC_URL = 'static/'
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 # AWS S3 Settings
-AWS_ACCESS_KEY_ID = 'ASIAUOQ5NQL2ZUICRSGS'
-AWS_SECRET_ACCESS_KEY = '7hKjfHNI1eH4EfZFxP0pWGwa8JQzH+qEQoqzcc6k'
+AWS_ACCESS_KEY_ID = 'ASIAUOQ5NQL2VCBZUT44'
+AWS_SECRET_ACCESS_KEY = 'kTz9B9T5YDtCF8KcXdXDe3ybTOQGY6W+TQjv/ywE'
 AWS_STORAGE_BUCKET_NAME = 'blacklotusbucket2'
 AWS_S3_REGION_NAME = 'us-east-1'
-AWS_SESSION_TOKEN = 'FwoGZXIvYXdzEAAaDDcHrfrOcdDoHXvugyLXAV626Gwwx87wkWgUGVRN+Hnk9xB31ivTSElc/Rx6qHTvH4Fordhnk9pQms4OwqFRTRSeaZ4nMxcPFulcWOy8R2vT+utQB1ysGKVtdHFwItJoowLAWZwb4oxKeOYr2T6lO/WTXKQfqRxl+r9JrnjPfcndTPYak98/RbeNT+BGdKxe6HQwnHKzZG9t64avz7DDlDgx8Ed/4LsUT45BIB2b/lAm8E5yBt1Tin6jS+E9tUDSbLSWOdhvg/0by6otcSMq3LTpZW1J41u8ENzg621lYjd3tCxyFeeCKPWv4KEGMi1YcZhbx0qKaGj9KW1cr+wceaLsHt981MXr4NNiVUETdVbtAczi0qTAPzBbeqQ='
+AWS_SESSION_TOKEN = 'FwoGZXIvYXdzEPz//////////wEaDBg7PljYWDQsKOrChSLXAXVO2fhUcsyiMDgGrv2FeiacYILUOu3SZQRO947S56at3cCma7yrdu4gfuXHftpyrJOByRS/ZUny+gQnSQs2wxSWPjV+3LhpjNDXNPugc7fwkmVUoQIJPHbrh7ubMj1OQKcpnn/sl7Ijnk2vysEv2gT3wg27UcuFv+hbiUX3fzVmY9XKOznZgAZySghiPfptvZ/lau6xuZR6dXCSQhHtZx79jR1I8ccLOz7SFMvAEeg3WpNb3nzE64KNhHq+uKWLgfSNx76PDVM53DjQY6NYdc2IL/LX6P/VKKO636EGMi0JDR2SyCufOC22lJHCx7ElfGXAFBbG1LctGyRMDf9sS59H4sTBdrnmuVCPbyA='
 AWS_S3_CUSTOM_DOMAIN = f'{AWS_STORAGE_BUCKET_NAME}.s3.amazonaws.com'
 AWS_DEFAULT_ACL = None
 AWS_QUERYSTRING_AUTH = False
