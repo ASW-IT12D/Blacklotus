@@ -1,8 +1,13 @@
 import os
+import tempfile
+from io import BytesIO
 
 from botocore.exceptions import ClientError
 from django.contrib.auth.decorators import login_required
 from .models import Issue, Attachments, Activity, Profile
+from django.http import HttpResponse
+
+from .models import Issue, Attachments, Activity
 from django.shortcuts import render, redirect
 from .forms import IssueForm, EditProfileInfoForm
 from .models import Issue, Comentario
@@ -191,13 +196,14 @@ def showIssues(request):
 def BlockIssueForm(request, id):
     if request.method == 'POST':
         if len(request.POST.get("motive")) > 0:
-            textarea_input = request.POST['motive']
-            request.session['motive'] = textarea_input
+            issueUpdate = Issue.objects.get(id=id)
+            issueUpdate.blockmotive = request.POST['motive']
+            issueUpdate.save()
             return redirect(SeeIssue, num=id)
     return render(request, 'blockissue.html')
 
 
-def list_documents():
+def list_documents(num):
     s3 = boto3.client('s3',
                       aws_access_key_id=settings.AWS_ACCESS_KEY_ID,
                       aws_secret_access_key=settings.AWS_SECRET_ACCESS_KEY,
@@ -208,26 +214,18 @@ def list_documents():
     documents = []
     for content in response.get('Contents', []):
         if content.get("Key") != 'Attachments/':
-            url = f"{content['Key']}"
-            url = url.replace("Attachments/", "")
-            documents.append(url)
+            i = Issue.objects.get(id=num)
+            a = Attachments.objects.all().filter(issue=i, archivo=content.get("Key"))
+            if (len(a) > 0):
+                url = f"{content['Key']}"
+                url = url.replace("Attachments/", "")
+                documents.append(url)
     return documents
 
 
 @login_required(login_url='login')
 def SeeIssue(request, num):
     form = AssignedTo()
-    if 'bloqued' in request.session:
-        bloqued = request.session['bloqued']
-        del request.session['bloqued']
-    else:
-        bloqued = None
-
-    if 'motive' in request.session:
-        motive = request.session['motive']
-        del request.session['motive']
-    else:
-        motive = None
     if 'commentsOn' in request.session:
         commentsOn = request.session['commentsOn']
     else:
@@ -254,16 +252,12 @@ def SeeIssue(request, num):
                                   aws_secret_access_key=settings.AWS_SECRET_ACCESS_KEY,
                                   aws_session_token=settings.AWS_SESSION_TOKEN)
                 object_name = 'Attachments/' + option_selected
-                # Obtener el nombre del archivo a descargar
-                # Obtener la ruta del archivo actual
-                current_file_path = os.path.abspath(__file__)
-
-                # Obtener la ruta del directorio padre
-                parent_dir_path = os.path.dirname(current_file_path)
-                # Obtener la ruta del directorio padre del directorio padre (es decir, la raíz del proyecto)
-                project_dir_path = os.path.dirname(parent_dir_path)
-                file_name = project_dir_path + '/Attachments/' + option_selected
-                s3.download_file(settings.AWS_STORAGE_BUCKET_NAME, object_name, file_name)
+                with tempfile.NamedTemporaryFile(delete=False) as temp_file:
+                    s3.download_file(settings.AWS_STORAGE_BUCKET_NAME, object_name, temp_file.name)
+                with open(temp_file.name, 'rb') as f:
+                    response = HttpResponse(f.read(), content_type='application/octet-stream')
+                    response['Content-Disposition'] = 'attachment; filename="{}"'.format(option_selected)
+                return response
 
         elif 'Delete' in request.POST:
             option_selected = request.POST.get('option')
@@ -273,15 +267,27 @@ def SeeIssue(request, num):
                                   aws_secret_access_key=settings.AWS_SECRET_ACCESS_KEY,
                                   aws_session_token=settings.AWS_SESSION_TOKEN)
                 object_name = 'Attachments/' + option_selected
-                response = s3.delete_object(Bucket=settings.AWS_STORAGE_BUCKET_NAME, Key=object_name)
-    documents = list_documents()
+                i = Issue.objects.get(id=num)
+                allAt = Attachments.objects.all().filter(archivo=object_name)
+                a = Attachments.objects.all().filter(issue=i, archivo=object_name)
+                if (len(allAt) > 1):
+                    a.delete()
+                elif (len(allAt) == 1):
+                    a.delete()
+                    response = s3.delete_object(Bucket=settings.AWS_STORAGE_BUCKET_NAME, Key=object_name)
+    documents = list_documents(num)
+
+    issueUpdate = Issue.objects.get(id=num)
 
     if request.method == 'POST':
         if 'block' in request.POST:
-            request.session['bloqued'] = True
+            issueUpdate.blocked = True
+            issueUpdate.save()
             return redirect(BlockIssueForm, id=num)
         elif 'unblock' in request.POST:
-            bloqued = False
+            issueUpdate.blocked = False
+            issueUpdate.blockmotive = ""
+            issueUpdate.save()
         elif 'BotonUpdateAsign' in request.POST:
             formN = AssignedTo(request.POST)
             if formN.is_valid():
@@ -292,7 +298,6 @@ def SeeIssue(request, num):
                 aux.asignedTo.set(auxU)
                 aux.save()
 
-    issueUpdate = Issue.objects.get(id=num)
     if 'BotonUpdateStatuses' in request.POST:
         user = request.user.username
         if 'status' in request.POST:
@@ -352,10 +357,9 @@ def SeeIssue(request, num):
     profile = Profile.objects.get(user=user)
     image_url = profile.get_url_image()
     return render(request, 'single_issue.html',
-                  {'image_url': image_url, 'issue': issue, 'bloqued': bloqued, 'motive': motive, 'form': form,
+                  {'image_url': image_url, 'issue': issue, 'form': form,
                    'asignedTo': asignedTo, 'coments': coments, 'activity': activity, 'commentsOn': commentsOn,
                    'documents': documents})
-
 
 @login_required(login_url='login')
 def EditIssue(request):
