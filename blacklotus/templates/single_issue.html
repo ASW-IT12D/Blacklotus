@@ -216,8 +216,16 @@
             <div class="Watchers">
                 <a>Watchers</a>
                 <br>
-                <button class="btn btn-secondary btn-sm">+ Add Watchers</button>
-                <button class="btn btn-secondary btn-sm">Unwatch</button>
+                <form id="form3" method="post">
+                        {% csrf_token %}
+                    <div class="watchers">
+                        <br>
+                        {{ form.as_p }}
+                    </div>
+                    <input type="hidden" name="BotonUpdateWatchers" value="UpdateWatchers">
+                        <button class="btn btn-secondary btn-sm">Add Watchers</button>
+                        <button class="btn btn-secondary btn-sm">Unwatch</button>
+                </form>
             </div>
             <br>
             <div class="Options">

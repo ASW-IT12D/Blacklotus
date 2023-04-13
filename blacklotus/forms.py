@@ -47,3 +47,8 @@ class AssignedTo(forms.ModelForm):
         model = Issue
         fields = ['asignedTo']
 
+class Watchers(forms.ModelForm):
+    watchers = forms.ModelMultipleChoiceField(queryset=User.objects.all(), to_field_name='username')
+    class Meta:
+        model = Issue
+        fields = ['watchers']
