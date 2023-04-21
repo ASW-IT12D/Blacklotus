@@ -13,13 +13,32 @@ from django.dispatch import receiver
 # Create your models here.
 
 class Issue(models.Model):
+    STATUSES = (
+        (1, 'New'), (2,'In progress'),
+        (3,'Ready for test'), (4,'Closed'),
+        (5,'Needs info'), (6,'Rejected'), (7,'Postponed'),
+    )
+    TYPES = (
+        (1,'Bug'), (2,'Question'), (3,'Disabled'),
+    )
+    SEVERITIES = (
+        (1,'Whishlist'),(2,'Minor'),(3,'Normal'),
+        (4,'Important'),(5,'Critical'),
+    )
+    PRIORITIES = (
+        (1,'Low'),(2,'Normal'),(3,'High'),
+    )
+
+
     subject = models.CharField(max_length=100)
     description = models.CharField(max_length=100)
     creator = models.CharField(max_length=100)
-    status = models.IntegerField()
-    type = models.IntegerField()
-    severity = models.IntegerField()
-    priority = models.IntegerField()
+
+    status = models.IntegerField(choices=STATUSES)
+    type = models.IntegerField(choices=TYPES)
+    severity = models.IntegerField(choices=SEVERITIES)
+    priority = models.IntegerField(choices=PRIORITIES)
+
     creationdate = models.DateTimeField(auto_now_add=True)
     modifieddate = models.DateTimeField(auto_now=True)
     deadlinedate = models.DateTimeField(null=True, blank=True)
@@ -56,19 +75,27 @@ class Issue(models.Model):
         return self.asignedTo
 
     def getStatus(self):
-        return self.status
+        status_num = self.status
+        status_text = dict(self.STATUSES).get(status_num)
+        return status_text
 
     def getType(self):
-        return self.type
+        type_num = self.type
+        type_text = dict(self.TYPES).get(type_num)
+        return type_text
 
     def getId(self):
         return self.id
 
     def getSeverity(self):
-        return self.severity
+        severity_num = self.severity
+        severity_text = dict(self.SEVERITIES).get(severity_num)
+        return severity_text
 
     def getPriority(self):
-        return self.priority
+        priority_num = self.priority
+        priority_text = dict(self.PRIORITIES).get(priority_num)
+        return priority_text
 
     def getEditionDate(self):
         return self.creationdate
@@ -84,11 +111,27 @@ def create_profile(sender, instance, created, **kwargs):
 
 
 class Activity(models.Model):
+    STATUSES = (
+        (1, 'New'), (2,'In progress'),
+        (3,'Ready for test'), (4,'Closed'),
+        (5,'Needs info'), (6,'Rejected'), (7,'Postponed'),
+    )
+    TYPES = (
+        (1,'Bug'), (2,'Question'), (3,'Disabled'),
+    )
+    SEVERITIES = (
+        (1,'Whishlist'),(2,'Minor'),(3,'Normal'),
+        (4,'Important'),(5,'Critical'),
+    )
+    PRIORITIES = (
+        (1,'Low'),(2,'Normal'),(3,'High'),
+    )
+
     creationdate = models.DateTimeField(auto_now_add=True)
     field = models.CharField(max_length=100)
-    change = models.CharField(max_length=100)
+    change = models.IntegerField()
     old = models.CharField(max_length=100)
-    user = models.CharField(max_length=100)
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
     issueChanged = models.ForeignKey(Issue, on_delete=models.CASCADE)
     objects = models.Manager()
 
@@ -99,8 +142,22 @@ class Activity(models.Model):
         return self.field
 
     def getChange(self):
-        return self.change
-
+        if (self.field == "status"):
+            status_num = self.change
+            status_text = dict(self.STATUSES).get(status_num)
+            return status_text
+        elif (self.field == "severity"):
+            severity_num = self.change
+            severity_text = dict(self.SEVERITIES).get(severity_num)
+            return severity_text
+        elif (self.field == "type"):
+            type_num = self.change
+            type_text = dict(self.TYPES).get(type_num)
+            return type_text
+        else:
+            priority_num = self.change
+            priority_text = dict(self.PRIORITIES).get(priority_num)
+            return priority_text
     def getOld(self):
         return self.old
 

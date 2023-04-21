@@ -231,8 +231,12 @@
                     <li>{{ us }}</li>
                     {% endfor %}
                     <br>
-                    <button type="submit" name="BotonUpdateWatchers" value="add" class="btn btn-primary btn-sm">Add Watcher</button>
-                    <button type="submit" name="BotonUpdateWatchers" value="delete" class="btn btn-danger btn-sm">Delete Watcher</button>
+                    <button type="submit" name="BotonUpdateWatchers" value="add" class="btn btn-primary btn-sm">Add
+                        Watcher
+                    </button>
+                    <button type="submit" name="BotonUpdateWatchers" value="delete" class="btn btn-danger btn-sm">Delete
+                        Watcher
+                    </button>
                 </form>
             </div>
             <br>
@@ -295,7 +299,7 @@
                     <table>
                         {%for c in coments%}
                         <tr>
-                            {% for comment_id, image_url in images.items %}
+                            {% for comment_id, image_url in imagesC.items %}
                             {%if comment_id == c %}
                             <th><a><img src="{{ image_url }}" alt="Profile Image" style="width:50px;height:50px;"></a>
                             </th>
@@ -314,15 +318,20 @@
                 {%else%}
                 {% for act in activity %}
                 <div>
-                    <br>
+                    <br><p>
+                    {% for activity_id, image_url in imagesA.items %}
+                    {%if activity_id.id == act.id %}
+                    <a><img src="{{ image_url }}" alt="Profile Image" style="width:50px;height:50px;"></a>
+                    {%endif%}
+                    {% endfor %}
+
+                        <a>{{ act.getUser }}</a>
+                        <a>{{ act.getDate }}</a></p>
                     <p>
-                        <a>{{ act.user }}</a>
-                        <a>{{ act.creationdate }}</a></p>
-                    <p>
-                    <p>{{ act.field }}</p>
-                    <a>{{ act.old }}</a>
+                    <p>{{ act.getField }}</p>
+                    <a>{{ act.getOld }}</a>
                     <a> > </a>
-                    <a>{{ act.change }}</a>
+                    <a>{{ act.getChange }}</a>
                     </p>
                     {% endfor %}
                 </div>

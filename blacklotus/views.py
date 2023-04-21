@@ -1,31 +1,27 @@
-import os
+import calendar
 import tempfile
-from io import BytesIO
+from datetime import datetime
 
-from botocore.exceptions import ClientError
-from django.contrib.auth.decorators import login_required
-from .models import Issue, Attachments, Activity, Profile
-from django.http import HttpResponse
-
-from .models import Issue, Attachments, Activity
-from django.shortcuts import render, redirect
-from .forms import IssueForm, EditProfileInfoForm
-from .models import Issue, Comentario
-from django.contrib.auth.models import User
-
-from django.shortcuts import render, redirect
-from django.contrib.auth import login as auth_login
-from django.contrib.auth.forms import AuthenticationForm
-from django.contrib.auth import logout
-from .forms import RegisterForm, IssueForm, AssignedTo, Watchers
-from django.views import generic
-from django.urls import reverse_lazy
-from django.db.models import Q
 import boto3
 from django.conf import settings
+from django.contrib.auth import login as auth_login
+from django.contrib.auth import logout
+from django.contrib.auth.decorators import login_required
+from django.contrib.auth.forms import AuthenticationForm
+from django.contrib.auth.models import User
+from django.db.models import Q
+from django.http import HttpResponse
+from django.shortcuts import render, redirect
+from django.urls import reverse_lazy
+from django.views import generic
 from social_django.utils import psa
-from datetime import datetime
-import calendar
+
+from .forms import EditProfileInfoForm
+from .forms import RegisterForm, AssignedTo, Watchers
+from .models import Attachments, Activity
+from .models import Issue, Comentario
+from .models import Profile
+
 
 # Create your views here.
 
@@ -38,12 +34,9 @@ def github_auth(request):
 def CreateIssueForm(request):
     return render(request, 'newissue.html')
 
-
-
 @login_required(login_url='login')
 def BulkIssueForm(request):
     return render(request, 'bulkissue.html')
-
 
 @login_required(login_url='login')
 def CreateIssue(request):
@@ -58,7 +51,6 @@ def CreateIssue(request):
                   severity=severity, priority=priority)
         i.save()
     return redirect(showIssues)
-
 
 @login_required(login_url='login')
 def BulkIssue(request):
@@ -76,7 +68,6 @@ def BulkIssue(request):
                 i = Issue(subject=sub, description=des, creator=request.user.username, status=status, type=type, severity=severity, priority=priority)
                 i.save()
     return redirect(showIssues)
-
 
 @login_required(login_url='login')
 def showIssues(request):
@@ -231,7 +222,6 @@ def showIssues(request):
     allUsers = User.objects.all()
     return render(request, 'mainIssue.html', {'visible': visible,'qs': qs, 'allUsers': allUsers})
 
-
 @login_required(login_url='login')
 def BlockIssueForm(request, id):
     if request.method == 'POST':
@@ -241,7 +231,6 @@ def BlockIssueForm(request, id):
             issueUpdate.save()
             return redirect(SeeIssue, num=id)
     return render(request, 'blockissue.html')
-
 
 def list_documents(num):
     s3 = boto3.client('s3',
@@ -261,7 +250,6 @@ def list_documents(num):
                 url = url.replace("Attachments/", "")
                 documents.append(url)
     return documents
-
 
 @login_required(login_url='login')
 def SeeIssue(request, num):
@@ -361,8 +349,6 @@ def SeeIssue(request, num):
                     aux = Issue.objects.get(id=num)
                     aux.watchers.remove(*users)
                     aux.save()
-
-
         elif 'deadline' in request.POST:
             return redirect(deadLineForm, id=num)
         elif 'deldeadline' in request.POST:
@@ -370,9 +356,10 @@ def SeeIssue(request, num):
             issueUpdate.deadline = False
             issueUpdate.deadlinemotive = ""
             issueUpdate.save()
+
     issueUpdate = Issue.objects.get(id=num)
     if 'BotonUpdateStatuses' in request.POST:
-        user = request.user.username
+        user = request.user
         if 'status' in request.POST:
             field = "status"
             old = issueUpdate.getStatus()
@@ -382,18 +369,25 @@ def SeeIssue(request, num):
             issueUpdate.status = request.POST.get("status")
         if 'severity' in request.POST:
             field = "severity"
-            old = issueUpdate.getStatus()
+            old = issueUpdate.getSeverity()
             new = request.POST.get("severity")
             act = Activity(field=field, change=new, old=old, user=user, issueChanged=issueUpdate)
             act.save()
             issueUpdate.severity = request.POST.get("severity")
         if 'type' in request.POST:
             field = "type"
-            old = issueUpdate.getStatus()
+            old = issueUpdate.getType()
             new = request.POST.get("type")
             act = Activity(field=field, change=new, old=old, user=user, issueChanged=issueUpdate)
             act.save()
             issueUpdate.type = request.POST.get("type")
+        if 'priority' in request.POST:
+            field = "priority"
+            old = issueUpdate.getPriority()
+            new = request.POST.get("priority")
+            act = Activity(field=field, change=new, old=old, user=user, issueChanged=issueUpdate)
+            act.save()
+            issueUpdate.priority = request.POST.get("priority")
         issueUpdate.save()
     elif 'EditContent' in request.POST:
         request.session['id'] = num
@@ -414,7 +408,6 @@ def SeeIssue(request, num):
             return redirect(SeeIssue, num=lastIssue.id)
     issue = Issue.objects.filter(id=num).values()
     issueAct = Issue.objects.get(id=num)
-    activity = Activity.objects.filter(issueChanged=issueAct).order_by('-creationdate').values()
     coment = None
     if request.method == 'GET':
         if 'comment' in request.GET:
@@ -427,12 +420,20 @@ def SeeIssue(request, num):
     coments = Comentario.objects.all().order_by('-creationDate').filter(issue=num)
 
 
-    images = {}
+    imagesC = {}
     for c in coments:
         creator = User.objects.get(id=c.creator_id)
         profileUserc = Profile.objects.get(user=creator)
         imageUserc = profileUserc.get_url_image()
-        images[c] = imageUserc
+        imagesC[c] = imageUserc
+
+    activity = Activity.objects.all().filter(issueChanged=issueAct).order_by('-creationdate')
+    imagesA = {}
+    for c in activity:
+        creator = User.objects.get(id=c.user_id)
+        profileUserc = Profile.objects.get(user=creator)
+        imageUserc = profileUserc.get_url_image()
+        imagesA[c] = imageUserc
 
     instance = Issue.objects.get(id=num)
     asignedTo = instance.asignedTo.all()
@@ -443,14 +444,14 @@ def SeeIssue(request, num):
     return render(request, 'single_issue.html',
                   {'image_url': image_url, 'issue': issue, 'form': form, 'form2': form2,
                    'asignedTo': asignedTo, 'coments': coments, 'activity': activity, 'commentsOn': commentsOn,
-                   'documents': documents, 'watchers': watchers,'images': images})
+                   'documents': documents, 'watchers': watchers,'imagesC': imagesC, 'imagesA':imagesA})
 
 @login_required(login_url='login')
 def EditIssue(request):
     ID = request.session.get('id')
     issue = Issue.objects.filter(id=ID).values()
     if 'Update' in request.POST:
-        user = request.user.username
+        user = request.users
         issueUpdate = Issue.objects.get(id=request.POST.get("idHidden"))
         if request.POST.get("subject") is not None and len(request.POST.get("subject")) > 0:
             field = "subject"
@@ -471,13 +472,11 @@ def EditIssue(request):
     else:
         return render(request, 'editIssue.html', {'issue': issue})
 
-
 @login_required(login_url='login')
 def DeleteIssue(request, id):
     issue = Issue.objects.get(id=id)
     issue.delete()
     return redirect(showIssues)
-
 
 def log(request):
     if request.method == 'POST':
@@ -490,7 +489,6 @@ def log(request):
         form = AuthenticationForm()
     return render(request, 'loginPage.html', {'form': form})
 
-
 def join(request):
     if request.method == 'POST':
         form = RegisterForm(request.POST)
@@ -501,12 +499,10 @@ def join(request):
         form = RegisterForm()
     return render(request, 'signUp.html', {'form': form})
 
-
 @login_required
 def custom_logout(request):
     logout(request)
     return redirect('home')
-
 
 @login_required
 def showProfile(request):
@@ -514,7 +510,6 @@ def showProfile(request):
     profile = Profile.objects.get(user=user)
     image_url = profile.get_url_image()
     return render(request, 'viewProfile.html', {'image_url':image_url})
-
 
 def redirectLogin(request):
     return redirect(log)
