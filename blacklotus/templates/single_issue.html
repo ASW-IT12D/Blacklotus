@@ -16,8 +16,8 @@
                         Bloqueada: {{issue.first.blockmotive}}
                     </div>
                     <b>
-                        <div class="created-by">
-                            <a>Created by {{ issue.first.creator }}</a>
+                        <div class="created-by">Created by
+                            <a href = "{% url 'profile' issue.first.creator %}" target = "_self"> {{ issue.first.creator }}</a>
                             <div class="creatinDate">{{ issue.first.creationdate }}</div>
                             {% if issue.first.deadline %}
                             <div class="deadlineDate">Deadline: {{ issue.first.deadlinedate|date:"F j, Y" }}</div>
@@ -306,7 +306,7 @@
                             {%endif%}
                             {% endfor %}
 
-                            <th>{{ c.getCreator }}</th>
+                            <th><a href = "{% url 'profile' c.getCreator %}" target = "_self">{{ c.getCreator }}</a></th>
                             <th>{{ c.getCreationDate}}</th>
                         </tr>
                         <tr>
@@ -325,7 +325,7 @@
                     {%endif%}
                     {% endfor %}
 
-                        <a>{{ act.getUser }}</a>
+                        <a href = "{% url 'profile' act.getUser %}">{{ act.getUser }}</a>
                         <a>{{ act.getDate }}</a></p>
                     <p>
                     <p>{{ act.getField }}</p>
