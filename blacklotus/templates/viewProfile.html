@@ -1,15 +1,17 @@
 {% extends 'baseIssue.html' %}
 {% block content %}
 <h1><a><img src="{{ image_url }}" alt="Profile Image" style="width:250px;height:250px;"></a></h1>
-<h2>@{{ user.username }}</h2>
+<h2>@{{ profile.get_user.username }}</h2>
 
-<p>{{ user.first_name }}</p>
-<p>{{ user.email }}</p>
-<p>{{ user.profile.bio}}</p>
+<p>{{ profile.get_user.first_name }}</p>
+<p>{{ profile.get_user.email }}</p>
+<p>{{ profile.get_bio}}</p>
 <th>
-    <a href="{% url 'editprofile' %}">
-        <button>EDIT PROFILE</button>
-    </a>
-</th>
+    {% if profile.get_user.username == request.user.username %}
+        <a href="{% url 'editprofile' %}">
+            <button>EDIT PROFILE</button>
+        </a>
+    {% endif %}
 
+</th>
 {% endblock %}

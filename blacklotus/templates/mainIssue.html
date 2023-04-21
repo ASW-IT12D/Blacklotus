@@ -168,9 +168,11 @@
         <th><p>{{ issue.getEditionDate }}</p></th>
         <th></th>
             <th>
-                <a href = "{% url 'profile' issue.getFirstAsign%}" target = "_self">
-                    <p>{{ issue.getFirstAsign }}</p>
-                </a>
+                {%if issue.getFirstAsign%}
+                    <a href = "{% url 'profile' issue.getFirstAsign%}" target = "_self">
+                        <p>{{ issue.getFirstAsign }}</p>
+                    </a>
+                {%endif%}
             </th>
         </tr>
         {% endfor %}

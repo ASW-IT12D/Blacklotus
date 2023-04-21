@@ -1,4 +1,5 @@
 import os
+import os
 
 from botocore.exceptions import ClientError
 from django.core.files.base import ContentFile
@@ -226,6 +227,10 @@ class Profile(models.Model):
 
         super().save(*args, **kwargs)
 
+    def get_user(self):
+        return self.user
+    def get_bio(self):
+        return self.bio
     def get_url_image(self):
         s3 = boto3.client('s3',
                           aws_access_key_id=settings.AWS_ACCESS_KEY_ID,
