@@ -167,7 +167,11 @@
         <th></th>
         <th><p>{{ issue.getEditionDate }}</p></th>
         <th></th>
-        <th><p>{{ issue.getFirstAsign }}</p></th>
+            <th>
+                <a href = "{% url 'profile' issue.getFirstAsign%}" target = "_self">
+                    <p>{{ issue.getFirstAsign }}</p>
+                </a>
+            </th>
         </tr>
         {% endfor %}
     </table>
