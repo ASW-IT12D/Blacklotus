@@ -509,7 +509,14 @@ def showProfile(request,usernameProf):
     user = User.objects.get(username=usernameProf)
     profile = Profile.objects.get(user=user)
     image_url = profile.get_url_image()
-    return render(request, 'viewProfile.html', {'image_url':image_url,'profile':profile})
+    timeline = Activity.objects.all().filter(user=user).order_by('-creationdate')
+    watchers = Issue.objects.all().filter(watchers=user)
+
+    show_timeline = True
+    return render(request, 'viewProfile.html', {'image_url':image_url,'profile':profile,
+                                                'timeline': timeline,'watchers' : watchers,
+                                                'show_timeline':show_timeline
+                                                })
 
 def showProfileRedir(request):
     return redirect(showProfile,request.user.username)
@@ -520,7 +527,7 @@ def redirectLogin(request):
 class ProfileEditView(generic.UpdateView):
     form_class = EditProfileInfoForm
     template_name = 'editUser.html'
-    success_url = reverse_lazy('profile')
+    success_url = reverse_lazy('profileR')
 
     def get_object(self):
         return self.request.user

@@ -165,6 +165,8 @@ class Activity(models.Model):
     def getDate(self):
         return self.creationdate
 
+    def getIssueChangedSubject(self):
+        return self.issueChanged.getSubject()
 
 class Attachments(models.Model):
     archivo = models.FileField(upload_to='Attachments/')

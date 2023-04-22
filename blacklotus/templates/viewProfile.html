@@ -1,17 +1,126 @@
 {% extends 'baseIssue.html' %}
 {% block content %}
-<h1><a><img src="{{ image_url }}" alt="Profile Image" style="width:250px;height:250px;"></a></h1>
-<h2>@{{ profile.get_user.username }}</h2>
 
-<p>{{ profile.get_user.first_name }}</p>
-<p>{{ profile.get_user.email }}</p>
-<p>{{ profile.get_bio}}</p>
-<th>
-    {% if profile.get_user.username == request.user.username %}
-        <a href="{% url 'editprofile' %}">
-            <button>EDIT PROFILE</button>
-        </a>
-    {% endif %}
+<table class="profile">
 
-</th>
+    <th style="width:40%">
+        <h1><a><img src="{{ image_url }}" alt="Profile Image" style="width:250px;height:250px;"></a></h1>
+        <h2>@{{ profile.get_user.username }}</h2>
+
+        <p>{{ profile.get_user.first_name }}</p>
+        <p>{{ profile.get_user.email }}</p>
+        <p>{{ profile.get_bio}}</p>
+        <p>
+            {% if profile.get_user.username == request.user.username %}
+                <a href="{% url 'editprofile' %}">
+                    <button>EDIT PROFILE</button>
+                </a>
+            {% endif %}
+
+        </p>
+    </th>
+
+    <th style="width:20%"></th>
+    <th style="width:40%">
+        <div class="tabs">
+            {% if show_timeline %}
+                <button class="tab active btn btn-outline-primary" data-tab="tab1">
+                    Timeline
+                </button>
+                <button class="tab btn btn-outline-primary" data-tab="tab2">
+                    Watchers
+                </button>
+            {% else %}
+                <button class="tab btn btn-outline-primary" data-tab="tab1">
+                    Timeline
+                </button>
+                <button class="tab active btn btn-outline-primary" data-tab="tab2">
+                    Watchers
+                </button>
+            {% endif %}
+        </div>
+
+        <div class="tab-content">
+            {% if show_timeline %}
+                <div class="tab-pane active" id="tab1">
+                    {% for act in timeline %}
+                        <div>
+                            <br>
+                            <p>
+                                <a>{{ act.getIssueChangedSubject }}</a>
+                                <a>{{ act.getDate }}</a>
+                                <a>{{ act.getField }}</a>
+                                <a>{{ act.getOld }}</a>
+                                <a> > </a>
+                                <a>{{ act.getChange }}</a>
+                            </p>
+                        </div>
+                    {% endfor %}
+                </div>
+                <div class="tab-pane" id="tab2">
+                    {% for watch in watchers %}
+                        <div>
+                            <br>
+                            <p>
+                                <a>{{ watch.getSubject }}</a>
+                                <a>{{ watch.getCreator }}</a>
+                            </p>
+                        </div>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <div class="tab-pane" id="tab1">
+                    {% for act in timeline %}
+                        <div>
+                            <br>
+                            <p>
+                                <a>{{ act.getIssueChangedSubject }}</a>
+                                <a>{{ act.getDate }}</a>
+                                <a>{{ act.getField }}</a>
+                                <a>{{ act.getOld }}</a>
+                                <a> > </a>
+                                <a>{{ act.getChange }}</a>
+                            </p>
+                        </div>
+                    {% endfor %}
+                </div>
+                <div class="tab-pane active" id="tab2">
+                    {% for watch in watchers %}
+                        <div>
+                            <br>
+                            <p>
+                                <a>{{ watch.getSubject }}</a>
+                                <a>{{ watch.getCreator }}</a>
+                            </p>
+                        </div>
+                    {% endfor %}
+                </div>
+            {% endif %}
+        </div>
+<script>
+    const tabs = document.querySelectorAll('.tab');
+    const tabContent = document.querySelectorAll('.tab-pane');
+
+    function switchTab(event) {
+        // Remove active class from all tabs and tab content
+        tabs.forEach(tab => tab.classList.remove('active'));
+        tabContent.forEach(content => content.classList.remove('active'));
+
+        // Add active class to clicked tab and corresponding tab content
+        const selectedTab = event.target.dataset.tab;
+        const selectedContent = document.querySelector(`#${selectedTab}`);
+        event.target.classList.add('active');
+        selectedContent.classList.add('active');
+    }
+
+    // Attach click event listener to each tab
+    tabs.forEach(tab => {
+        tab.addEventListener('click', switchTab);
+    });
+</script>
+
+
+    </th>
+</table>
+
 {% endblock %}
