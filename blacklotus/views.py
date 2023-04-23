@@ -511,12 +511,15 @@ def showProfile(request,usernameProf):
     image_url = profile.get_url_image()
     timeline = Activity.objects.all().filter(user=user).order_by('-creationdate')
     watchers = Issue.objects.all().filter(watchers=user)
-
-    show_timeline = True
+    timelineOn = True
+    if request.method == "POST":
+        if 'timeline' in request.POST:
+            timelineOn = True
+        elif 'watched' in request.POST:
+            timelineOn = False
     return render(request, 'viewProfile.html', {'image_url':image_url,'profile':profile,
                                                 'timeline': timeline,'watchers' : watchers,
-                                                'show_timeline':show_timeline
-                                                })
+                                                'timelinOn':timelineOn})
 
 def showProfileRedir(request):
     return redirect(showProfile,request.user.username)
