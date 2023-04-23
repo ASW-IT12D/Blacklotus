@@ -1,6 +1,6 @@
 {% extends 'base.html' %}
 {% block content %}
-<form method="post" action="{% url 'edit' %}">
+<form method="post">
 {% csrf_token %}
 <table class = "editIssue">
 <tr>

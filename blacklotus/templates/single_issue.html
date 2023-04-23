@@ -262,9 +262,11 @@
                     <button type="submit" class="btn btn-secondary btn-sm"> Block</button>
                     {%endif%}
                 </form>
-                <a href="{% url 'deleteIssue' issue.first.id%}">
-                    <button class="btn btn-danger btn-sm"> Delete</button>
-                </a>
+                <form method="POST" name="bloquearissues" style="display: inline-block;">
+                    {% csrf_token %}
+                    <input type="hidden" name="_method" value="DELETE">
+                    <button name="delete" class="btn btn-danger btn-sm"> Delete</button>
+                </form>
             </div>
         </th>
     </tr>

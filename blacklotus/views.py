@@ -16,12 +16,8 @@ from django.urls import reverse_lazy
 from django.views import generic
 from social_django.utils import psa
 
-from .forms import EditProfileInfoForm
-from .forms import RegisterForm, AssignedTo, Watchers
-from .models import Attachments, Activity
-from .models import Issue, Comentario
-from .models import Profile
-
+from .forms import EditProfileInfoForm, RegisterForm, AssignedTo, Watchers
+from .models import Attachments, Activity, Issue, Comentario, Profile
 
 # Create your views here.
 
@@ -32,42 +28,39 @@ def github_auth(request):
 
 @login_required(login_url='login')
 def CreateIssueForm(request):
-    return render(request, 'newissue.html')
+    if request.method == 'POST':
+        if len(request.POST.get("subject")) > 0:
+            sub = request.POST.get("subject")
+            des = request.POST.get("description")
+            type = request.POST.get("type")
+            severity = request.POST.get("severity")
+            priority = request.POST.get("priority")
+            status = request.POST.get("status")
+            i = Issue(subject=sub, description=des, creator=request.user.username, status=status, type=type,
+                      severity=severity, priority=priority)
+            i.save()
+        return redirect(showIssues)
+    else:
+        return render(request, 'newissue.html')
 
 @login_required(login_url='login')
 def BulkIssueForm(request):
+    if request.method == "POST":
+        if len(request.POST.get("issues")) > 0:
+            textarea_input = request.POST['issues']
+            lines = textarea_input.split('\n')
+            for line in lines:
+                if len(line) > 0:
+                    sub = line
+                    des = ""
+                    type = 1
+                    severity = 1
+                    priority = 1
+                    status = 1
+                    i = Issue(subject=sub, description=des, creator=request.user.username, status=status, type=type, severity=severity, priority=priority)
+                    i.save()
+        return redirect(showIssues)
     return render(request, 'bulkissue.html')
-
-@login_required(login_url='login')
-def CreateIssue(request):
-    if len(request.POST.get("subject")) > 0:
-        sub = request.POST.get("subject")
-        des = request.POST.get("description")
-        type = request.POST.get("type")
-        severity = request.POST.get("severity")
-        priority = request.POST.get("priority")
-        status = request.POST.get("status")
-        i = Issue(subject=sub, description=des, creator=request.user.username, status=status, type=type,
-                  severity=severity, priority=priority)
-        i.save()
-    return redirect(showIssues)
-
-@login_required(login_url='login')
-def BulkIssue(request):
-    if len(request.POST.get("issues")) > 0:
-        textarea_input = request.POST['issues']
-        lines = textarea_input.split('\n')
-        for line in lines:
-            if len(line) > 0:
-                sub = line
-                des = ""
-                type = 1
-                severity = 1
-                priority = 1
-                status = 1
-                i = Issue(subject=sub, description=des, creator=request.user.username, status=status, type=type, severity=severity, priority=priority)
-                i.save()
-    return redirect(showIssues)
 
 @login_required(login_url='login')
 def showIssues(request):
@@ -255,6 +248,9 @@ def list_documents(num):
 def SeeIssue(request, num):
     form = AssignedTo()
     form2 = Watchers()
+
+    issueUpdate = Issue.objects.get(id=num)
+
     if 'commentsOn' in request.session:
         commentsOn = request.session['commentsOn']
     else:
@@ -270,7 +266,6 @@ def SeeIssue(request, num):
         if 'archivo' in request.FILES and request.FILES['archivo']:
             archivo = request.FILES.get('archivo')
             if len(archivo) > 0:
-                issueUpdate = Issue.objects.get(id=num)
                 document = Attachments(archivo=archivo, username=request.user.username, issue=issueUpdate)
                 document.save()
         elif 'Download' in request.POST:
@@ -287,7 +282,6 @@ def SeeIssue(request, num):
                     response = HttpResponse(f.read(), content_type='application/octet-stream')
                     response['Content-Disposition'] = 'attachment; filename="{}"'.format(option_selected)
                 return response
-
         elif 'Delete' in request.POST:
             option_selected = request.POST.get('option')
             if option_selected is not None:
@@ -304,15 +298,14 @@ def SeeIssue(request, num):
                 elif (len(allAt) == 1):
                     a.delete()
                     response = s3.delete_object(Bucket=settings.AWS_STORAGE_BUCKET_NAME, Key=object_name)
-    documents = list_documents(num)
-
-    issueUpdate = Issue.objects.get(id=num)
-
-    if request.method == 'POST':
-        if 'block' in request.POST:
+        elif 'block' in request.POST:
             issueUpdate.blocked = True
             issueUpdate.save()
             return redirect(BlockIssueForm, id=num)
+        elif request.POST.get('_method') == 'DELETE':
+            issue = Issue.objects.get(id=num)
+            issue.delete()
+            return redirect(showIssues)
         elif 'unblock' in request.POST:
             issueUpdate.blocked = False
             issueUpdate.blockmotive = ""
@@ -352,62 +345,61 @@ def SeeIssue(request, num):
         elif 'deadline' in request.POST:
             return redirect(deadLineForm, id=num)
         elif 'deldeadline' in request.POST:
-
             issueUpdate.deadline = False
             issueUpdate.deadlinemotive = ""
             issueUpdate.save()
+        elif 'BotonUpdateStatuses' in request.POST:
+            user = request.user
+            if 'status' in request.POST:
+                field = "status"
+                old = issueUpdate.getStatus()
+                new = request.POST.get("status")
+                act = Activity(field=field, change=new, old=old, user=user, issueChanged=issueUpdate)
+                act.save()
+                issueUpdate.status = request.POST.get("status")
+            if 'severity' in request.POST:
+                field = "severity"
+                old = issueUpdate.getSeverity()
+                new = request.POST.get("severity")
+                act = Activity(field=field, change=new, old=old, user=user, issueChanged=issueUpdate)
+                act.save()
+                issueUpdate.severity = request.POST.get("severity")
+            if 'type' in request.POST:
+                field = "type"
+                old = issueUpdate.getType()
+                new = request.POST.get("type")
+                act = Activity(field=field, change=new, old=old, user=user, issueChanged=issueUpdate)
+                act.save()
+                issueUpdate.type = request.POST.get("type")
+            if 'priority' in request.POST:
+                field = "priority"
+                old = issueUpdate.getPriority()
+                new = request.POST.get("priority")
+                act = Activity(field=field, change=new, old=old, user=user, issueChanged=issueUpdate)
+                act.save()
+                issueUpdate.priority = request.POST.get("priority")
+            issueUpdate.save()
+        elif 'EditContent' in request.POST:
+            request.session['id'] = num
+            return redirect(EditIssue, num)
+        elif 'next' in request.POST:
+            try:
+                nextIssue = issueUpdate.get_previous_by_creationdate()
+                return redirect(SeeIssue, num=nextIssue.id)
+            except:
+                firstIssue = Issue.objects.order_by('creationdate').last()
+                return redirect(SeeIssue, num=firstIssue.id)
+        elif 'previous' in request.POST:
+            try:
+                previousIssue = issueUpdate.get_next_by_creationdate()
+                return redirect(SeeIssue, num=previousIssue.id)
+            except:
+                lastIssue = Issue.objects.order_by('creationdate').first()
+                return redirect(SeeIssue, num=lastIssue.id)
 
-    issueUpdate = Issue.objects.get(id=num)
-    if 'BotonUpdateStatuses' in request.POST:
-        user = request.user
-        if 'status' in request.POST:
-            field = "status"
-            old = issueUpdate.getStatus()
-            new = request.POST.get("status")
-            act = Activity(field=field, change=new, old=old, user=user, issueChanged=issueUpdate)
-            act.save()
-            issueUpdate.status = request.POST.get("status")
-        if 'severity' in request.POST:
-            field = "severity"
-            old = issueUpdate.getSeverity()
-            new = request.POST.get("severity")
-            act = Activity(field=field, change=new, old=old, user=user, issueChanged=issueUpdate)
-            act.save()
-            issueUpdate.severity = request.POST.get("severity")
-        if 'type' in request.POST:
-            field = "type"
-            old = issueUpdate.getType()
-            new = request.POST.get("type")
-            act = Activity(field=field, change=new, old=old, user=user, issueChanged=issueUpdate)
-            act.save()
-            issueUpdate.type = request.POST.get("type")
-        if 'priority' in request.POST:
-            field = "priority"
-            old = issueUpdate.getPriority()
-            new = request.POST.get("priority")
-            act = Activity(field=field, change=new, old=old, user=user, issueChanged=issueUpdate)
-            act.save()
-            issueUpdate.priority = request.POST.get("priority")
-        issueUpdate.save()
-    elif 'EditContent' in request.POST:
-        request.session['id'] = num
-        return redirect(EditIssue)
-    elif 'next' in request.POST:
-        try:
-            nextIssue = issueUpdate.get_previous_by_creationdate()
-            return redirect(SeeIssue, num=nextIssue.id)
-        except:
-            firstIssue = Issue.objects.order_by('creationdate').last()
-            return redirect(SeeIssue, num=firstIssue.id)
-    elif 'previous' in request.POST:
-        try:
-            previousIssue = issueUpdate.get_next_by_creationdate()
-            return redirect(SeeIssue, num=previousIssue.id)
-        except:
-            lastIssue = Issue.objects.order_by('creationdate').first()
-            return redirect(SeeIssue, num=lastIssue.id)
     issue = Issue.objects.filter(id=num).values()
     issueAct = Issue.objects.get(id=num)
+
     coment = None
     if request.method == 'GET':
         if 'comment' in request.GET:
@@ -441,17 +433,18 @@ def SeeIssue(request, num):
     profile = Profile.objects.get(user=user)
     image_url = profile.get_url_image()
     watchers = instance.watchers.all()
+    documents = list_documents(num)
     return render(request, 'single_issue.html',
                   {'image_url': image_url, 'issue': issue, 'form': form, 'form2': form2,
                    'asignedTo': asignedTo, 'coments': coments, 'activity': activity, 'commentsOn': commentsOn,
                    'documents': documents, 'watchers': watchers,'imagesC': imagesC, 'imagesA':imagesA})
 
 @login_required(login_url='login')
-def EditIssue(request):
+def EditIssue(request, id):
     ID = request.session.get('id')
     issue = Issue.objects.filter(id=ID).values()
     if 'Update' in request.POST:
-        user = request.users
+        user = request.user
         issueUpdate = Issue.objects.get(id=request.POST.get("idHidden"))
         if request.POST.get("subject") is not None and len(request.POST.get("subject")) > 0:
             field = "subject"
@@ -471,12 +464,6 @@ def EditIssue(request):
         return redirect(SeeIssue, num=request.POST.get("idHidden"))
     else:
         return render(request, 'editIssue.html', {'issue': issue})
-
-@login_required(login_url='login')
-def DeleteIssue(request, id):
-    issue = Issue.objects.get(id=id)
-    issue.delete()
-    return redirect(showIssues)
 
 def log(request):
     if request.method == 'POST':
@@ -525,7 +512,6 @@ def showProfileRedir(request):
     return redirect(showProfile,request.user.username)
 def redirectLogin(request):
     return redirect(log)
-
 
 class ProfileEditView(generic.UpdateView):
     form_class = EditProfileInfoForm

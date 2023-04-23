@@ -6,14 +6,6 @@ from django.contrib.auth import views as auth_views
 from django.conf import settings
 #URLConf
 urlpatterns = [
-    path('newissue/', views.CreateIssueForm, name="newIssue"),
-    path('bulkissue/', views.BulkIssueForm, name="bulkIssue"),
-    path('<int:id>/blockissue/', views.BlockIssueForm, name="blockIssue"),
-    path('showIssues/', views.showIssues,name='home'),
-    path('delete/<int:id>', views.DeleteIssue, name="deleteIssue"),
-    path('newissue/new/', views.CreateIssue),
-    path('bulkissue/new/', views.BulkIssue),
-    path('<int:num>/', views.SeeIssue, name="seeIssue"),
     path('register/', views.join, name='register'),
     path('',views.log, name = 'login'),
     path('login/',views.redirectLogin, name = 'login'),
@@ -21,7 +13,13 @@ urlpatterns = [
     path('logout/',views.custom_logout, name='logout'),
     path('<str:usernameProf>',views.showProfile, name = 'profile'),
     path('accounts/profile/',views.showProfileRedir, name = 'profileR'),
-    path('editprofile/',ProfileEditView.as_view(), name='editprofile'),
-    path('edit/', views.EditIssue, name='edit'),
-    path('<int:id>/deadline/', views.deadLineForm, name = 'deadline')
+    path('Edit/',ProfileEditView.as_view(), name='editprofile'),
+
+    path('Issues/', views.showIssues,name='home'),
+    path('NewIssue/', views.CreateIssueForm, name="newIssue"),
+    path('BulkIssues/', views.BulkIssueForm, name="bulkIssue"),
+    path('Issue/<int:num>/', views.SeeIssue, name="seeIssue"),
+    path('Issue/<int:id>/BlockIssue/', views.BlockIssueForm, name="blockIssue"),
+    path('Issue/<int:id>/Edit/', views.EditIssue, name='edit'),
+    path('Issue/<int:id>/Deadline/', views.deadLineForm, name = 'deadline')
 ]

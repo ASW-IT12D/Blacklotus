@@ -130,7 +130,7 @@ class Activity(models.Model):
 
     creationdate = models.DateTimeField(auto_now_add=True)
     field = models.CharField(max_length=100)
-    change = models.IntegerField()
+    change = models.CharField(max_length=100)
     old = models.CharField(max_length=100)
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     issueChanged = models.ForeignKey(Issue, on_delete=models.CASCADE)
@@ -144,21 +144,23 @@ class Activity(models.Model):
 
     def getChange(self):
         if (self.field == "status"):
-            status_num = self.change
+            status_num = int(self.change)
             status_text = dict(self.STATUSES).get(status_num)
             return status_text
         elif (self.field == "severity"):
-            severity_num = self.change
+            severity_num = int(self.change)
             severity_text = dict(self.SEVERITIES).get(severity_num)
             return severity_text
         elif (self.field == "type"):
-            type_num = self.change
+            type_num = int(self.change)
             type_text = dict(self.TYPES).get(type_num)
             return type_text
-        else:
-            priority_num = self.change
+        elif (self.field == "priority"):
+            priority_num = int(self.change)
             priority_text = dict(self.PRIORITIES).get(priority_num)
             return priority_text
+        else:
+            return self.change
     def getOld(self):
         return self.old
 
