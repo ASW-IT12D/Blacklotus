@@ -519,7 +519,7 @@ def showProfile(request,usernameProf):
             timelineOn = False
     return render(request, 'viewProfile.html', {'image_url':image_url,'profile':profile,
                                                 'timeline': timeline,'watchers' : watchers,
-                                                'timelinOn':timelineOn})
+                                                'timelineOn':timelineOn})
 
 def showProfileRedir(request):
     return redirect(showProfile,request.user.username)
