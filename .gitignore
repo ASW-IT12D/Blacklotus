@@ -1,4 +1,8 @@
 ### AL ###
+/env
+Dockerfile
+fly.toml
+requirements.txt
 #Template for AL projects for Dynamics 365 Business Central
 #launch.json folder
 .vscode/
