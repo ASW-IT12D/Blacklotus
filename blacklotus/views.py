@@ -505,12 +505,24 @@ def custom_logout(request):
     return redirect('home')
 
 @login_required
-def showProfile(request):
-    user = User.objects.get(username=request.user.username)
+def showProfile(request,usernameProf):
+    user = User.objects.get(username=usernameProf)
     profile = Profile.objects.get(user=user)
     image_url = profile.get_url_image()
-    return render(request, 'viewProfile.html', {'image_url':image_url})
+    timeline = Activity.objects.all().filter(user=user).order_by('-creationdate')
+    watchers = Issue.objects.all().filter(watchers=user)
+    timelineOn = True
+    if request.method == "POST":
+        if 'timeline' in request.POST:
+            timelineOn = True
+        elif 'watched' in request.POST:
+            timelineOn = False
+    return render(request, 'viewProfile.html', {'image_url':image_url,'profile':profile,
+                                                'timeline': timeline,'watchers' : watchers,
+                                                'timelineOn':timelineOn})
 
+def showProfileRedir(request):
+    return redirect(showProfile,request.user.username)
 def redirectLogin(request):
     return redirect(log)
 
@@ -518,7 +530,7 @@ def redirectLogin(request):
 class ProfileEditView(generic.UpdateView):
     form_class = EditProfileInfoForm
     template_name = 'editUser.html'
-    success_url = reverse_lazy('profile')
+    success_url = reverse_lazy('profileR')
 
     def get_object(self):
         return self.request.user

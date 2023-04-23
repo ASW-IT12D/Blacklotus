@@ -16,8 +16,8 @@
                         Bloqueada: {{issue.first.blockmotive}}
                     </div>
                     <b>
-                        <div class="created-by">
-                            <a>Created by {{ issue.first.creator }}</a>
+                        <div class="created-by">Created by
+                            <a href = "{% url 'profile' issue.first.creator %}" target = "_self"> {{ issue.first.creator }}</a>
                             <div class="creatinDate">{{ issue.first.creationdate }}</div>
                             {% if issue.first.deadline %}
                             <div class="deadlineDate">Deadline: {{ issue.first.deadlinedate|date:"F j, Y" }}</div>
@@ -286,55 +286,55 @@
                     </button>
                 </form>
                 {% if commentsOn %}
-                <div class="">
-                    <form method="GET">
-                        <br>
-                        <input name="comment" placeholder="Type and comment here" type="text" size=30>
-                        <button type="submit" class="btn btn-primary btn-sm">Guardar</button>
-                        <br><br>
-                    </form>
-                </div>
+                    <div class="">
+                        <form method="GET">
+                            <br>
+                            <input name="comment" placeholder="Type and comment here" type="text" size=30>
+                            <button type="submit" class="btn btn-primary btn-sm">Guardar</button>
+                            <br><br>
+                        </form>
+                    </div>
 
-                <div class="">
-                    <table>
-                        {%for c in coments%}
-                        <tr>
-                            {% for comment_id, image_url in imagesC.items %}
-                            {%if comment_id == c %}
-                            <th><a><img src="{{ image_url }}" alt="Profile Image" style="width:50px;height:50px;"></a>
-                            </th>
+                    <div class="">
+                        <table>
+                            {%for c in coments%}
+                            <tr>
+                                {% for comment_id, image_url in imagesC.items %}
+                                {%if comment_id == c %}
+                                <th><a><img src="{{ image_url }}" alt="Profile Image" style="width:50px;height:50px;"></a>
+                                </th>
+                                {%endif%}
+                                {% endfor %}
+
+                                <th><a href = "{% url 'profile' c.getCreator %}" target = "_self">{{ c.getCreator }}</a></th>
+                                <th>{{ c.getCreationDate}}</th>
+                            </tr>
+                            <tr>
+                                <th>{{ c.getMessage}}</th>
+                            </tr>
+                            {%endfor%}
+                        </table>
+                    </div>
+                {%else%}
+                    {% for act in activity %}
+                        <div>
+                            <br><p>
+                            {% for activity_id, image_url in imagesA.items %}
+                            {%if activity_id.id == act.id %}
+                            <a><img src="{{ image_url }}" alt="Profile Image" style="width:50px;height:50px;"></a>
                             {%endif%}
                             {% endfor %}
 
-                            <th>{{ c.getCreator }}</th>
-                            <th>{{ c.getCreationDate}}</th>
-                        </tr>
-                        <tr>
-                            <th>{{ c.getMessage}}</th>
-                        </tr>
-                        {%endfor%}
-                    </table>
-                </div>
-                {%else%}
-                {% for act in activity %}
-                <div>
-                    <br><p>
-                    {% for activity_id, image_url in imagesA.items %}
-                    {%if activity_id.id == act.id %}
-                    <a><img src="{{ image_url }}" alt="Profile Image" style="width:50px;height:50px;"></a>
-                    {%endif%}
+                                <a href = "{% url 'profile' act.getUser %}">{{ act.getUser }}</a>
+                                <a>{{ act.getDate }}</a></p>
+                            <p>
+                            <p>{{ act.getField }}</p>
+                            <a>{{ act.getOld }}</a>
+                            <a> > </a>
+                            <a>{{ act.getChange }}</a>
+                            </p>
+                        </div>
                     {% endfor %}
-
-                        <a>{{ act.getUser }}</a>
-                        <a>{{ act.getDate }}</a></p>
-                    <p>
-                    <p>{{ act.getField }}</p>
-                    <a>{{ act.getOld }}</a>
-                    <a> > </a>
-                    <a>{{ act.getChange }}</a>
-                    </p>
-                    {% endfor %}
-                </div>
                 {%endif%}
                 <br>
             </div>
