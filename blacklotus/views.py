@@ -3,6 +3,7 @@ import tempfile
 from datetime import datetime
 
 import boto3
+from botocore.exceptions import ClientError
 from django.conf import settings
 from django.contrib.auth import login as auth_login
 from django.contrib.auth import logout
@@ -226,24 +227,28 @@ def BlockIssueForm(request, id):
     return render(request, 'blockissue.html')
 
 def list_documents(num):
-    s3 = boto3.client('s3',
-                      aws_access_key_id=settings.AWS_ACCESS_KEY_ID,
-                      aws_secret_access_key=settings.AWS_SECRET_ACCESS_KEY,
-                      aws_session_token=settings.AWS_SESSION_TOKEN)
-    bucket_name = settings.AWS_STORAGE_BUCKET_NAME
-    prefix = 'Attachments/'
-    response = s3.list_objects_v2(Bucket=bucket_name, Prefix=prefix)
-    documents = []
-    for content in response.get('Contents', []):
-        if content.get("Key") != 'Attachments/':
-            i = Issue.objects.get(id=num)
-            a = Attachments.objects.all().filter(issue=i, archivo=content.get("Key"))
-            if (len(a) > 0):
-                url = f"{content['Key']}"
-                url = url.replace("Attachments/", "")
-                documents.append(url)
-    return documents
-
+    try:
+        s3 = boto3.client('s3',
+                          aws_access_key_id=settings.AWS_ACCESS_KEY_ID,
+                          aws_secret_access_key=settings.AWS_SECRET_ACCESS_KEY,
+                          aws_session_token=settings.AWS_SESSION_TOKEN)
+        bucket_name = settings.AWS_STORAGE_BUCKET_NAME
+        prefix = 'Attachments/'
+        response = s3.list_objects_v2(Bucket=bucket_name, Prefix=prefix)
+        documents = []
+        for content in response.get('Contents', []):
+            if content.get("Key") != 'Attachments/':
+                i = Issue.objects.get(id=num)
+                a = Attachments.objects.all().filter(issue=i, archivo=content.get("Key"))
+                if (len(a) > 0):
+                    url = f"{content['Key']}"
+                    url = url.replace("Attachments/", "")
+                    documents.append(url)
+        return documents
+    except ClientError as e:
+        print(e)
+        documents = []
+        return documents
 @login_required(login_url='login')
 def SeeIssue(request, num):
     form = AssignedTo()
@@ -271,33 +276,39 @@ def SeeIssue(request, num):
         elif 'Download' in request.POST:
             option_selected = request.POST.get('option')
             if option_selected is not None:
-                s3 = boto3.client('s3',
-                                  aws_access_key_id=settings.AWS_ACCESS_KEY_ID,
-                                  aws_secret_access_key=settings.AWS_SECRET_ACCESS_KEY,
-                                  aws_session_token=settings.AWS_SESSION_TOKEN)
-                object_name = 'Attachments/' + option_selected
-                with tempfile.NamedTemporaryFile(delete=False) as temp_file:
-                    s3.download_file(settings.AWS_STORAGE_BUCKET_NAME, object_name, temp_file.name)
-                with open(temp_file.name, 'rb') as f:
-                    response = HttpResponse(f.read(), content_type='application/octet-stream')
-                    response['Content-Disposition'] = 'attachment; filename="{}"'.format(option_selected)
-                return response
+                try:
+                    s3 = boto3.client('s3',
+                                      aws_access_key_id=settings.AWS_ACCESS_KEY_ID,
+                                      aws_secret_access_key=settings.AWS_SECRET_ACCESS_KEY,
+                                      aws_session_token=settings.AWS_SESSION_TOKEN)
+                    object_name = 'Attachments/' + option_selected
+                    with tempfile.NamedTemporaryFile(delete=False) as temp_file:
+                        s3.download_file(settings.AWS_STORAGE_BUCKET_NAME, object_name, temp_file.name)
+                    with open(temp_file.name, 'rb') as f:
+                        response = HttpResponse(f.read(), content_type='application/octet-stream')
+                        response['Content-Disposition'] = 'attachment; filename="{}"'.format(option_selected)
+                    return response
+                except ClientError as e:
+                    print(e)
         elif 'Delete' in request.POST:
             option_selected = request.POST.get('option')
             if option_selected is not None:
-                s3 = boto3.client('s3',
-                                  aws_access_key_id=settings.AWS_ACCESS_KEY_ID,
-                                  aws_secret_access_key=settings.AWS_SECRET_ACCESS_KEY,
-                                  aws_session_token=settings.AWS_SESSION_TOKEN)
-                object_name = 'Attachments/' + option_selected
-                i = Issue.objects.get(id=num)
-                allAt = Attachments.objects.all().filter(archivo=object_name)
-                a = Attachments.objects.all().filter(issue=i, archivo=object_name)
-                if (len(allAt) > 1):
-                    a.delete()
-                elif (len(allAt) == 1):
-                    a.delete()
-                    response = s3.delete_object(Bucket=settings.AWS_STORAGE_BUCKET_NAME, Key=object_name)
+                try:
+                    s3 = boto3.client('s3',
+                                      aws_access_key_id=settings.AWS_ACCESS_KEY_ID,
+                                      aws_secret_access_key=settings.AWS_SECRET_ACCESS_KEY,
+                                      aws_session_token=settings.AWS_SESSION_TOKEN)
+                    object_name = 'Attachments/' + option_selected
+                    i = Issue.objects.get(id=num)
+                    allAt = Attachments.objects.all().filter(archivo=object_name)
+                    a = Attachments.objects.all().filter(issue=i, archivo=object_name)
+                    if (len(allAt) > 1):
+                        a.delete()
+                    elif (len(allAt) == 1):
+                        a.delete()
+                        s3.delete_object(Bucket=settings.AWS_STORAGE_BUCKET_NAME, Key=object_name)
+                except ClientError as e:
+                    print(e)
         elif 'block' in request.POST:
             issueUpdate.blocked = True
             issueUpdate.save()

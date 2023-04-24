@@ -236,16 +236,17 @@ class Profile(models.Model):
     def get_bio(self):
         return self.bio
     def get_url_image(self):
-        s3 = boto3.client('s3',
-                          aws_access_key_id=settings.AWS_ACCESS_KEY_ID,
-                          aws_secret_access_key=settings.AWS_SECRET_ACCESS_KEY,
-                          aws_session_token=settings.AWS_SESSION_TOKEN)
-        if bool(self.image):
-            filename = self.image.name
-        else:
-            filename = 'Images/default.png'
-        url = ''
         try:
+            s3 = boto3.client('s3',
+                              aws_access_key_id=settings.AWS_ACCESS_KEY_ID,
+                              aws_secret_access_key=settings.AWS_SECRET_ACCESS_KEY,
+                              aws_session_token=settings.AWS_SESSION_TOKEN)
+            if bool(self.image):
+                filename = self.image.name
+            else:
+                filename = 'Images/default.png'
+            url = ''
+
             url = s3.generate_presigned_url('get_object',
                                             Params={'Bucket': settings.AWS_STORAGE_BUCKET_NAME,
                                                     'Key': filename},
