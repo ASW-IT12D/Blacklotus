@@ -413,14 +413,15 @@ def SeeIssue(request, num):
     issueAct = Issue.objects.get(id=num)
 
     coment = None
-    if request.method == 'GET':
-        if 'comment' in request.GET:
-            coment = request.GET.get('comment')
+    if request.method == 'POST':
+        if 'comment' in request.POST:
+            coment = request.POST.get('comment')
             if len(coment) > 0:
                 iss = Issue.objects.get(id=num)
                 user = User.objects.get(username=request.user.username)
                 c = Comentario(message=coment, creator=user, issue=iss)
                 c.save()
+                return redirect(SeeIssue, num)
 
     coments = Comentario.objects.all().order_by('-creationDate').filter(issue=num)
 
