@@ -206,7 +206,6 @@ class Comentario(models.Model):
     def getCreationDate(self):
         return self.creationDate
 
-
 class Profile(models.Model):
     user = models.OneToOneField(User, null=True, on_delete=models.CASCADE)
     bio = models.TextField()
