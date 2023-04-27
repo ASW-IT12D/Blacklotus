@@ -261,7 +261,12 @@ def SeeIssue(request, num):
     else:
         commentsOn = True
 
-    if request.method == "POST":
+    if request.method == "POST" and request.POST.get("_method") == "DELETE":
+        issue = Issue.objects.get(id=num)
+        issue.delete()
+        return redirect(showIssues)
+
+    elif request.method == "POST":
         if 'comments' in request.POST:
             request.session['commentsOn'] = True
             commentsOn = True
@@ -313,10 +318,6 @@ def SeeIssue(request, num):
             issueUpdate.blocked = True
             issueUpdate.save()
             return redirect(BlockIssueForm, id=num)
-        elif request.POST.get('_method') == 'DELETE':
-            issue = Issue.objects.get(id=num)
-            issue.delete()
-            return redirect(showIssues)
         elif 'unblock' in request.POST:
             issueUpdate.blocked = False
             issueUpdate.blockmotive = ""
@@ -420,8 +421,8 @@ def SeeIssue(request, num):
                 user = User.objects.get(username=request.user.username)
                 c = Comentario(message=coment, creator=user, issue=iss)
                 c.save()
-    coments = Comentario.objects.all().order_by('-creationDate').filter(issue=num)
 
+    coments = Comentario.objects.all().order_by('-creationDate').filter(issue=num)
 
     imagesC = {}
     for c in coments:
