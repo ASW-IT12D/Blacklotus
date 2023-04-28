@@ -17,7 +17,7 @@ from django.urls import reverse_lazy
 from django.views import generic
 from django.views.decorators.http import require_http_methods
 from social_django.utils import psa
-from .serializers import IssueSerializer
+from .serializers import IssueSerializer,ActivitySerializer
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
@@ -595,17 +595,37 @@ class IssueAPIView(APIView):
     serializer_class = IssueSerializer
     def get(self,request):
         issue_id = request.query_params.get('id', None)
-
         if issue_id:
             issues = Issue.objects.filter(id=issue_id)
         else:
             issues = Issue.objects.all()
-
         if issues:
             issue_serializer = self.serializer_class(issues,many=True)
             return Response(issue_serializer.data, status=status.HTTP_200_OK)
         else:
-            return Response({'message' : 'No issues found'}, status=status.HTTP_404_NOT_FOUND)
+            return Response({'message': 'No issues found'}, status=status.HTTP_404_NOT_FOUND)
+
+    def post(self,request):
+        pass
+
+    def put(self,request):
+        pass
+
+    def delete(self,request):
+        pass
+
+class ActivityAPIView(APIView):
+    serializer_class = ActivitySerializer
+    def get(self,request):
+        issue_id = request.query_params.get('id', None)
+        if issue_id:
+            issue = Issue.objects.get(id=issue_id)
+            activities = Activity.objects.filter(issueChanged=issue)
+            activity_serializer = self.serializer_class(activities,many=True)
+            return Response(activity_serializer.data,status=status.HTTP_200_OK)
+        else:
+            return Response({'message': 'No issues found'}, status=status.HTTP_404_NOT_FOUND)
+
 
 
     def post(self,request):

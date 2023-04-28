@@ -42,7 +42,22 @@ components:
             minLength: 4
             example: 'TestSubject'
           
-          
+    Activity:
+      type: object
+      properties:
+        creationdate:
+          type: string
+          format: date-time
+        field:
+          type: string
+          minLength: 4
+          example: 'status'
+        change:
+          tyoe: string
+        old:
+        user:
+        issueChanged:
+        objects:
     Issue:
       type: object
       properties:

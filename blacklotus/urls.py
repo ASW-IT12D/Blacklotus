@@ -4,7 +4,7 @@ from .views import ProfileEditView
 from django.urls import path, include
 from django.contrib.auth import views as auth_views
 from django.conf import settings
-from .views import IssueAPIView
+from .views import IssueAPIView, ActivityAPIView
 #URLConf
 urlpatterns = [
     path('register/', views.join, name='register'),
@@ -22,5 +22,6 @@ urlpatterns = [
     #path('issue/<int:id>/BlockIssue/', views.BlockIssueForm, name="blockIssue"),
     #path('issue/<int:id>/Edit/', views.EditIssue, name='edit'),
     #path('issue/<int:id>/Deadline/', views.deadLineForm, name = 'deadline'),
-    path('issue/',IssueAPIView.as_view())
+    path('issue/',IssueAPIView.as_view()),
+    path('activity/',ActivityAPIView.as_view())
 ]
