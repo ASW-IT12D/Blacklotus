@@ -15,11 +15,15 @@ from django.http import HttpResponse
 from django.shortcuts import render, redirect
 from django.urls import reverse_lazy
 from django.views import generic
+from django.views.decorators.http import require_http_methods
 from social_django.utils import psa
 from .serializers import IssueSerializer
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
+
+from rest_framework.decorators import api_view, permission_classes
+from rest_framework.permissions import AllowAny
 
 from .forms import EditProfileInfoForm, RegisterForm, AssignedTo, Watchers
 from .models import Attachments, Activity, Issue, Comentario, Profile
@@ -586,11 +590,11 @@ def deadLineForm(request, id):
 
     return render(request, 'newDeadLine.html', context)
 
+
 class IssueAPIView(APIView):
     serializer_class = IssueSerializer
-
     def get(self,request):
-        issue_id = request.query_params.get('issue', None)
+        issue_id = request.query_params.get('id', None)
 
         if issue_id:
             issues = Issue.objects.filter(id=issue_id)
