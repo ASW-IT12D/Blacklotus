@@ -9,13 +9,13 @@ paths:
   /issue/:
     get:
       tags:
-      - tweets
-      summary: Retrieves all the Tweets
-      operationId: getAllTweets
+      - Issues
+      summary: Finds an issue with its id, if it's id is not provided returns all issues
+      operationId: getIssueById
       parameters:
       - name: id
         in: query
-        description: Optional id of the issue to retrieve
+        description: Optional id of the issue
         required: false
         schema:
           type: integer
@@ -28,6 +28,29 @@ paths:
                 type: array
                 items:
                   $ref: '#/components/schemas/Issue'
+
+  /activity/:
+    get:
+      tags:
+      - Activities
+      summary: List all the activities of an issue
+      operationId: getActivitiesOfIssue
+      parameters:
+      - name: id
+        in: query
+        description: Id of the issue
+        required: true
+        schema:
+          type: integer
+      responses:
+        200:
+          description: successful operation
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Activity'
 components:
   schemas:
     User:
@@ -41,7 +64,7 @@ components:
             type: string
             minLength: 4
             example: 'TestSubject'
-          
+
     Activity:
       type: object
       properties:
@@ -53,11 +76,28 @@ components:
           minLength: 4
           example: 'status'
         change:
-          tyoe: string
+          type: string
+          minLength: 4
+          example: 'In progress'
         old:
+          type: string
+          minLength: 4
+          example: 'New'
         user:
+          $ref: '#/components/schemas/User'
+
         issueChanged:
-        objects:
+          $ref: '#/components/schemas/Issue'
+
+        _links:
+          type: object
+          properties:
+            self:
+              type: string
+              format: url
+              example: 'http://127.0.0.1:8000/api/Activity/?Activity=1'
+
+
     Issue:
       type: object
       properties:
