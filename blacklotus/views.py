@@ -591,7 +591,7 @@ def deadLineForm(request, id):
 
 class IssueAPIView(APIView):
     serializer_class = IssueSerializer
-    permission_classes = (IsAuthenticated,)
+    permission_classes = (IsAuthenticated)
     def get(self,request):
         issue_id = request.query_params.get('id', None)
         if issue_id:
@@ -615,7 +615,7 @@ class IssueAPIView(APIView):
 
 class ActivityAPIView(APIView):
     serializer_class = ActivitySerializer
-    permission_classes = (IsAuthenticated,)
+    permission_classes = (IsAuthenticated)
     def get(self,request):
         issue_id = request.query_params.get('id', None)
         if issue_id:
@@ -636,7 +636,7 @@ class ActivityAPIView(APIView):
 
 class ProfileAPIView(APIView):
     serializer_class = ProfileSerializer
-    permission_classes = (IsAuthenticated,)
+    permission_classes = (IsAuthenticated)
     def get(self,request,usernameProf):
         user = User.objects.get(username=usernameProf)
         if user:
