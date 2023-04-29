@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import Issue,Activity
+from .models import Issue,Activity,Profile
 
 class IssueSerializer(serializers.ModelSerializer):
     class Meta:
@@ -10,4 +10,10 @@ class ActivitySerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Activity
+        fields = '__all__'
+
+class ProfileSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = Profile
         fields = '__all__'

@@ -17,11 +17,11 @@ from django.urls import reverse_lazy
 from django.views import generic
 from django.views.decorators.http import require_http_methods
 from social_django.utils import psa
-from .serializers import IssueSerializer,ActivitySerializer
+from .serializers import IssueSerializer,ActivitySerializer,ProfileSerializer
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
-
+from rest_framework.permissions import IsAuthenticated
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import AllowAny
 
@@ -523,9 +523,7 @@ def showProfile(request,usernameProf):
             timelineOn = True
         elif 'watched' in request.POST:
             timelineOn = False
-    return render(request, 'viewProfile.html', {'image_url':image_url,'profile':profile,
-                                                'timeline': timeline,'watchers' : watchers,
-                                                'timelineOn':timelineOn})
+    return render(request, 'viewProfile.html', {'image_url':image_url,'profile':profile,'timeline': timeline,'watchers': watchers,'timelineOn':timelineOn})
 
 def showProfileRedir(request):
     return redirect(showProfile,request.user.username)
@@ -593,6 +591,7 @@ def deadLineForm(request, id):
 
 class IssueAPIView(APIView):
     serializer_class = IssueSerializer
+    permission_classes = (IsAuthenticated,)
     def get(self,request):
         issue_id = request.query_params.get('id', None)
         if issue_id:
@@ -616,6 +615,7 @@ class IssueAPIView(APIView):
 
 class ActivityAPIView(APIView):
     serializer_class = ActivitySerializer
+    permission_classes = (IsAuthenticated,)
     def get(self,request):
         issue_id = request.query_params.get('id', None)
         if issue_id:
@@ -625,9 +625,6 @@ class ActivityAPIView(APIView):
             return Response(activity_serializer.data,status=status.HTTP_200_OK)
         else:
             return Response({'message': 'No issues found'}, status=status.HTTP_404_NOT_FOUND)
-
-
-
     def post(self,request):
         pass
 
@@ -635,4 +632,24 @@ class ActivityAPIView(APIView):
         pass
 
     def delete(self,request):
+        pass
+
+class ProfileAPIView(APIView):
+    serializer_class = ProfileSerializer
+    permission_classes = (IsAuthenticated,)
+    def get(self,request,usernameProf):
+        user = User.objects.get(username=usernameProf)
+        if user:
+            profile = Profile.objects.get(user=user)
+            profile_serializer = self.serializer_class(profile)
+            return Response(profile_serializer.data,status=status.HTTP_200_OK)
+        else:
+            return Response({'message': 'No profile found'}, status=status.HTTP_404_NOT_FOUND)
+    def post(self, request):
+        pass
+
+    def put(self, request):
+        pass
+
+    def delete(self, request):
         pass
