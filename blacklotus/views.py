@@ -604,7 +604,7 @@ class IssueAPIView(APIView):
     def get(self,request,id):
         if id:
             issue = Issue.objects.filter(id=id)
-            issue_serializer = self.serializer_class(issue, many=False)
+            issue_serializer = self.serializer_class(issue, many=True)
             return Response(issue_serializer.data, status=status.HTTP_200_OK)
         else:
             return Response({'message': 'No issues found'}, status=status.HTTP_404_NOT_FOUND)
@@ -615,8 +615,8 @@ class IssuesAPIView(APIView):
     def get(self,request):
         if id:
             issues = Issue.objects.all()
-            issue_serializer = self.serializer_class(issues, many=True)
-            return Response(issue_serializer.data, status=status.HTTP_200_OK)
+            issues_serializer = self.serializer_class(issues, many=True)
+            return Response(issues_serializer.data, status=status.HTTP_200_OK)
         else:
             return Response({'message': 'No issues found'}, status=status.HTTP_404_NOT_FOUND)
 
