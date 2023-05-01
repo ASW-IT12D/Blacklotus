@@ -4,19 +4,34 @@ info:
   title: BlackLotus
   description: "POR PONER"
 servers:
-  - url: 'http://127.0.0.1:8000/'
+  - url: 'http://127.0.0.1:8080/'
 paths:
-  /issue/:
+  /issues/:
     get:
       tags:
       - Issues
-      summary: Finds an issue with its id, if it's id is not provided returns all issues
+      summary: Finds all the issues
+      operationId: getIssues
+      responses:
+        200:
+          description: successful operation
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Issue'
+  /issue/{id}/:
+    get:
+      tags:
+      - Issues
+      summary: Finds an issue with its id, if it's id
       operationId: getIssueById
       parameters:
       - name: id
-        in: query
+        in: path
         description: Optional id of the issue
-        required: false
+        required: true
         schema:
           type: integer
       responses:
@@ -161,12 +176,58 @@ paths:
                 examples:
                   errorExample:
                     $ref: '#/components/examples/error403'
+    put:
+      tags:
+        - Profiles
+      summary: Edit a profile by the username
+      parameters:
+      - name: username
+        in : path
+        description: Username of the profile
+        required: true
+        schema:
+          type: string
+      - name: bio
+        in : query
+        description: New biography of the profile
+        required: false
+        schema:
+          type: string
+      - name: image
+        in : query
+        description: New url of the profile image
+        required: false
+        schema:
+          type: string
+      - name: email
+        in : query
+        description: New email of the profile
+        required: false
+        schema:
+          type: string
+      - name: first_name
+        in : query
+        description: New name of the profile
+        required: false
+        schema:
+          type: string
+      responses:
+        200:
+          description: 'Profile updated'
+          content:
+            application/json:
+                schema:
+                  $ref: '#/components/schemas/ErrorResult'
+                examples:
+                  errorExample:
+                    $ref: '#/components/examples/code200putProfile'
+
 components:
   securitySchemes:
     ApiKeyAuth:
         type: apiKey
         in: header
-        name: API-Blacklotus-AUTH
+        name: Authorization
   schemas:
     User:
       type: object
@@ -314,6 +375,9 @@ components:
         - message
 
   examples:
+    code200putProfile:
+      value:
+        message: "Profile update complete"
     error400:
       value:
         message: "Content is too long (maximum is 280 characters)"

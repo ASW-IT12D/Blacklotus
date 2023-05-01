@@ -6,6 +6,13 @@ class IssueSerializer(serializers.ModelSerializer):
         model = Issue
         fields = '__all__'
 
+
+class IssuesSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Issue
+        fields = '__all__'
+
+
 class ActivitySerializer(serializers.ModelSerializer):
 
     class Meta:
