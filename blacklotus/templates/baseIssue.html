@@ -22,6 +22,9 @@
                     <a class="nav-link" href="{% url 'profile' request.user.username %}">Profile</a>
                 </li>
                 <li class="nav-item active">
+                    <a class="nav-link" href="{% url 'token' %}">Token</a>
+                </li>
+                <li class="nav-item active">
                     <a class="nav-link" href="{% url 'logout' %}">Logout</a>
                 </li>
             </ul>

@@ -1,7 +1,7 @@
 import calendar
 import tempfile
 from datetime import datetime
-
+from rest_framework.authtoken.models import Token
 import boto3
 from botocore.exceptions import ClientError
 from django.conf import settings
@@ -15,18 +15,19 @@ from django.http import HttpResponse
 from django.shortcuts import render, redirect
 from django.urls import reverse_lazy
 from django.views import generic
-from django.views.decorators.http import require_http_methods
+
+from rest_framework.authtoken.views import obtain_auth_token
 from social_django.utils import psa
 from .serializers import IssueSerializer,ActivitySerializer,ProfileSerializer
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
 from rest_framework.permissions import IsAuthenticated
-from rest_framework.decorators import api_view, permission_classes
-from rest_framework.permissions import AllowAny
+
 
 from .forms import EditProfileInfoForm, RegisterForm, AssignedTo, Watchers
 from .models import Attachments, Activity, Issue, Comentario, Profile
+
 
 # Create your views here.
 
@@ -587,6 +588,14 @@ def deadLineForm(request, id):
         return redirect(SeeIssue, num=id)
 
     return render(request, 'newDeadLine.html', context)
+
+def get_token(request):
+    # Definimos la URL de la API de autenticación
+    token, created = Token.objects.get_or_create(user=request.user)
+
+    # Aquí puedes hacer lo que necesites con el token, por ejemplo guardarlo en una variable o en una sesión
+    return render(request, 'token.html', {'token':token.key})
+
 
 
 class IssueAPIView(APIView):
