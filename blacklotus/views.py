@@ -663,4 +663,26 @@ class ProfileAPIView(APIView):
             return Response({'message': 'No profile found'}, status=status.HTTP_404_NOT_FOUND)
 
     def put(self, request,usernameProf):
-        pass
+        user = User.objects.get(username=usernameProf)
+        if user:
+            profile = Profile.objects.get(user=user)
+            bio = request.data.get('bio', None)
+            if bio:
+                profile.bio = bio
+                profile.save()
+            image = request.data.get('image', None)
+            if image:
+                profile.image = image
+                image.save()
+            email = request.data.get('email', None)
+            if email:
+                user.email = email
+                user.save()
+            first_name = request.data.get('first_name', None)
+            if first_name:
+                user.first_name = first_name
+                user.save()
+
+            return Response({'message': 'Profile update complete'}, status=status.HTTP_200_OK)
+        else:
+            return Response({'message': 'No profile found'}, status=status.HTTP_404_NOT_FOUND)
