@@ -4,7 +4,7 @@ info:
   title: BlackLotus
   description: "POR PONER"
 servers:
-  - url: 'http://127.0.0.1:8080/'
+  - url: 'http://127.0.0.1:8000/'
 paths:
   /issues/:
     get:
@@ -70,6 +70,33 @@ paths:
                 examples:
                   errorExample:
                     $ref: '#/components/examples/error403'
+    put:
+      tags:
+        - Issues
+      summary: Assign an user to the issue
+      parameters:
+      - name: id
+        in: path
+        description: Id of the issue
+        required: true
+        schema:
+          type: integer
+      - name: asignTo
+        in: query
+        description: Name of the user to asign
+        required: true
+        schema:
+          type: string
+      responses:
+        200:
+          description: 'User assigned'
+          content:
+            application/json:
+                schema:
+                  $ref: '#/components/schemas/ErrorResult'
+                examples:
+                  errorExample:
+                    $ref: '#/components/examples/code200putProfile'
   /activity/:
     get:
       tags:
