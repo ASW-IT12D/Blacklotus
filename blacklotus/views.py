@@ -1353,49 +1353,49 @@ def get_token(request):
 
 
 class IssueAPIView(APIView):
+    serializer_class = IssueSerializer
+    permission_classes = (IsAuthenticated, )
+    def get(self,request,id):
+        if id:
+            issue = Issue.objects.filter(id=id)
+            issue_serializer = self.serializer_class(issue, many=True)
+            return Response(issue_serializer.data, status=status.HTTP_200_OK)
+        else:
+            return Response({'message': 'No issues found'}, status=status.HTTP_404_NOT_FOUND)
 
-        serializer_class = IssueSerializer
-        permission_classes = (IsAuthenticated,)
-
-        def get(self, request):
-            issue_id = request.query_params.get('id', None)
-            issue_name = request.query_params.get('name', None)
-            sort = request.query_params.get('sort', None)
-            order = request.query_params.get('order', None)
-
-            if sort:
-                if order == 'desc':
-                    sort = '-' + sort
-
-            if issue_id:
-                issues = Issue.objects.filter(id=issue_id)
-            else:
-                if issue_name:
-                    if sort:
-                        issues = Issue.objects.order_by(sort).filter(Q(subject__icontains=issue_name))
-                    else:
-                        issues = Issue.objects.order_by('-creationdate').filter(Q(subject__icontains=issue_name))
-                else:
-                    if sort:
-                        issues = Issue.objects.order_by(sort)
-                    else:
-                        issues = Issue.objects.all()
-            if issues:
-                issue_serializer = self.serializer_class(issues, many=True)
-                return Response(issue_serializer.data, status=status.HTTP_200_OK)
-            else:
-                return Response({'message': 'No issues found'}, status=status.HTTP_404_NOT_FOUND)
 
 
 class IssuesAPIView(APIView):
-    serializer_class = IssuesSerializer
+
+    serializer_class = IssueSerializer
     permission_classes = (IsAuthenticated,)
 
     def get(self, request):
-        if id:
-            issues = Issue.objects.all()
-            issues_serializer = self.serializer_class(issues, many=True)
-            return Response(issues_serializer.data, status=status.HTTP_200_OK)
+        issue_id = request.query_params.get('id', None)
+        issue_name = request.query_params.get('name', None)
+        sort = request.query_params.get('sort', None)
+        order = request.query_params.get('order', None)
+
+        if sort:
+            if order == 'desc':
+                sort = '-' + sort
+
+        if issue_id:
+            issues = Issue.objects.filter(id=issue_id)
+        else:
+            if issue_name:
+                if sort:
+                    issues = Issue.objects.order_by(sort).filter(Q(subject__icontains=issue_name))
+                else:
+                    issues = Issue.objects.order_by('-creationdate').filter(Q(subject__icontains=issue_name))
+            else:
+                if sort:
+                    issues = Issue.objects.order_by(sort)
+                else:
+                    issues = Issue.objects.all()
+        if issues:
+            issue_serializer = self.serializer_class(issues, many=True)
+            return Response(issue_serializer.data, status=status.HTTP_200_OK)
         else:
             return Response({'message': 'No issues found'}, status=status.HTTP_404_NOT_FOUND)
 
