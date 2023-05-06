@@ -725,7 +725,17 @@ class ProfileAPIView(APIView):
             if email:
                 user.email = email
                 user.save()
-            first_name = request.data.get('first_nameimport calendar
+            first_name = request.data.get('first_name', None)
+            if first_name:
+                user.first_name = first_name
+                user.save()
+
+            return Response({'message': 'Profile update complete'}, status=status.HTTP_200_OK)
+        else:
+            return Response({'message': 'No profile found'}, status=status.HTTP_404_NOT_FOUND)
+
+
+import calendar
 import tempfile
 from datetime import datetime
 from rest_framework.authtoken.models import Token
@@ -745,12 +755,11 @@ from django.views import generic
 
 from rest_framework.authtoken.views import obtain_auth_token
 from social_django.utils import psa
-from .serializers import IssueSerializer,ActivitySerializer,ProfileSerializer,IssuesSerializer
+from .serializers import IssueSerializer, ActivitySerializer, ProfileSerializer, IssuesSerializer
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
 from rest_framework.permissions import IsAuthenticated
-
 
 from .forms import EditProfileInfoForm, RegisterForm, AssignedTo, Watchers
 from .models import Attachments, Activity, Issue, Comentario, Profile
@@ -762,6 +771,7 @@ from .models import Attachments, Activity, Issue, Comentario, Profile
 def github_auth(request):
     # Autenticación de GitHub en segundo plano
     return redirect(showIssues)
+
 
 @login_required(login_url='login')
 def CreateIssueForm(request):
@@ -780,6 +790,7 @@ def CreateIssueForm(request):
     else:
         return render(request, 'newissue.html')
 
+
 @login_required(login_url='login')
 def BulkIssueForm(request):
     if request.method == "POST":
@@ -794,10 +805,12 @@ def BulkIssueForm(request):
                     severity = 1
                     priority = 1
                     status = 1
-                    i = Issue(subject=sub, description=des, creator=request.user.username, status=status, type=type, severity=severity, priority=priority)
+                    i = Issue(subject=sub, description=des, creator=request.user.username, status=status, type=type,
+                              severity=severity, priority=priority)
                     i.save()
         return redirect(showIssues)
     return render(request, 'bulkissue.html')
+
 
 @login_required(login_url='login')
 def showIssues(request):
@@ -834,7 +847,8 @@ def showIssues(request):
             visible = False
         elif 'mostrarfiltros' in request.POST:
             visible = True
-        if 'updatefiltros' in request.POST or ('filtros_status' in request.session or 'filtros_creator' in request.session or 'filtros_asignedTo' in request.session or 'filtros_severity' in request.session or 'filtros_priority' in request.session or 'filtros_type' in request.session):
+        if 'updatefiltros' in request.POST or (
+                'filtros_status' in request.session or 'filtros_creator' in request.session or 'filtros_asignedTo' in request.session or 'filtros_severity' in request.session or 'filtros_priority' in request.session or 'filtros_type' in request.session):
             if 'filtros_status' not in request.session and 'filtros_asignedTo' not in request.session and 'filtros_creator' not in request.session and 'filtros_severity' not in request.session and 'filtros_priority' not in request.session and 'filtros_type' not in request.session:
                 filtrosS = Q()
                 filtrosP = Q()
@@ -851,7 +865,7 @@ def showIssues(request):
                 filtrosC = Q()
                 filtrosA = Q()
 
-                if'filtros_status' in request.session:
+                if 'filtros_status' in request.session:
                     filtrosstatus = request.session["filtros_status"]
                     for filtro in filtrosstatus:
                         filtrosS = Q(status=filtro) | filtrosS
@@ -888,7 +902,6 @@ def showIssues(request):
                                 user = User.objects.get(username=filtro)
                                 filtrosA = Q(asignedTo=user.id) | filtrosA
 
-
             for filtro in request.POST.getlist("status"):
                 filtrosS = Q(status=filtro) | filtrosS
                 filtrosstatus.append(filtro)
@@ -911,7 +924,7 @@ def showIssues(request):
 
             for filtro in request.POST.getlist("assignations"):
                 if filtro == "Unassigned" or filtro == None:
-                    filtrosA = Q(asignedTo = None)| filtrosA
+                    filtrosA = Q(asignedTo=None) | filtrosA
                     filtrosasigned.append(None)
                 else:
                     if isinstance(filtro, int):
@@ -929,13 +942,13 @@ def showIssues(request):
             request.session['filtros_creator'] = filtroscreator
             request.session['filtros_asignedTo'] = filtrosasigned
 
-
             if 'flexRadioInclude' in request.POST:
                 filtrosF = filtrosS | filtrosP | filtrosT | filtrosSv | filtrosC | filtrosA
             else:
                 filtrosF = filtrosS & filtrosP & filtrosT & filtrosSv & filtrosC & filtrosA
 
-    filtroscreator = Q(creator=request.user.username) | Q(asignedTo__username=request.user.username) | Q(watchers__username=request.user.username)
+    filtroscreator = Q(creator=request.user.username) | Q(asignedTo__username=request.user.username) | Q(
+        watchers__username=request.user.username)
     if ref is not None:
         if sort_by is not None:
             qs = Issue.objects.filter(filtrosF).order_by(sort_by).filter(filtroscreator).filter(
@@ -950,7 +963,8 @@ def showIssues(request):
         else:
             qs = Issue.objects.filter(filtrosF).order_by('-creationdate').filter(filtroscreator)
     allUsers = User.objects.all()
-    return render(request, 'mainIssue.html', {'visible': visible,'qs': qs, 'allUsers': allUsers})
+    return render(request, 'mainIssue.html', {'visible': visible, 'qs': qs, 'allUsers': allUsers})
+
 
 @login_required(login_url='login')
 def BlockIssueForm(request, id):
@@ -961,6 +975,7 @@ def BlockIssueForm(request, id):
             issueUpdate.save()
             return redirect(SeeIssue, num=id)
     return render(request, 'blockissue.html')
+
 
 def list_documents(num):
     try:
@@ -985,6 +1000,8 @@ def list_documents(num):
         print(e)
         documents = []
         return documents
+
+
 @login_required(login_url='login')
 def SeeIssue(request, num):
     form = AssignedTo()
@@ -1158,7 +1175,6 @@ def SeeIssue(request, num):
                 c.save()
     coments = Comentario.objects.all().order_by('-creationDate').filter(issue=num)
 
-
     imagesC = {}
     for c in coments:
         creator = User.objects.get(id=c.creator_id)
@@ -1184,7 +1200,8 @@ def SeeIssue(request, num):
     return render(request, 'single_issue.html',
                   {'image_url': image_url, 'issue': issue, 'form': form, 'form2': form2,
                    'asignedTo': asignedTo, 'coments': coments, 'activity': activity, 'commentsOn': commentsOn,
-                   'documents': documents, 'watchers': watchers,'imagesC': imagesC, 'imagesA':imagesA})
+                   'documents': documents, 'watchers': watchers, 'imagesC': imagesC, 'imagesA': imagesA})
+
 
 @login_required(login_url='login')
 def EditIssue(request, id):
@@ -1212,6 +1229,7 @@ def EditIssue(request, id):
     else:
         return render(request, 'editIssue.html', {'issue': issue})
 
+
 def log(request):
     if request.method == 'POST':
         form = AuthenticationForm(request, data=request.POST)
@@ -1223,6 +1241,7 @@ def log(request):
         form = AuthenticationForm()
     return render(request, 'loginPage.html', {'form': form})
 
+
 def join(request):
     if request.method == 'POST':
         form = RegisterForm(request.POST)
@@ -1233,13 +1252,15 @@ def join(request):
         form = RegisterForm()
     return render(request, 'signUp.html', {'form': form})
 
+
 @login_required
 def custom_logout(request):
     logout(request)
     return redirect('home')
 
+
 @login_required
-def showProfile(request,usernameProf):
+def showProfile(request, usernameProf):
     user = User.objects.get(username=usernameProf)
     profile = Profile.objects.get(user=user)
     image_url = profile.get_url_image()
@@ -1251,12 +1272,18 @@ def showProfile(request,usernameProf):
             timelineOn = True
         elif 'watched' in request.POST:
             timelineOn = False
-    return render(request, 'viewProfile.html', {'image_url':image_url,'profile':profile,'timeline': timeline,'watchers': watchers,'timelineOn':timelineOn})
+    return render(request, 'viewProfile.html',
+                  {'image_url': image_url, 'profile': profile, 'timeline': timeline, 'watchers': watchers,
+                   'timelineOn': timelineOn})
+
 
 def showProfileRedir(request):
-    return redirect(showProfile,request.user.username)
+    return redirect(showProfile, request.user.username)
+
+
 def redirectLogin(request):
     return redirect(log)
+
 
 class ProfileEditView(generic.UpdateView):
     form_class = EditProfileInfoForm
@@ -1266,14 +1293,15 @@ class ProfileEditView(generic.UpdateView):
     def get_object(self):
         return self.request.user
 
+
 @login_required(login_url='login')
 def deadLineForm(request, id):
     current_year = datetime.now().year
 
-    days = [str(day) for day in range (1, 32)]
+    days = [str(day) for day in range(1, 32)]
     months = ['January', 'February', 'March', 'April', 'May', 'June',
               'July', 'August', 'September', 'October', 'November', 'December']
-    years = [str(year) for year in range (current_year, current_year + 10)]
+    years = [str(year) for year in range(current_year, current_year + 10)]
 
     months_dict = {'January': 1, 'February': 2, 'March': 3, 'April': 4, 'May': 5, 'June': 6,
                    'July': 7, 'August': 8, 'September': 9, 'October': 10, 'November': 11, 'December': 12}
@@ -1302,7 +1330,6 @@ def deadLineForm(request, id):
         if deadline_date < now or day > last_day:
             return render(request, 'newDeadLine.html', context)
 
-
         issue.deadlinedate = deadline_date
         issue.deadline = True
 
@@ -1316,13 +1343,13 @@ def deadLineForm(request, id):
 
     return render(request, 'newDeadLine.html', context)
 
+
 def get_token(request):
     # Definimos la URL de la API de autenticación
     token, created = Token.objects.get_or_create(user=request.user)
 
     # Aquí puedes hacer lo que necesites con el token, por ejemplo guardarlo en una variable o en una sesión
-    return render(request, 'token.html', {'token':token.key})
-
+    return render(request, 'token.html', {'token': token.key})
 
 
 class IssueAPIView(APIView):
@@ -1358,10 +1385,13 @@ class IssueAPIView(APIView):
                 return Response(issue_serializer.data, status=status.HTTP_200_OK)
             else:
                 return Response({'message': 'No issues found'}, status=status.HTTP_404_NOT_FOUND)
+
+
 class IssuesAPIView(APIView):
     serializer_class = IssuesSerializer
-    permission_classes = (IsAuthenticated, )
-    def get(self,request):
+    permission_classes = (IsAuthenticated,)
+
+    def get(self, request):
         if id:
             issues = Issue.objects.all()
             issues_serializer = self.serializer_class(issues, many=True)
@@ -1369,32 +1399,36 @@ class IssuesAPIView(APIView):
         else:
             return Response({'message': 'No issues found'}, status=status.HTTP_404_NOT_FOUND)
 
+
 class ActivityAPIView(APIView):
     serializer_class = ActivitySerializer
-    permission_classes = (IsAuthenticated, )
-    def get(self,request):
+    permission_classes = (IsAuthenticated,)
+
+    def get(self, request):
         issue_id = request.query_params.get('id', None)
         if issue_id:
             issue = Issue.objects.get(id=issue_id)
             activities = Activity.objects.filter(issueChanged=issue)
-            activity_serializer = self.serializer_class(activities,many=True)
-            return Response(activity_serializer.data,status=status.HTTP_200_OK)
+            activity_serializer = self.serializer_class(activities, many=True)
+            return Response(activity_serializer.data, status=status.HTTP_200_OK)
         else:
             return Response({'message': 'No issues found'}, status=status.HTTP_404_NOT_FOUND)
 
-    def post(self,request):
+    def post(self, request):
         pass
 
-    def put(self,request):
+    def put(self, request):
         pass
 
-    def delete(self,request):
+    def delete(self, request):
         pass
+
 
 class ProfileAPIView(APIView):
     serializer_class = ProfileSerializer
     permission_classes = (IsAuthenticated,)
-    def get(self,request,usernameProf):
+
+    def get(self, request, usernameProf):
         user = User.objects.get(username=usernameProf)
         if user:
             profile = Profile.objects.get(user=user)
@@ -1408,11 +1442,11 @@ class ProfileAPIView(APIView):
                 },
                 'profile': profile_serializer.data
             }
-            return Response(response_data,status=status.HTTP_200_OK)
+            return Response(response_data, status=status.HTTP_200_OK)
         else:
             return Response({'message': 'No profile found'}, status=status.HTTP_404_NOT_FOUND)
 
-    def put(self, request,usernameProf):
+    def put(self, request, usernameProf):
         user = User.objects.get(username=usernameProf)
         if user:
             profile = Profile.objects.get(user=user)
@@ -1429,14 +1463,6 @@ class ProfileAPIView(APIView):
                 user.email = email
                 user.save()
             first_name = request.data.get('first_name', None)
-            if first_name:
-                user.first_name = first_name
-                user.save()
-
-            return Response({'message': 'Profile update complete'}, status=status.HTTP_200_OK)
-        else:
-            return Response({'message': 'No profile found'}, status=status.HTTP_404_NOT_FOUND)
-', None)
             if first_name:
                 user.first_name = first_name
                 user.save()
