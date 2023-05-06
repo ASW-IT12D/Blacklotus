@@ -608,6 +608,35 @@ class IssueAPIView(APIView):
             return Response(issue_serializer.data, status=status.HTTP_200_OK)
         else:
             return Response({'message': 'No issues found'}, status=status.HTTP_404_NOT_FOUND)
+    def put(self, request, id):
+        issue = Issue.objects.get(id=id)
+        if issue:
+            subject = request.query_params.get('subject', None)
+            description = request.query_params.get('description', None)
+            statuses = request.query_params.get('status', None)
+            type = request.query_params.get('type', None)
+            severity = request.query_params.get('severity', None)
+            priority = request.query_params.get('priority', None)
+
+            if (subject != None):
+                issue.subject = subject
+            if (description != None):
+                issue.description = description
+            if (statuses != None):
+                statusesNum = traduce(statuses, "status")
+                issue.status = statusesNum
+            if (type != None):
+                typeNum = traduce(type, "type")
+                issue.type = typeNum
+            if (severity != None):
+                severityNum = traduce(severity, "severity")
+                issue.severity = severityNum
+            if (priority != None):
+                priorityNum = traduce(priority, "priority")
+                issue.priority = priorityNum
+            issue.save()
+
+            return Response({'message': 'Issue edited successfully'}, status=status.HTTP_200_OK)
 
 class IssuesAPIView(APIView):
     serializer_class = IssuesSerializer
@@ -634,24 +663,6 @@ class IssuesAPIView(APIView):
             else:
                 return Response({'message': 'Issue not found'}, status=status.HTTP_404_NOT_FOUND)
 
-    def post(self, request):
-        subject = request.query_params.get('subject', None)
-        description = request.query_params.get('description', None)
-        statuses = request.query_params.get('status', None)
-        type = request.query_params.get('type', None)
-        severity = request.query_params.get('severity', None)
-        priority = request.query_params.get('priority', None)
-
-        statuses = traduce(statuses, "status")
-        type = traduce(type, "type")
-        severity = traduce(severity, "severity")
-        priority = traduce(priority, "priority")
-
-        i = Issue(subject=subject, description=description, creator=request.user.username, status=statuses, type=type,
-                  severity=severity, priority=priority)
-        i.save()
-
-        return Response({'message': 'Issue created'}, status=status.HTTP_200_OK)
 
 class ActivityAPIView(APIView):
     serializer_class = ActivitySerializer
