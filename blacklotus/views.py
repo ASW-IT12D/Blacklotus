@@ -18,7 +18,7 @@ from django.views import generic
 
 from rest_framework.authtoken.views import obtain_auth_token
 from social_django.utils import psa
-from .serializers import IssueSerializer,ActivitySerializer,ProfileSerializer,IssuesSerializer
+from .serializers import IssueSerializer, ActivitySerializer, ProfileSerializer, IssuesSerializer, CommentsSerializer
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
@@ -421,14 +421,15 @@ def SeeIssue(request, num):
     issueAct = Issue.objects.get(id=num)
 
     coment = None
-    if request.method == 'GET':
-        if 'comment' in request.GET:
-            coment = request.GET.get('comment')
+    if request.method == 'POST':
+        if 'comment' in request.POST:
+            coment = request.POST.get('comment')
             if len(coment) > 0:
                 iss = Issue.objects.get(id=num)
                 user = User.objects.get(username=request.user.username)
                 c = Comentario(message=coment, creator=user, issue=iss)
                 c.save()
+                return redirect(SeeIssue, num)
     coments = Comentario.objects.all().order_by('-creationDate').filter(issue=num)
 
 
@@ -633,6 +634,22 @@ class IssuesAPIView(APIView):
                     return Response({'message': 'User not found'}, status=status.HTTP_400_BAD_REQUEST)
             else:
                 return Response({'message': 'Issue not found'}, status=status.HTTP_404_NOT_FOUND)
+
+class CommentsAPIView(APIView):
+    serializer_class = CommentsSerializer
+    permission_classes = (IsAuthenticated,)
+
+    def post(self, request, id):
+        issueId = Issue.objects.get(id=id)
+        if issueId:
+            comment = request.query_params.get('comment', None)
+            if len(comment) > 0:
+                user = User.objects.get(username=request.auth.user)
+                c = Comentario(message=comment, creator=user, issue=issueId)
+                c.save()
+            return Response({'message': 'New comment'}, status=status.HTTP_200_OK)
+        else:
+            return Response({'message': 'No issues found'}, status=status.HTTP_404_NOT_FOUND)
 
 
 class ActivityAPIView(APIView):

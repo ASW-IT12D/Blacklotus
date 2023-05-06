@@ -1,6 +1,6 @@
 from django.urls import path
 from . import views
-from .views import ProfileEditView
+from .views import ProfileEditView, CommentsAPIView
 from django.urls import path, include
 from django.contrib.auth import views as auth_views
 from django.conf import settings
@@ -28,5 +28,6 @@ urlpatterns = [
     path('activity/',ActivityAPIView.as_view(),name='api-activity'),
     path('profile/<str:usernameProf>/',ProfileAPIView.as_view(),name='api-profile'),
     path('api/token/',obtain_auth_token,name='api-token'),
-    path('token/', views.get_token,name='token')
+    path('token/', views.get_token,name='token'),
+    path('comment/<int:id>/', CommentsAPIView.as_view(), name='api-comments'),
 ]

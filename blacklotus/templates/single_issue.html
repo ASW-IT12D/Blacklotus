@@ -262,10 +262,10 @@
                     <button type="submit" class="btn btn-secondary btn-sm"> Block</button>
                     {%endif%}
                 </form>
-                <form method="POST" name="bloquearissues" style="display: inline-block;">
+                <form method="POST" style="display: inline-block;">
                     {% csrf_token %}
                     <input type="hidden" name="_method" value="DELETE">
-                    <button name="delete" class="btn btn-danger btn-sm"> Delete</button>
+                    <button type ="submit" name="delete" class="btn btn-danger btn-sm"> Delete</button>
                 </form>
             </div>
         </th>
@@ -289,9 +289,10 @@
                 </form>
                 {% if commentsOn %}
                     <div class="">
-                        <form method="GET">
+                        <form method="POST">
+                            {% csrf_token %}
                             <br>
-                            <input name="comment" placeholder="Type and comment here" type="text" size=30>
+                            <input autocomplete = "off" name="comment" placeholder="Type and comment here" type="text" size=30>
                             <button type="submit" class="btn btn-primary btn-sm">Guardar</button>
                             <br><br>
                         </form>
