@@ -634,6 +634,24 @@ class IssuesAPIView(APIView):
             else:
                 return Response({'message': 'Issue not found'}, status=status.HTTP_404_NOT_FOUND)
 
+    def post(self, request):
+        subject = request.query_params.get('subject', None)
+        description = request.query_params.get('description', None)
+        statuses = request.query_params.get('status', None)
+        type = request.query_params.get('type', None)
+        severity = request.query_params.get('severity', None)
+        priority = request.query_params.get('priority', None)
+
+        statuses = traduce(statuses, "status")
+        type = traduce(type, "type")
+        severity = traduce(severity, "severity")
+        priority = traduce(priority, "priority")
+
+        i = Issue(subject=subject, description=description, creator=request.user.username, status=statuses, type=type,
+                  severity=severity, priority=priority)
+        i.save()
+
+        return Response({'message': 'Issue created'}, status=status.HTTP_200_OK)
 
 class ActivityAPIView(APIView):
     serializer_class = ActivitySerializer
@@ -701,3 +719,33 @@ class ProfileAPIView(APIView):
             return Response({'message': 'Profile update complete'}, status=status.HTTP_200_OK)
         else:
             return Response({'message': 'No profile found'}, status=status.HTTP_404_NOT_FOUND)
+
+def traduce(param, type):
+    STATUSES = (
+        ('New', 1), ('In progress', 2),
+        ('Ready for test', 3), ('Closed', 4),
+        ('Needs info', 5), ('Rejected', 6), ('Postponed', 7),
+    )
+    TYPES = (
+        ('Bug', 1), ('Question', 2), ('Disabled', 3),
+    )
+    SEVERITIES = (
+        ('Whishlist', 1), ('Minor', 2), ('Normal', 3),
+        ('Important', 4), ('Critical', 5),
+    )
+    PRIORITIES = (
+        ('Low',1 ), ('Normal', 2), ('High', 3),
+    )
+
+    if (type == "status"):
+        num = dict(STATUSES).get(param)
+        return num
+    elif (type == "type"):
+        num = dict(TYPES).get(param)
+        return num
+    elif (type == "severity"):
+        num = dict(SEVERITIES).get(param)
+        return num
+    elif (type == "priority"):
+        num = dict(PRIORITIES).get(param)
+        return num

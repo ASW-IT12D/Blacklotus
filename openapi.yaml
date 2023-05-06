@@ -21,6 +21,85 @@ paths:
                 type: array
                 items:
                   $ref: '#/components/schemas/Issue'
+    post:
+      tags:
+      - Issues
+      summary: Add a new Issue
+      operationId: addIssue
+      parameters:
+      - name: subject
+        in: query
+        description: Subject of the issue
+        required: true
+        schema:
+          type: string
+      - name: description
+        in: query
+        description: Description of the issue
+        required: true
+        schema:
+          type: string
+
+      - name: status
+        in: query
+        description: Status of the issue
+        required: true
+        schema:
+          type: string
+          enum:
+            - New
+            - In progress
+            - Ready for test
+            - Closed
+            - Needs Info
+            - Rejected
+            - Postponed
+      - name: type
+        in: query
+        description: Type of the issue
+        required: true
+        schema:
+          type: string
+          enum:
+            - Bug
+            - Question
+            - Disabled
+            - Closed
+
+      - name: severity
+        in: query
+        description: Severity of the issue
+        required: true
+        schema:
+          type: string
+          enum:
+            - Whishlist
+            - Minor
+            - Normal
+            - Important
+            - Critical
+
+
+      - name: priority
+        in: query
+        description: Priority of the issue
+        required: true
+        schema:
+          type: string
+          enum:
+            - Low
+            - Normal
+            - High
+
+      responses:
+        200:
+          description: successful operation
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Issue'
   /issue/{id}/:
     get:
       tags:
