@@ -1353,7 +1353,7 @@ def get_token(request):
 
 
 class IssueAPIView(APIView):
-    class IssueAPIView(APIView):
+
         serializer_class = IssueSerializer
         permission_classes = (IsAuthenticated,)
 
