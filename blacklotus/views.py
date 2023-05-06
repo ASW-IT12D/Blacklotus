@@ -587,17 +587,20 @@ def deadLineForm(request, id):
         return redirect(SeeIssue, num=id)
 
     return render(request, 'newDeadLine.html', context)
-
-
 class IssueAPIView(APIView):
     serializer_class = IssueSerializer
     permission_classes = (IsAuthenticated, )
     def get(self,request):
         issue_id = request.query_params.get('id', None)
+        issue_name = request.query_params.get('name', None)
+
         if issue_id:
             issues = Issue.objects.filter(id=issue_id)
         else:
-            issues = Issue.objects.all()
+            if issue_name:
+                    issues = Issue.objects.order_by('-creationdate').filter(Q(subject__icontains=issue_name))
+            else:
+                    issues = Issue.objects.all()
         if issues:
             issue_serializer = self.serializer_class(issues,many=True)
             return Response(issue_serializer.data, status=status.HTTP_200_OK)
