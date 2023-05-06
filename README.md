@@ -8,4 +8,4 @@
 
 Django - https://tree.taiga.io/project/paulaabc-asw/timeline
 
-https://blacklotus.fly.dev/
+https://blacklotusdeploy.fly.dev/
