@@ -619,6 +619,21 @@ class IssuesAPIView(APIView):
             return Response(issues_serializer.data, status=status.HTTP_200_OK)
         else:
             return Response({'message': 'No issues found'}, status=status.HTTP_404_NOT_FOUND)
+    def put(self, request, id):
+        user_to_assign = request.query_params.get('asignTo', None)
+        if id:
+            issue = Issue.objects.filter(id=id).first()
+            if issue:
+                user = User.objects.filter(username=user_to_assign).first()
+                if user:
+                    issue.asignedTo.add(user)
+                    issue.save()
+                    return Response({'message': 'User assigned'}, status=status.HTTP_200_OK)
+                else:
+                    return Response({'message': 'User not found'}, status=status.HTTP_400_BAD_REQUEST)
+            else:
+                return Response({'message': 'Issue not found'}, status=status.HTTP_404_NOT_FOUND)
+
 
 class ActivityAPIView(APIView):
     serializer_class = ActivitySerializer
