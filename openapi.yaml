@@ -24,20 +24,18 @@ paths:
     post:
       tags:
       - Issues
-      summary: Bulk Issues
+      summary: Bulk issues
       operationId: BulkIssue
       parameters:
       - name: subjects
         in: query
-        description: Add an issue per line or separated by spaces
+        description: Add an issue per line or separated by spaces. Each name is a new issue.
         required: true
         schema:
           type: array
           items:
             type: string
         style: spaceDelimited
-
-
       responses:
         200:
           description: successful operation
@@ -46,7 +44,34 @@ paths:
               schema:
                 type: array
                 items:
-                  $ref: '#/components/schemas/Issue'
+                  $ref: '#/components/examples/code200bulkIssue'
+        400:
+          description: 'Error: Bad Request'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResult'
+              examples:
+                errorExample:
+                  $ref: '#/components/examples/error400'
+        401:
+          description: 'Error: Unauthorized'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResult'
+              examples:
+                errorExample:
+                  $ref: '#/components/examples/error401'
+        403:
+            description: 'Error: Forbidden'
+            content:
+              application/json:
+                schema:
+                  $ref: '#/components/schemas/ErrorResult'
+                examples:
+                  errorExample:
+                    $ref: '#/components/examples/error403'
   /issue/{id}/:
     get:
       tags:
@@ -66,9 +91,7 @@ paths:
           content:
             application/json:
               schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/Issue'
+                  $ref: '#/components/examples/error400'
         400:
           description: 'Error: Bad Request'
           content:
@@ -431,6 +454,9 @@ components:
     code200putProfile:
       value:
         message: "Profile update complete"
+    code200bulkIssue:
+      value:
+        message: "Bulk inserted"
     error400:
       value:
         message: "Content is too long (maximum is 280 characters)"
@@ -443,6 +469,9 @@ components:
     error404noProfile:
       value:
         message: "There is no profile with this username"
+    error404:
+      value:
+        message: "No page found"
 
 security:
   - ApiKeyAuth: []
