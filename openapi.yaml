@@ -156,16 +156,7 @@ paths:
                   $ref: '#/components/schemas/ErrorResult'
                 examples:
                   errorExample:
-                    $ref: '#/components/examples/error404'
-          500:
-            description: 'Error: No Issue'
-            content:
-              application/json:
-                schema:
-                  $ref: '#/components/schemas/ErrorResult'
-                examples:
-                  errorExample:
-                    $ref: '#/components/examples/error500noIssue'
+                    $ref: '#/components/examples/error404noIssue'
           401:
             description: 'Error: Unauthorized'
             content:
@@ -187,12 +178,12 @@ paths:
     get:
       tags:
         - Comments
-      summary: List all the comments of an issue
+      summary: List of all the comments of an issue
       operationId: getCommentsOfIssue
       parameters:
       - name: id
         in: path
-        description: Id of the issue you want to see the comments
+        description: Enter the id of the issue to see the comments
         required: true
         schema:
           type: integer
@@ -214,16 +205,7 @@ paths:
                 $ref: '#/components/schemas/ErrorResult'
               examples:
                 errorExample:
-                  $ref: '#/components/examples/error404'
-        500:
-          description: 'Error: No Issue'
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResult'
-              examples:
-                errorExample:
-                  $ref: '#/components/examples/error500noIssue'
+                  $ref: '#/components/examples/error404noIssue'
         401:
             description: 'Error: Unauthorized'
             content:
@@ -539,12 +521,9 @@ components:
     error404noProfile:
       value:
         message: "There is no profile with this username"
-    error404:
+    error404noIssue:
       value:
-        message: "Page not found"
-    error500noIssue:
-      value:
-        message: "There is no issue with this id"
+        message: "Issue not found"
 
 security:
   - ApiKeyAuth: []

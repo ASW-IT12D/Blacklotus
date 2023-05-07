@@ -6,6 +6,7 @@ import boto3
 from botocore.exceptions import ClientError
 from django.conf import settings
 from django.contrib.auth import login as auth_login
+from django.core.exceptions import ObjectDoesNotExist
 from django.contrib.auth import logout
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.forms import AuthenticationForm
@@ -637,25 +638,24 @@ class IssuesAPIView(APIView):
 class CommentsAPIView(APIView):
     serializer_class = CommentsSerializer
     permission_classes = (IsAuthenticated,)
-
     def post(self, request, id):
-        issueId = Issue.objects.get(id=id)
-        if issueId:
+        try:
+            issueId = Issue.objects.get(id=id)
             comment = request.query_params.get('comment', None)
             if len(comment) > 0:
                 user = User.objects.get(username=request.auth.user)
                 c = Comentario(message=comment, creator=user, issue=issueId)
                 c.save()
-            return Response({'message': 'New comment'}, status=status.HTTP_200_OK)
-        else:
-            return Response({'message': 'No issues found'}, status=status.HTTP_404_NOT_FOUND)
+                return Response({'message': 'New comment'}, status=status.HTTP_200_OK)
+        except ObjectDoesNotExist:
+                return Response({'message': 'Issue not found'}, status=status.HTTP_404_NOT_FOUND)
     def get(self,request,id):
-        issueId = Issue.objects.get(id=id)
-        if issueId:
+        try:
+            issueId = Issue.objects.get(id=id)
             comment = Comentario.objects.all().order_by('-creationDate').filter(issue=id)
             comment_serializer = self.serializer_class(comment, many=True)
             return Response(comment_serializer.data, status=status.HTTP_200_OK)
-        else:
+        except ObjectDoesNotExist:
             return Response({'message': 'Issue not found'}, status=status.HTTP_404_NOT_FOUND)
 
 class ActivityAPIView(APIView):
