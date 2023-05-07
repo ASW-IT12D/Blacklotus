@@ -70,33 +70,6 @@ paths:
                 examples:
                   errorExample:
                     $ref: '#/components/examples/error403'
-    put:
-      tags:
-        - Issues
-      summary: Assign an user to the issue
-      parameters:
-      - name: id
-        in: path
-        description: Id of the issue
-        required: true
-        schema:
-          type: integer
-      - name: asignTo
-        in: query
-        description: Name of the user to asign
-        required: true
-        schema:
-          type: string
-      responses:
-        200:
-          description: 'User assigned'
-          content:
-            application/json:
-                schema:
-                  $ref: '#/components/schemas/ErrorResult'
-                examples:
-                  errorExample:
-                    $ref: '#/components/examples/code200putProfile'
   /activity/:
     get:
       tags:
@@ -146,6 +119,78 @@ paths:
                 examples:
                   errorExample:
                     $ref: '#/components/examples/error403'
+
+  /comment/{id}/:
+    post:
+        tags:
+          - Comments
+        summary: Comment an issue
+        parameters:
+        - name: id
+          in: path
+          description: Id of the issue
+          required: true
+          schema:
+            type: integer
+        responses:
+          200:
+            description: successful operation
+            content:
+              application/json:
+                schema:
+                  type: array
+                  items:
+                    $ref: '#/components/schemas/Comentario'
+          400:
+            description: 'Error: Bad Request'
+            content:
+              application/json:
+                schema:
+                  $ref: '#/components/schemas/ErrorResult'
+                examples:
+                  errorExample:
+                    $ref: '#/components/examples/error400'
+          401:
+            description: 'Error: Unauthorized'
+            content:
+              application/json:
+                schema:
+                  $ref: '#/components/schemas/ErrorResult'
+                examples:
+                  errorExample:
+                    $ref: '#/components/examples/error401'
+          403:
+              description: 'Error: Forbidden'
+              content:
+                application/json:
+                  schema:
+                    $ref: '#/components/schemas/ErrorResult'
+                  examples:
+                    errorExample:
+                      $ref: '#/components/examples/error403'
+    get:
+      tags:
+        - Comments
+      summary: List all the comments of an issue
+      operationId: getCommentsOfIssue
+      parameters:
+      - name: id
+        in: path
+        description: Id of the issue
+        required: true
+        schema:
+          type: integer
+
+      responses:
+        200:
+          description: successful operation
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Comentario'
+
   /profile/{username}/:
     get:
       tags:
@@ -281,6 +326,22 @@ components:
         image:
           type: string
           example: '/Images/drilo.jpg'
+
+
+    Comentario:
+      type: object
+      properties:
+        message:
+          type: string
+          example: 'Hello'
+        creator:
+          $ref: '#/components/schemas/User'
+        issue:
+          $ref: '#/components/schemas/Issue'
+        creationdate:
+          type: string
+          format: date-time
+
 
 
     Activity:

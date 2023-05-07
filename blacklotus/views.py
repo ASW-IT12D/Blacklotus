@@ -432,7 +432,6 @@ def SeeIssue(request, num):
                 return redirect(SeeIssue, num)
     coments = Comentario.objects.all().order_by('-creationDate').filter(issue=num)
 
-
     imagesC = {}
     for c in coments:
         creator = User.objects.get(id=c.creator_id)
@@ -650,7 +649,14 @@ class CommentsAPIView(APIView):
             return Response({'message': 'New comment'}, status=status.HTTP_200_OK)
         else:
             return Response({'message': 'No issues found'}, status=status.HTTP_404_NOT_FOUND)
-
+    def get(self,request,id):
+        issueId = Issue.objects.get(id=id)
+        if issueId:
+            comment = Comentario.objects.all().order_by('-creationDate').filter(issue=id)
+            comment_serializer = self.serializer_class(comment, many=True)
+            return Response(comment_serializer.data, status=status.HTTP_200_OK)
+        else:
+            return Response({'message': 'No issues found'}, status=status.HTTP_404_NOT_FOUND)
 
 class ActivityAPIView(APIView):
     serializer_class = ActivitySerializer
