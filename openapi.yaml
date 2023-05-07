@@ -140,22 +140,32 @@ paths:
             type: string
         responses:
           200:
-            description: successful operation
+            description: 'New Comment'
             content:
               application/json:
-                schema:
-                  type: array
-                  items:
-                    $ref: '#/components/schemas/Comentario'
-          400:
-            description: 'Error: Bad Request'
+                  schema:
+                   $ref: '#/components/schemas/ErrorResult'
+                  examples:
+                    errorExample:
+                      $ref: '#/components/examples/code200postComment'
+          404:
+            description: 'Error: Not Found'
             content:
               application/json:
                 schema:
                   $ref: '#/components/schemas/ErrorResult'
                 examples:
                   errorExample:
-                    $ref: '#/components/examples/error400'
+                    $ref: '#/components/examples/error404'
+          500:
+            description: 'Error: No Issue'
+            content:
+              application/json:
+                schema:
+                  $ref: '#/components/schemas/ErrorResult'
+                examples:
+                  errorExample:
+                    $ref: '#/components/examples/error500noIssue'
           401:
             description: 'Error: Unauthorized'
             content:
@@ -196,6 +206,42 @@ paths:
                 type: array
                 items:
                   $ref: '#/components/schemas/Comentario'
+        404:
+          description: 'Error: Not Found'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResult'
+              examples:
+                errorExample:
+                  $ref: '#/components/examples/error404'
+        500:
+          description: 'Error: No Issue'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResult'
+              examples:
+                errorExample:
+                  $ref: '#/components/examples/error500noIssue'
+        401:
+            description: 'Error: Unauthorized'
+            content:
+              application/json:
+                schema:
+                  $ref: '#/components/schemas/ErrorResult'
+                examples:
+                  errorExample:
+                    $ref: '#/components/examples/error401'
+        403:
+            description: 'Error: Forbidden'
+            content:
+              application/json:
+                schema:
+                  $ref: '#/components/schemas/ErrorResult'
+                examples:
+                  errorExample:
+                    $ref: '#/components/examples/error403'
 
   /profile/{username}/:
     get:
@@ -337,16 +383,22 @@ components:
     Comentario:
       type: object
       properties:
+        id:
+          type: integer
+          example: 1
         message:
           type: string
-          example: 'Hello'
-        creator:
-          $ref: '#/components/schemas/User'
-        issue:
-          $ref: '#/components/schemas/Issue'
-        creationdate:
+          example: 'Hello :3'
+        creationDate:
           type: string
           format: date-time
+        creator:
+          type: string
+          example: 'Paula'
+        issue:
+          type: integer
+          example: 1
+
 
 
 
@@ -472,6 +524,9 @@ components:
     code200putProfile:
       value:
         message: "Profile update complete"
+    code200postComment:
+      value:
+        message: "New comment created"
     error400:
       value:
         message: "Content is too long (maximum is 280 characters)"
@@ -484,6 +539,12 @@ components:
     error404noProfile:
       value:
         message: "There is no profile with this username"
+    error404:
+      value:
+        message: "Page not found"
+    error500noIssue:
+      value:
+        message: "There is no issue with this id"
 
 security:
   - ApiKeyAuth: []

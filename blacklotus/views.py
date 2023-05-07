@@ -656,7 +656,7 @@ class CommentsAPIView(APIView):
             comment_serializer = self.serializer_class(comment, many=True)
             return Response(comment_serializer.data, status=status.HTTP_200_OK)
         else:
-            return Response({'message': 'No issues found'}, status=status.HTTP_404_NOT_FOUND)
+            return Response({'message': 'Issue not found'}, status=status.HTTP_404_NOT_FOUND)
 
 class ActivityAPIView(APIView):
     serializer_class = ActivitySerializer
