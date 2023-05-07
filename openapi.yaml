@@ -97,6 +97,41 @@ paths:
                 examples:
                   errorExample:
                     $ref: '#/components/examples/code200putProfile'
+  /issue/{id}/attachment:
+    post:
+      tags:
+        - Attachments
+      summary: Adds an Attachment to an Issue
+      operationId: addAttachment
+      parameters:
+      - name: id
+        in: path
+        description: Id of the issue
+        required: true
+        schema:
+          type: integer
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                upfile:
+                  type: string
+                  format: binary
+                  description: The file to upload.
+
+      responses:
+        200:
+          description: successful operation
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Issue'
+
   /activity/:
     get:
       tags:

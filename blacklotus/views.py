@@ -15,14 +15,14 @@ from django.http import HttpResponse
 from django.shortcuts import render, redirect
 from django.urls import reverse_lazy
 from django.views import generic
-
 from rest_framework.authtoken.views import obtain_auth_token
 from social_django.utils import psa
-from .serializers import IssueSerializer,ActivitySerializer,ProfileSerializer,IssuesSerializer
+from .serializers import IssueSerializer,ActivitySerializer,ProfileSerializer,IssuesSerializer, AttachmentsSerializer
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
 from rest_framework.permissions import IsAuthenticated
+from django.core.exceptions import ObjectDoesNotExist
 
 
 from .forms import EditProfileInfoForm, RegisterForm, AssignedTo, Watchers
@@ -698,3 +698,22 @@ class ProfileAPIView(APIView):
             return Response({'message': 'Profile update complete'}, status=status.HTTP_200_OK)
         else:
             return Response({'message': 'No profile found'}, status=status.HTTP_404_NOT_FOUND)
+
+class AttachmentsAPIView(APIView):
+    serializer_class = AttachmentsSerializer
+    permission_classes = (IsAuthenticated,)
+
+    def post(self, request, id):
+        try:
+            issue = Issue.objects.get(id=id)
+            upfile = request.FILES.get('upfile')
+
+            if (upfile != None):
+                # Obtener el archivo adjunto y otros campos del diccionario 'data'
+                document = Attachments(archivo=upfile, username=request.user.username, issue=issue)
+                document.save()
+                return Response({'message': 'Attachment added complete'}, status=status.HTTP_200_OK)
+            else:
+                return Response({'message': 'Attachment empty, nothing was done'}, status=status.HTTP_200_OK)
+        except ObjectDoesNotExist:
+            return Response({'message': 'Attachment empty, nothing was done'}, status=status.HTTP_200_OK)
