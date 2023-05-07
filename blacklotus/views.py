@@ -278,7 +278,9 @@ def SeeIssue(request, num):
             commentsOn = False
         if 'archivo' in request.FILES and request.FILES['archivo']:
             archivo = request.FILES.get('archivo')
-            if len(archivo) > 0:
+            file_name = 'Attachments/' + archivo.name
+            file = Attachments.objects.filter(archivo=file_name)
+            if len(archivo) > 0 and len(file) == 0:
                 document = Attachments(archivo=archivo, username=request.user.username, issue=issueUpdate)
                 document.save()
         elif 'Download' in request.POST:
@@ -703,6 +705,11 @@ class AttachmentsAPIView(APIView):
     serializer_class = AttachmentsSerializer
     permission_classes = (IsAuthenticated,)
 
+    def get(self, request, id):
+        issue = Issue.objects.get(id=id)
+        documents = Attachments.objects.filter(issue=issue)
+        documents_serializer = self.serializer_class(documents, many=True)
+        return Response(documents_serializer.data, status=status.HTTP_200_OK)
     def post(self, request, id):
         try:
             issue = Issue.objects.get(id=id)
@@ -710,8 +717,11 @@ class AttachmentsAPIView(APIView):
 
             if (upfile != None):
                 # Obtener el archivo adjunto y otros campos del diccionario 'data'
-                document = Attachments(archivo=upfile, username=request.user.username, issue=issue)
-                document.save()
+                file_name = 'Attachments/'+upfile.name
+                file = Attachments.objects.filter(archivo=file_name)
+                if len(file) == 0:
+                    document = Attachments(archivo=upfile, username=request.user.username, issue=issue)
+                    document.save()
                 return Response({'message': 'Attachment added complete'}, status=status.HTTP_200_OK)
             else:
                 return Response({'message': 'Attachment empty, nothing was done'}, status=status.HTTP_200_OK)
