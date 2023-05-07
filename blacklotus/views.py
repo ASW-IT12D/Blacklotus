@@ -634,6 +634,20 @@ class IssuesAPIView(APIView):
             else:
                 return Response({'message': 'Issue not found'}, status=status.HTTP_404_NOT_FOUND)
 
+    def post(self, request):
+        textarea_input = request.query_params.get('subjects')
+        if textarea_input:
+                lines = textarea_input.split(' ')
+                for line in lines:
+                    subject = line.strip()
+                    if subject:
+                        i = Issue(subject=subject, description=" ", creator=request.user.username, status=1, type=1,
+                                  severity=1, priority=1)
+                        i.save()
+                return Response({'message': 'Bulk inserted'}, status=status.HTTP_200_OK)
+        else:
+                return Response({'error': 'No input provided'}, status=status.HTTP_400_BAD_REQUEST)
+
 
 class ActivityAPIView(APIView):
     serializer_class = ActivitySerializer
@@ -701,3 +715,4 @@ class ProfileAPIView(APIView):
             return Response({'message': 'Profile update complete'}, status=status.HTTP_200_OK)
         else:
             return Response({'message': 'No profile found'}, status=status.HTTP_404_NOT_FOUND)
+
