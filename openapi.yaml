@@ -128,10 +128,16 @@ paths:
         parameters:
         - name: id
           in: path
-          description: Id of the issue
+          description: Id of the issue you want to comment
           required: true
           schema:
             type: integer
+        - name: comment
+          in: query
+          description: Comment here
+          required: true
+          schema:
+            type: string
         responses:
           200:
             description: successful operation
@@ -176,7 +182,7 @@ paths:
       parameters:
       - name: id
         in: path
-        description: Id of the issue
+        description: Id of the issue you want to see the comments
         required: true
         schema:
           type: integer
