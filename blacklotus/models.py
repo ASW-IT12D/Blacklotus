@@ -1,12 +1,8 @@
-import os
-import os
-
-from botocore.exceptions import ClientError
-from django.core.files.base import ContentFile
-from django.conf import settings
 import boto3
-from django.db import models
+from botocore.exceptions import ClientError
+from django.conf import settings
 from django.contrib.auth.models import User
+from django.db import models
 from django.db.models.signals import post_save
 from django.dispatch import receiver
 
@@ -180,8 +176,7 @@ class Attachments(models.Model):
     def save(self, *args, **kwargs):
         s3 = boto3.client('s3',
                           aws_access_key_id=settings.AWS_ACCESS_KEY_ID,
-                          aws_secret_access_key=settings.AWS_SECRET_ACCESS_KEY,
-                          aws_session_token=settings.AWS_SESSION_TOKEN)
+                          aws_secret_access_key=settings.AWS_SECRET_ACCESS_KEY)
         nombre_archivo = f"Attachments/{self.archivo.name}"
         with self.archivo.open('rb') as archivo:
             contenido = archivo.read()
@@ -219,8 +214,7 @@ class Profile(models.Model):
         if bool(self.image):
             s3 = boto3.client('s3',
                               aws_access_key_id=settings.AWS_ACCESS_KEY_ID,
-                              aws_secret_access_key=settings.AWS_SECRET_ACCESS_KEY,
-                              aws_session_token=settings.AWS_SESSION_TOKEN)
+                              aws_secret_access_key=settings.AWS_SECRET_ACCESS_KEY)
             nombre_archivo = f"Images/{self.image.name}"
             with self.image.open('rb') as archivo:
                 contenido = archivo.read()
@@ -238,8 +232,7 @@ class Profile(models.Model):
         try:
             s3 = boto3.client('s3',
                               aws_access_key_id=settings.AWS_ACCESS_KEY_ID,
-                              aws_secret_access_key=settings.AWS_SECRET_ACCESS_KEY,
-                              aws_session_token=settings.AWS_SESSION_TOKEN)
+                              aws_secret_access_key=settings.AWS_SECRET_ACCESS_KEY)
             if bool(self.image):
                 filename = self.image.name
             else:

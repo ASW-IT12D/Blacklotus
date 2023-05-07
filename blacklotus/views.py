@@ -239,8 +239,7 @@ def list_documents(num):
     try:
         s3 = boto3.client('s3',
                           aws_access_key_id=settings.AWS_ACCESS_KEY_ID,
-                          aws_secret_access_key=settings.AWS_SECRET_ACCESS_KEY,
-                          aws_session_token=settings.AWS_SESSION_TOKEN)
+                          aws_secret_access_key=settings.AWS_SECRET_ACCESS_KEY)
         bucket_name = settings.AWS_STORAGE_BUCKET_NAME
         prefix = 'Attachments/'
         response = s3.list_objects_v2(Bucket=bucket_name, Prefix=prefix)
@@ -288,8 +287,7 @@ def SeeIssue(request, num):
                 try:
                     s3 = boto3.client('s3',
                                       aws_access_key_id=settings.AWS_ACCESS_KEY_ID,
-                                      aws_secret_access_key=settings.AWS_SECRET_ACCESS_KEY,
-                                      aws_session_token=settings.AWS_SESSION_TOKEN)
+                                      aws_secret_access_key=settings.AWS_SECRET_ACCESS_KEY)
                     object_name = 'Attachments/' + option_selected
                     with tempfile.NamedTemporaryFile(delete=False) as temp_file:
                         s3.download_file(settings.AWS_STORAGE_BUCKET_NAME, object_name, temp_file.name)
@@ -305,8 +303,7 @@ def SeeIssue(request, num):
                 try:
                     s3 = boto3.client('s3',
                                       aws_access_key_id=settings.AWS_ACCESS_KEY_ID,
-                                      aws_secret_access_key=settings.AWS_SECRET_ACCESS_KEY,
-                                      aws_session_token=settings.AWS_SESSION_TOKEN)
+                                      aws_secret_access_key=settings.AWS_SECRET_ACCESS_KEY)
                     object_name = 'Attachments/' + option_selected
                     i = Issue.objects.get(id=num)
                     allAt = Attachments.objects.all().filter(archivo=object_name)
