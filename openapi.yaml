@@ -42,18 +42,10 @@ paths:
           content:
             application/json:
               schema:
-                type: array
-                items:
-                  $ref: '#/components/examples/code200bulkIssue'
-        400:
-          description: 'Error: Bad Request'
-          content:
-            application/json:
-              schema:
                 $ref: '#/components/schemas/ErrorResult'
               examples:
-                errorExample:
-                  $ref: '#/components/examples/error400'
+                  errorExample:
+                    $ref: '#/components/examples/code200BulkIssue'
         401:
           description: 'Error: Unauthorized'
           content:
@@ -454,7 +446,7 @@ components:
     code200putProfile:
       value:
         message: "Profile update complete"
-    code200bulkIssue:
+    code200BulkIssue:
       value:
         message: "Bulk inserted"
     error400:
@@ -469,9 +461,9 @@ components:
     error404noProfile:
       value:
         message: "There is no profile with this username"
-    error404:
+    error404noIssue:
       value:
-        message: "No page found"
+        message: "Issue not found"
 
 security:
   - ApiKeyAuth: []
