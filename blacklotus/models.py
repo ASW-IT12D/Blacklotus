@@ -72,6 +72,9 @@ class Issue(models.Model):
     def getCreator(self):
         return self.creator
 
+    def getWatchers(self):
+        return self.watchers
+
     def getAsignedTo(self):
         return self.asignedTo
 

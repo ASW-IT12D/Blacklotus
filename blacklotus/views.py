@@ -1,6 +1,8 @@
 import calendar
 import tempfile
 from datetime import datetime
+
+from django.core.exceptions import ObjectDoesNotExist
 from rest_framework.authtoken.models import Token
 import boto3
 from botocore.exceptions import ClientError
@@ -609,34 +611,46 @@ class IssueAPIView(APIView):
         else:
             return Response({'message': 'No issues found'}, status=status.HTTP_404_NOT_FOUND)
     def put(self, request, id):
-        issue = Issue.objects.get(id=id)
-        if issue:
-            subject = request.query_params.get('subject', None)
-            description = request.query_params.get('description', None)
-            statuses = request.query_params.get('status', None)
-            type = request.query_params.get('type', None)
-            severity = request.query_params.get('severity', None)
-            priority = request.query_params.get('priority', None)
+        try:
+            issue = Issue.objects.get(id=id)
+            is_assigned = False
+            is_watcher = False
+            user = User.objects.get(username=request.auth.user)  # pillo el user
+            if (issue.getAsignedTo().name != None):  # compruebo si el user esta dentro de asigned
+                is_assigned = issue.assignedTo.filter(id=user.id).exists()
+            if (issue.getWatchers().name != None):  # compruebo si el user esta dentro de watchers
+                is_watcher = issue.watchers.filter(id=user.id).exists()
+            if issue.getCreator() == user.username or is_assigned or is_watcher:
+                subject = request.query_params.get('subject', None)
+                description = request.query_params.get('description', None)
+                statuses = request.query_params.get('status', None)
+                type = request.query_params.get('type', None)
+                severity = request.query_params.get('severity', None)
+                priority = request.query_params.get('priority', None)
 
-            if (subject != None):
-                issue.subject = subject
-            if (description != None):
-                issue.description = description
-            if (statuses != None):
-                statusesNum = traduce(statuses, "status")
-                issue.status = statusesNum
-            if (type != None):
-                typeNum = traduce(type, "type")
-                issue.type = typeNum
-            if (severity != None):
-                severityNum = traduce(severity, "severity")
-                issue.severity = severityNum
-            if (priority != None):
-                priorityNum = traduce(priority, "priority")
-                issue.priority = priorityNum
-            issue.save()
+                if (subject != None):
+                    issue.subject = subject
+                if (description != None):
+                    issue.description = description
+                if (statuses != None):
+                    statusesNum = traduce(statuses, "status")
+                    issue.status = statusesNum
+                if (type != None):
+                    typeNum = traduce(type, "type")
+                    issue.type = typeNum
+                if (severity != None):
+                    severityNum = traduce(severity, "severity")
+                    issue.severity = severityNum
+                if (priority != None):
+                    priorityNum = traduce(priority, "priority")
+                    issue.priority = priorityNum
+                issue.save()
 
-            return Response({'message': 'Issue edited successfully'}, status=status.HTTP_200_OK)
+                return Response({'message': 'Issue edited successfully'}, status=status.HTTP_200_OK)
+            else:
+                return Response({'message': "You don't have permission to edit this Issue"}, status=status.HTTP_403_FORBIDDEN)
+        except ObjectDoesNotExist:
+            return Response({'message': 'issue not found'}, status=status.HTTP_404_NOT_FOUND)
 
 class IssuesAPIView(APIView):
     serializer_class = IssuesSerializer
