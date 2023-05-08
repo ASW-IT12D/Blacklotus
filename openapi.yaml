@@ -12,6 +12,25 @@ paths:
       - Issues
       summary: Finds all the issues
       operationId: getIssues
+      parameters:
+      - name: name
+        in: query
+        description: Optional name of the issue
+        required: false
+        schema:
+          type: string
+      - name: sort
+        in: query
+        description: Optional parameter of sorting of the issue
+        required: false
+        schema:
+          type: string
+      - name: order
+        in: query
+        description: Optional order of sorting of the issue
+        required: false
+        schema:
+          type: string
       responses:
         200:
           description: successful operation
@@ -21,6 +40,7 @@ paths:
                 type: array
                 items:
                   $ref: '#/components/schemas/Issue'
+
   /issue/{id}/:
     get:
       tags:
@@ -30,7 +50,7 @@ paths:
       parameters:
       - name: id
         in: path
-        description: Optional id of the issue
+        description: Compulsory id of the issue
         required: true
         schema:
           type: integer
@@ -73,30 +93,76 @@ paths:
     put:
       tags:
         - Issues
-      summary: Assign an user to the issue
+      summary: Add deadline of an issue
       parameters:
       - name: id
         in: path
-        description: Id of the issue
+        description: Id of the issue you want to add a deadline to.
         required: true
         schema:
           type: integer
-      - name: asignTo
+      - name: deadline
         in: query
-        description: Name of the user to asign
+        description: Deadline of the issue.
         required: true
         schema:
           type: string
+          format: date
+      - name: deadline_motive
+        in: query
+        description: Motive of the deadline.
+        required: false
+        schema:
+          type: string
+
       responses:
         200:
-          description: 'User assigned'
+          description: 'Deadline updated'
           content:
             application/json:
                 schema:
                   $ref: '#/components/schemas/ErrorResult'
                 examples:
                   errorExample:
-                    $ref: '#/components/examples/code200putProfile'
+                    $ref: '#/components/examples/code200Deadline'
+        404:
+          description: 'Error: Not Found'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResult'
+              examples:
+                errorExample:
+                  $ref: '#/components/examples/error404noIssue'
+        401:
+          description: 'Error: Unauthorized'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResult'
+              examples:
+                errorExample:
+                  $ref: '#/components/examples/error401'
+        403:
+            description: 'Error: Forbidden'
+            content:
+              application/json:
+                schema:
+                  $ref: '#/components/schemas/ErrorResult'
+                examples:
+                  errorExample:
+                    $ref: '#/components/examples/error403'
+
+        406:
+            description: 'Error: Not Accepted'
+            content:
+              application/json:
+                schema:
+                  $ref: '#/components/schemas/ErrorResult'
+                examples:
+                  errorExample:
+                    $ref: '#/components/examples/error406badFormat'
+
   /issue/{id}/attachment:
     post:
       tags:
@@ -452,6 +518,15 @@ components:
     error404noProfile:
       value:
         message: "There is no profile with this username"
+    error404noIssue:
+      value:
+        message: "Issue not found"
+    error406badFormat:
+      value:
+        message: "Format is not correct"
+    code200Deadline:
+      value:
+        message: "Deadline updated"
 
 security:
   - ApiKeyAuth: []

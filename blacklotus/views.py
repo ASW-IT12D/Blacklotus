@@ -608,6 +608,40 @@ class IssueAPIView(APIView):
         else:
             return Response({'message': 'No issues found'}, status=status.HTTP_404_NOT_FOUND)
 
+    def put(self, request, id):
+
+        try:
+            issue = Issue.objects.get(id=id)
+
+            deadline_str = request.query_params.get('deadline', None)
+            if deadline_str:
+                try:
+                    deadline = datetime.strptime(deadline_str, "%d-%m-%Y")
+                except ValueError:
+                    return Response({'message': 'Invalid deadline format'}, status=status.HTTP_406_NOT_ACCEPTABLE)
+
+                now = datetime.now()
+                last_day = calendar.monthrange(deadline.year, deadline.month)[1]
+
+                if deadline < now or deadline.day > last_day:
+                    return Response({'message': 'Invalid deadline format'}, status=status.HTTP_406_NOT_ACCEPTABLE)
+
+                issue.deadlinedate = deadline
+                issue.deadline = True
+
+                motive = request.query_params.get('deadline_motive', None)
+
+                if motive:
+                    issue.deadlinemotive = motive
+
+                issue.save()
+
+                return Response({'message': 'Deadline updated'}, status=status.HTTP_200_OK)
+
+        except ObjectDoesNotExist:
+            return Response({'message': 'Issue not found'}, status=status.HTTP_404_NOT_FOUND)
+
+
 class IssuesAPIView(APIView):
     serializer_class = IssuesSerializer
     permission_classes = (IsAuthenticated, )
@@ -618,20 +652,7 @@ class IssuesAPIView(APIView):
             return Response(issues_serializer.data, status=status.HTTP_200_OK)
         else:
             return Response({'message': 'No issues found'}, status=status.HTTP_404_NOT_FOUND)
-    def put(self, request, id):
-        user_to_assign = request.query_params.get('asignTo', None)
-        if id:
-            issue = Issue.objects.filter(id=id).first()
-            if issue:
-                user = User.objects.filter(username=user_to_assign).first()
-                if user:
-                    issue.asignedTo.add(user)
-                    issue.save()
-                    return Response({'message': 'User assigned'}, status=status.HTTP_200_OK)
-                else:
-                    return Response({'message': 'User not found'}, status=status.HTTP_400_BAD_REQUEST)
-            else:
-                return Response({'message': 'Issue not found'}, status=status.HTTP_404_NOT_FOUND)
+
 
 
 class ActivityAPIView(APIView):
