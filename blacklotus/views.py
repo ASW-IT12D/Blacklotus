@@ -613,30 +613,10 @@ class IssueAPIView(APIView):
         try:
             issue = Issue.objects.get(id=id)
 
-            deadline_str = request.query_params.get('deadline', None)
-            if deadline_str:
-                try:
-                    deadline = datetime.strptime(deadline_str, "%d-%m-%Y")
-                except ValueError:
-                    return Response({'message': 'Invalid deadline format'}, status=status.HTTP_406_NOT_ACCEPTABLE)
-
-                now = datetime.now()
-                last_day = calendar.monthrange(deadline.year, deadline.month)[1]
-
-                if deadline < now or deadline.day > last_day:
-                    return Response({'message': 'Invalid deadline format'}, status=status.HTTP_406_NOT_ACCEPTABLE)
-
-                issue.deadlinedate = deadline
-                issue.deadline = True
-
-                motive = request.query_params.get('deadline_motive', None)
-
-                if motive:
-                    issue.deadlinemotive = motive
-
+            if issue.deadline:
+                issue.deadline = False
                 issue.save()
-
-                return Response({'message': 'Deadline updated'}, status=status.HTTP_200_OK)
+                return Response({'message': 'Deadline deleted'}, status=status.HTTP_200_OK)
 
         except ObjectDoesNotExist:
             return Response({'message': 'Issue not found'}, status=status.HTTP_404_NOT_FOUND)

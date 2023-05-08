@@ -93,27 +93,14 @@ paths:
     put:
       tags:
         - Issues
-      summary: Add deadline of an issue
+      summary: Delete the deadline of an issue
       parameters:
       - name: id
         in: path
-        description: Id of the issue you want to add a deadline to.
+        description: Id of the issue which deadline you want to delete.
         required: true
         schema:
           type: integer
-      - name: deadline
-        in: query
-        description: Deadline of the issue.
-        required: true
-        schema:
-          type: string
-          format: date
-      - name: deadline_motive
-        in: query
-        description: Motive of the deadline.
-        required: false
-        schema:
-          type: string
 
       responses:
         200:
@@ -526,7 +513,7 @@ components:
         message: "Format is not correct"
     code200Deadline:
       value:
-        message: "Deadline updated"
+        message: "Deadline deleted"
 
 security:
   - ApiKeyAuth: []
