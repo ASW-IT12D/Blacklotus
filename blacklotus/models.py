@@ -97,6 +97,9 @@ class Issue(models.Model):
     def getEditionDate(self):
         return self.creationdate
 
+    def getWatchers(self):
+        return self.watchers
+
     def __str__(self):
         return self.subject + ' ' + self.description
 

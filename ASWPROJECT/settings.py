@@ -57,7 +57,7 @@ CORS_ALLOW_METHODS = [
     'POST',
     'PUT',
 ]
-
+ALLOWED_HTTP_METHODS = ['GET', 'PUT', 'POST', 'DELETE', 'HEAD', 'OPTIONS', 'PATCH']
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',

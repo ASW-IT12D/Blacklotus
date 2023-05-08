@@ -238,6 +238,17 @@ paths:
         required: false
         schema:
           type: string
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                profile:
+                  type: string
+                  format: binary
+                  description: The file to upload.
       responses:
         200:
           description: 'Profile updated'
