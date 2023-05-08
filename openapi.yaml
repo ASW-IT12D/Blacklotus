@@ -10,8 +10,83 @@ paths:
     get:
       tags:
       - Issues
-      summary: Finds all the issues
-      operationId: getIssues
+      summary: Filters all the issues
+      operationId: getFilteredIssues
+      parameters:
+      - name: Exclusive or inclusive filters
+        in: query
+        required: true
+        schema:
+          type: string
+          enum:
+            - Exclusive
+            - Inclusive
+      - name: Statuses
+        in: query
+        description: filter by statuses
+        required: false
+        schema:
+          type: array
+          items:
+            type: string
+            enum:
+              - New
+              - In progress
+              - Closed
+              - Needs info
+              - Rejected
+              - Postponed
+      - name: Types
+        in: query
+        description: filter by type
+        required: false
+        schema:
+          type: array
+          items:
+            type: string
+            enum:
+              - Bug
+              - Question
+              - Disabled
+      - name: Severities
+        in: query
+        description: filter by severity
+        required: false
+        schema:
+          type: array
+          items:
+            type: string
+            enum:
+              - Whislist
+              - Minor
+              - Normal
+              - Important
+              - Critical
+      - name: Priotities
+        in: query
+        description: filter by type
+        required: false
+        schema:
+          type: array
+          items:
+            type: string
+            enum:
+              - Low
+              - Normal
+              - High
+      - name: AssignedTo
+        in: query
+        description: filter by assignee
+        required: false
+        schema:
+          type: string
+      - name: CreatedBy
+        in: query
+        description: filter by creator
+        required: false
+        schema:
+          type: string
+
       responses:
         200:
           description: successful operation
@@ -21,6 +96,24 @@ paths:
                 type: array
                 items:
                   $ref: '#/components/schemas/Issue'
+        401:
+          description: 'Error: Unauthorized'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResult'
+              examples:
+                errorExample:
+                  $ref: '#/components/examples/error401'
+        403:
+            description: 'Error: Forbidden'
+            content:
+              application/json:
+                schema:
+                  $ref: '#/components/schemas/ErrorResult'
+                examples:
+                  errorExample:
+                    $ref: '#/components/examples/error403'
   /issue/{id}/:
     get:
       tags:

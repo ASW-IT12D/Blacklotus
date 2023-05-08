@@ -7,6 +7,7 @@ from botocore.exceptions import ClientError
 from django.conf import settings
 from django.contrib.auth import login as auth_login
 from django.contrib.auth import logout
+from django.core.exceptions import ObjectDoesNotExist
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.forms import AuthenticationForm
 from django.contrib.auth.models import User
@@ -613,12 +614,86 @@ class IssuesAPIView(APIView):
     serializer_class = IssuesSerializer
     permission_classes = (IsAuthenticated, )
     def get(self,request):
-        if id:
-            issues = Issue.objects.all()
-            issues_serializer = self.serializer_class(issues, many=True)
-            return Response(issues_serializer.data, status=status.HTTP_200_OK)
+
+        filtrosS = Q()
+        filtrosP = Q()
+        filtrosT = Q()
+        filtrosSv = Q()
+        filtrosC = Q()
+        filtrosA = Q()
+
+        statuses = request.query_params.getlist('Statuses', None)
+        type = request.query_params.getlist('Types', None)
+        severity = request.query_params.getlist('Severities', None)
+        priority = request.query_params.getlist('Priorities', None)
+        exclusive = request.query_params.get('Exclusive or inclusive filters', None)
+
+        if len(statuses) > 0 and (statuses[0] != '' or len(statuses) > 1):
+            for filtro in statuses:
+                if filtro != '':
+                    f = traduce(filtro, "status")
+                    if exclusive == 'Inclusive':
+                        filtrosS = Q(status=f) | filtrosS
+                    else:
+                        filtrosS = Q(status=f) & filtrosS
+
+        if len(priority) > 0 and (priority[0] != '' or len(priority) > 1):
+            for filtro in priority:
+                if filtro != '':
+                    f = traduce(filtro, "priority")
+                    if exclusive == 'Inclusive':
+                        filtrosP = Q(priority=f) | filtrosP
+                    else:
+                        filtrosP = Q(priority=f) & filtrosP
+
+        if len(type) > 0 and (type[0] != '' or len(type) > 1):
+            for filtro in type:
+                if filtro != '':
+                    f = traduce(filtro, "type")
+                    if exclusive == 'Inclusive':
+                        filtrosT = Q(type=f) | filtrosT
+                    else:
+                        filtrosT = Q(type=f) & filtrosT
+
+        if len(severity) > 0 and (severity[0] != '' or len(severity) > 1):
+            for filtro in severity:
+                if filtro != '':
+                    f = traduce(filtro, "severity")
+                    if exclusive == 'Inclusive':
+                        filtrosSv = Q(severity=f) | filtrosSv
+                    else:
+                        filtrosSv = Q(severity=f) & filtrosSv
+        creator = request.query_params.get('CreatedBy', None)
+        if creator:
+            filtroscreator = creator.split(' ')
+            for filtro in filtroscreator:
+                if exclusive == 'Inclusive':
+                    filtrosC = Q(creator=filtro) | filtrosC
+                else:
+                    filtrosC = Q(creator=filtro) & filtrosC
+
+        assigned = request.query_params.get('AssignedTo', None)
+        if assigned:
+            filtrosasigned = assigned.split(' ')
+            for filtro in filtrosasigned:
+                try:
+                    user = User.objects.get(username=filtro)
+                    if exclusive == 'Inclusive':
+                        filtrosA = Q(asignedTo=user.id) | filtrosA
+                    else:
+                        filtrosA = Q(asignedTo=user.id) & filtrosA
+                except ObjectDoesNotExist:
+                    pass
+
+        if exclusive == 'Inclusive':
+            filtrosF = filtrosS | filtrosP | filtrosT | filtrosSv | filtrosC | filtrosA
         else:
-            return Response({'message': 'No issues found'}, status=status.HTTP_404_NOT_FOUND)
+            filtrosF = filtrosS & filtrosP & filtrosT & filtrosSv & filtrosC & filtrosA
+
+        issues = Issue.objects.filter(filtrosF)
+        issues_serializer = self.serializer_class(issues, many=True)
+        return Response(issues_serializer.data, status=status.HTTP_200_OK)
+
     def put(self, request, id):
         user_to_assign = request.query_params.get('asignTo', None)
         if id:
@@ -701,3 +776,33 @@ class ProfileAPIView(APIView):
             return Response({'message': 'Profile update complete'}, status=status.HTTP_200_OK)
         else:
             return Response({'message': 'No profile found'}, status=status.HTTP_404_NOT_FOUND)
+
+def traduce(param, type):
+    STATUSES = (
+        ('New', 1), ('In progress', 2),
+        ('Ready for test', 3), ('Closed', 4),
+        ('Needs info', 5), ('Rejected', 6), ('Postponed', 7),
+    )
+    TYPES = (
+        ('Bug', 1), ('Question', 2), ('Disabled', 3),
+    )
+    SEVERITIES = (
+        ('Whishlist', 1), ('Minor', 2), ('Normal', 3),
+        ('Important', 4), ('Critical', 5),
+    )
+    PRIORITIES = (
+        ('Low',1 ), ('Normal', 2), ('High', 3),
+    )
+
+    if (type == "status"):
+        num = dict(STATUSES).get(param)
+        return num
+    elif (type == "type"):
+        num = dict(TYPES).get(param)
+        return num
+    elif (type == "severity"):
+        num = dict(SEVERITIES).get(param)
+        return num
+    elif (type == "priority"):
+        num = dict(PRIORITIES).get(param)
+        return num
