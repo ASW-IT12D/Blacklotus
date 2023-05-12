@@ -604,12 +604,8 @@ class IssueAPIView(APIView):
         try:
             issue = Issue.objects.get(id=id)
             user = User.objects.get(username=request.auth.user)
-            is_assigned = False
-            is_watcher = False
-            if (issue.getAsignedTo().name != None):
-                is_assigned = issue.assignedTo.filter(id=user.id).exists()
-            if (issue.getWatchers().name != None):
-                is_watcher = issue.watchers.filter(id=user.id).exists()
+            is_assigned = issue.asignedTo.filter(id=user.id).exists()
+            is_watcher = issue.watchers.filter(id=user.id).exists()
             if issue.getCreator() == user.username or is_assigned or is_watcher:
                 issue_serializer = self.serializer_class(issue)
                 return Response(issue_serializer.data, status=status.HTTP_200_OK)
@@ -623,12 +619,8 @@ class IssueAPIView(APIView):
             user_to_assign = request.query_params.get('asignTo', None)
             issue = Issue.objects.get(id=id)
             user = User.objects.get(username=request.auth.user)
-            is_assigned = False
-            is_watcher = False
-            if (issue.getAsignedTo().name != None):
-                is_assigned = issue.assignedTo.filter(id=user.id).exists()
-            if (issue.getWatchers().name != None):
-                is_watcher = issue.watchers.filter(id=user.id).exists()
+            is_assigned = issue.asignedTo.filter(id=user.id).exists()
+            is_watcher = issue.watchers.filter(id=user.id).exists()
             if issue.getCreator() == user.username or is_assigned or is_watcher:
                 userToAssign = User.objects.get(username=user_to_assign)
                 issue.asignedTo.add(userToAssign)
@@ -661,12 +653,8 @@ class ActivityAPIView(APIView):
             issue_id = request.query_params.get('id', None)
             issue = Issue.objects.get(id=issue_id)
             user = User.objects.get(username=request.auth.user)
-            is_assigned = False
-            is_watcher = False
-            if (issue.getAsignedTo().name != None):  # compruebo si el user esta dentro de asigned
-                is_assigned = issue.assignedTo.filter(id=user.id).exists()
-            if (issue.getWatchers().name != None):  # compruebo si el user esta dentro de watchers
-                is_watcher = issue.watchers.filter(id=user.id).exists()
+            is_assigned = issue.asignedTo.filter(id=user.id).exists()
+            is_watcher = issue.watchers.filter(id=user.id).exists()
             if issue.getCreator() == user.username or is_assigned or is_watcher:
                 activities = Activity.objects.filter(issueChanged=issue)
                 activity_serializer = self.serializer_class(activities,many=True)
