@@ -613,13 +613,9 @@ class IssueAPIView(APIView):
     def put(self, request, id):
         try:
             issue = Issue.objects.get(id=id)
-            is_assigned = False
-            is_watcher = False
             user = User.objects.get(username=request.auth.user)  # pillo el user
-            if (issue.getAsignedTo().name != None):  # compruebo si el user esta dentro de asigned
-                is_assigned = issue.assignedTo.filter(id=user.id).exists()
-            if (issue.getWatchers().name != None):  # compruebo si el user esta dentro de watchers
-                is_watcher = issue.watchers.filter(id=user.id).exists()
+            is_assigned = issue.asignedTo.filter(id=user.id).exists()
+            is_watcher = issue.watchers.filter(id=user.id).exists()
             if issue.getCreator() == user.username or is_assigned or is_watcher:
                 subject = request.query_params.get('subject', None)
                 description = request.query_params.get('description', None)
