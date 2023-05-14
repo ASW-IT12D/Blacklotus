@@ -619,9 +619,11 @@ class IssueAPIView(APIView):
 
                 watchers = issue.watchers.filter(username=user.username)
                 if watchers:
-                    issue.watchers.remove(user)
-                    issue.save()
-                    return Response({'message': 'Watcher deleted'}, status=status.HTTP_200_OK)
+                    return Response({'message': 'Watcher added correctly'}, status=status.HTTP_200_OK)
+
+                issue.watchers.add(user)
+                issue.save()
+                return Response({'message': 'Watcher added correctly'}, status=status.HTTP_200_OK)
 
             except ObjectDoesNotExist:
                 return Response({'message': 'User not found'}, status=status.HTTP_404_NOT_FOUND)

@@ -93,17 +93,17 @@ paths:
     put:
       tags:
         - Issues
-      summary: Delete a watcher of an issue
+      summary: Add a watcher of an issue
       parameters:
       - name: id
         in: path
-        description: Id of the issue which deadline you want to delete.
+        description: Id of the issue which watchers you want to modify.
         required: true
         schema:
           type: integer
       - name: watcher
         in: query
-        description: Name of the user you want to remove from the watcher.
+        description: Name of the user you want to add to the watchers.
         required: true
         schema:
           type: string
