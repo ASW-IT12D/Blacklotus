@@ -21,6 +21,79 @@ paths:
                 type: array
                 items:
                   $ref: '#/components/schemas/Issue'
+    post:
+      tags:
+      - Issues
+      summary: Add a new Issue
+      operationId: addIssue
+      requestBody:
+        description: pop
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                subject:
+                  description: Subject of the issue
+                  type: string
+                  maxLength: 100
+                  example: 'Crea Perfil'
+                description:
+                  type: string
+                  description: Description of the issue
+                  maxLength: 100
+                  example: 'My content'
+                status:
+                  description: Status of the issue
+                  maxLength: 100
+                  example: 'New'
+                  type: string
+                  enum:
+                    - New
+                    - In progress
+                    - Ready for test
+                    - Closed
+                    - Needs info
+                    - Rejected
+                    - Postponed
+                type:
+                  description: Type of the issue
+                  maxLength: 100
+                  example: 'Bug'
+                  type: string
+                  enum:
+                    - Bug
+                    - Question
+                    - Disabled
+                severity:
+                  description: Severity of the issue
+                  maxLength: 100
+                  example: 'Whishlist'
+                  type: string
+                  enum:
+                    - Whishlist
+                    - Minor
+                    - Normal
+                    - Important
+                    - Critical
+                priority:
+                  description: Priority of the issue
+                  maxLength: 100
+                  example: 'Low'
+                  type: string
+                  enum:
+                    - Low
+                    - Normal
+                    - High
+      responses:
+        200:
+          description: successful operation
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Issue'
   /issue/{id}/:
     get:
       tags:
@@ -73,8 +146,8 @@ paths:
     put:
       tags:
       - Issues
-      summary: Add a new Issue
-      operationId: addIssue
+      summary: Edit a Issue
+      operationId: editIssue
       parameters:
       - name: id
         in: path
@@ -121,7 +194,6 @@ paths:
                     - Bug
                     - Question
                     - Disabled
-                    - Closed
                 severity:
                   description: Severity of the issue
                   maxLength: 100
@@ -188,6 +260,27 @@ paths:
                 type: array
                 items:
                   $ref: '#/components/schemas/Issue'
+    delete:
+      tags:
+        - Issues
+      summary: Deletes an Issue
+      parameters:
+      - name: id
+        in: path
+        description: Id of the issue
+        required: true
+        schema:
+          type: integer
+      responses:
+        200:
+          description: successful operation
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Activity'
+
   /activity/:
     get:
       tags:

@@ -1,9 +1,8 @@
 import calendar
+import json
 import tempfile
 from datetime import datetime
-import json
-from django.core.exceptions import ObjectDoesNotExist
-from rest_framework.authtoken.models import Token
+
 import boto3
 from botocore.exceptions import ClientError
 from django.conf import settings
@@ -12,23 +11,22 @@ from django.contrib.auth import logout
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.forms import AuthenticationForm
 from django.contrib.auth.models import User
+from django.core.exceptions import ObjectDoesNotExist
 from django.db.models import Q
 from django.http import HttpResponse
 from django.shortcuts import render, redirect
 from django.urls import reverse_lazy
 from django.views import generic
-
-from rest_framework.authtoken.views import obtain_auth_token
-from social_django.utils import psa
-from .serializers import IssueSerializer,ActivitySerializer,ProfileSerializer,IssuesSerializer
-from rest_framework.views import APIView
-from rest_framework.response import Response
 from rest_framework import status
+from rest_framework.authtoken.models import Token
 from rest_framework.permissions import IsAuthenticated
-
+from rest_framework.response import Response
+from rest_framework.views import APIView
+from social_django.utils import psa
 
 from .forms import EditProfileInfoForm, RegisterForm, AssignedTo, Watchers
 from .models import Attachments, Activity, Issue, Comentario, Profile
+from .serializers import IssueSerializer, ActivitySerializer, ProfileSerializer, IssuesSerializer
 
 
 # Create your views here.
@@ -37,6 +35,7 @@ from .models import Attachments, Activity, Issue, Comentario, Profile
 def github_auth(request):
     # Autenticación de GitHub en segundo plano
     return redirect(showIssues)
+
 
 @login_required(login_url='login')
 def CreateIssueForm(request):
@@ -55,6 +54,7 @@ def CreateIssueForm(request):
     else:
         return render(request, 'newissue.html')
 
+
 @login_required(login_url='login')
 def BulkIssueForm(request):
     if request.method == "POST":
@@ -69,10 +69,12 @@ def BulkIssueForm(request):
                     severity = 1
                     priority = 1
                     status = 1
-                    i = Issue(subject=sub, description=des, creator=request.user.username, status=status, type=type, severity=severity, priority=priority)
+                    i = Issue(subject=sub, description=des, creator=request.user.username, status=status, type=type,
+                              severity=severity, priority=priority)
                     i.save()
         return redirect(showIssues)
     return render(request, 'bulkissue.html')
+
 
 @login_required(login_url='login')
 def showIssues(request):
@@ -109,7 +111,8 @@ def showIssues(request):
             visible = False
         elif 'mostrarfiltros' in request.POST:
             visible = True
-        if 'updatefiltros' in request.POST or ('filtros_status' in request.session or 'filtros_creator' in request.session or 'filtros_asignedTo' in request.session or 'filtros_severity' in request.session or 'filtros_priority' in request.session or 'filtros_type' in request.session):
+        if 'updatefiltros' in request.POST or (
+                'filtros_status' in request.session or 'filtros_creator' in request.session or 'filtros_asignedTo' in request.session or 'filtros_severity' in request.session or 'filtros_priority' in request.session or 'filtros_type' in request.session):
             if 'filtros_status' not in request.session and 'filtros_asignedTo' not in request.session and 'filtros_creator' not in request.session and 'filtros_severity' not in request.session and 'filtros_priority' not in request.session and 'filtros_type' not in request.session:
                 filtrosS = Q()
                 filtrosP = Q()
@@ -126,7 +129,7 @@ def showIssues(request):
                 filtrosC = Q()
                 filtrosA = Q()
 
-                if'filtros_status' in request.session:
+                if 'filtros_status' in request.session:
                     filtrosstatus = request.session["filtros_status"]
                     for filtro in filtrosstatus:
                         filtrosS = Q(status=filtro) | filtrosS
@@ -163,7 +166,6 @@ def showIssues(request):
                                 user = User.objects.get(username=filtro)
                                 filtrosA = Q(asignedTo=user.id) | filtrosA
 
-
             for filtro in request.POST.getlist("status"):
                 filtrosS = Q(status=filtro) | filtrosS
                 filtrosstatus.append(filtro)
@@ -186,7 +188,7 @@ def showIssues(request):
 
             for filtro in request.POST.getlist("assignations"):
                 if filtro == "Unassigned" or filtro == None:
-                    filtrosA = Q(asignedTo = None)| filtrosA
+                    filtrosA = Q(asignedTo=None) | filtrosA
                     filtrosasigned.append(None)
                 else:
                     if isinstance(filtro, int):
@@ -204,13 +206,13 @@ def showIssues(request):
             request.session['filtros_creator'] = filtroscreator
             request.session['filtros_asignedTo'] = filtrosasigned
 
-
             if 'flexRadioInclude' in request.POST:
                 filtrosF = filtrosS | filtrosP | filtrosT | filtrosSv | filtrosC | filtrosA
             else:
                 filtrosF = filtrosS & filtrosP & filtrosT & filtrosSv & filtrosC & filtrosA
 
-    filtroscreator = Q(creator=request.user.username) | Q(asignedTo__username=request.user.username) | Q(watchers__username=request.user.username)
+    filtroscreator = Q(creator=request.user.username) | Q(asignedTo__username=request.user.username) | Q(
+        watchers__username=request.user.username)
     if ref is not None:
         if sort_by is not None:
             qs = Issue.objects.filter(filtrosF).order_by(sort_by).filter(filtroscreator).filter(
@@ -225,7 +227,8 @@ def showIssues(request):
         else:
             qs = Issue.objects.filter(filtrosF).order_by('-creationdate').filter(filtroscreator)
     allUsers = User.objects.all()
-    return render(request, 'mainIssue.html', {'visible': visible,'qs': qs, 'allUsers': allUsers})
+    return render(request, 'mainIssue.html', {'visible': visible, 'qs': qs, 'allUsers': allUsers})
+
 
 @login_required(login_url='login')
 def BlockIssueForm(request, id):
@@ -236,6 +239,7 @@ def BlockIssueForm(request, id):
             issueUpdate.save()
             return redirect(SeeIssue, num=id)
     return render(request, 'blockissue.html')
+
 
 def list_documents(num):
     try:
@@ -260,6 +264,8 @@ def list_documents(num):
         print(e)
         documents = []
         return documents
+
+
 @login_required(login_url='login')
 def SeeIssue(request, num):
     form = AssignedTo()
@@ -433,7 +439,6 @@ def SeeIssue(request, num):
                 c.save()
     coments = Comentario.objects.all().order_by('-creationDate').filter(issue=num)
 
-
     imagesC = {}
     for c in coments:
         creator = User.objects.get(id=c.creator_id)
@@ -459,7 +464,8 @@ def SeeIssue(request, num):
     return render(request, 'single_issue.html',
                   {'image_url': image_url, 'issue': issue, 'form': form, 'form2': form2,
                    'asignedTo': asignedTo, 'coments': coments, 'activity': activity, 'commentsOn': commentsOn,
-                   'documents': documents, 'watchers': watchers,'imagesC': imagesC, 'imagesA':imagesA})
+                   'documents': documents, 'watchers': watchers, 'imagesC': imagesC, 'imagesA': imagesA})
+
 
 @login_required(login_url='login')
 def EditIssue(request, id):
@@ -487,6 +493,7 @@ def EditIssue(request, id):
     else:
         return render(request, 'editIssue.html', {'issue': issue})
 
+
 def log(request):
     if request.method == 'POST':
         form = AuthenticationForm(request, data=request.POST)
@@ -498,6 +505,7 @@ def log(request):
         form = AuthenticationForm()
     return render(request, 'loginPage.html', {'form': form})
 
+
 def join(request):
     if request.method == 'POST':
         form = RegisterForm(request.POST)
@@ -508,13 +516,15 @@ def join(request):
         form = RegisterForm()
     return render(request, 'signUp.html', {'form': form})
 
+
 @login_required
 def custom_logout(request):
     logout(request)
     return redirect('home')
 
+
 @login_required
-def showProfile(request,usernameProf):
+def showProfile(request, usernameProf):
     user = User.objects.get(username=usernameProf)
     profile = Profile.objects.get(user=user)
     image_url = profile.get_url_image()
@@ -526,12 +536,18 @@ def showProfile(request,usernameProf):
             timelineOn = True
         elif 'watched' in request.POST:
             timelineOn = False
-    return render(request, 'viewProfile.html', {'image_url':image_url,'profile':profile,'timeline': timeline,'watchers': watchers,'timelineOn':timelineOn})
+    return render(request, 'viewProfile.html',
+                  {'image_url': image_url, 'profile': profile, 'timeline': timeline, 'watchers': watchers,
+                   'timelineOn': timelineOn})
+
 
 def showProfileRedir(request):
-    return redirect(showProfile,request.user.username)
+    return redirect(showProfile, request.user.username)
+
+
 def redirectLogin(request):
     return redirect(log)
+
 
 class ProfileEditView(generic.UpdateView):
     form_class = EditProfileInfoForm
@@ -541,14 +557,15 @@ class ProfileEditView(generic.UpdateView):
     def get_object(self):
         return self.request.user
 
+
 @login_required(login_url='login')
 def deadLineForm(request, id):
     current_year = datetime.now().year
 
-    days = [str(day) for day in range (1, 32)]
+    days = [str(day) for day in range(1, 32)]
     months = ['January', 'February', 'March', 'April', 'May', 'June',
               'July', 'August', 'September', 'October', 'November', 'December']
-    years = [str(year) for year in range (current_year, current_year + 10)]
+    years = [str(year) for year in range(current_year, current_year + 10)]
 
     months_dict = {'January': 1, 'February': 2, 'March': 3, 'April': 4, 'May': 5, 'June': 6,
                    'July': 7, 'August': 8, 'September': 9, 'October': 10, 'November': 11, 'December': 12}
@@ -577,7 +594,6 @@ def deadLineForm(request, id):
         if deadline_date < now or day > last_day:
             return render(request, 'newDeadLine.html', context)
 
-
         issue.deadlinedate = deadline_date
         issue.deadline = True
 
@@ -591,25 +607,29 @@ def deadLineForm(request, id):
 
     return render(request, 'newDeadLine.html', context)
 
+
 def get_token(request):
     # Definimos la URL de la API de autenticación
     token, created = Token.objects.get_or_create(user=request.user)
 
     # Aquí puedes hacer lo que necesites con el token, por ejemplo guardarlo en una variable o en una sesión
-    return render(request, 'token.html', {'token':token.key})
-
+    return render(request, 'token.html', {'token': token.key})
 
 
 class IssueAPIView(APIView):
     serializer_class = IssueSerializer
-    permission_classes = (IsAuthenticated, )
-    def get(self,request,id):
+    permission_classes = (IsAuthenticated,)
+
+    def get(self, request, id):
         if id:
             issue = Issue.objects.filter(id=id)
             issue_serializer = self.serializer_class(issue, many=True)
             return Response(issue_serializer.data, status=status.HTTP_200_OK)
         else:
             return Response({'message': 'No issues found'}, status=status.HTTP_404_NOT_FOUND)
+
+
+
     def put(self, request, id):
         try:
             issue = Issue.objects.get(id=id)
@@ -673,20 +693,89 @@ class IssueAPIView(APIView):
 
                 return Response({'message': 'Issue edited successfully'}, status=status.HTTP_200_OK)
             else:
-                return Response({'message': "You don't have permission to edit this Issue"}, status=status.HTTP_403_FORBIDDEN)
+                return Response({'message': "You don't have permission to edit this Issue"},
+                                status=status.HTTP_403_FORBIDDEN)
         except ObjectDoesNotExist:
             return Response({'message': 'issue not found'}, status=status.HTTP_404_NOT_FOUND)
 
+    def delete(self, request, id):
+        is_assigned = False
+        is_watcher = False
+        try:
+            issue = Issue.objects.get(id=id)
+            user = User.objects.get(username=request.auth.user)
+            is_assigned = issue.asignedTo.filter(id=user.id).exists()
+            is_watcher = issue.watchers.filter(id=user.id).exists()
+            if issue.getCreator() == user.username or is_assigned or is_watcher:
+                issue.delete()
+                return Response({'Issue deleted'}, status=status.HTTP_200_OK)
+            else:
+                return Response({'message': "You don't have permission to edit this Issue"},
+                                status=status.HTTP_403_FORBIDDEN)
+        except ObjectDoesNotExist:
+            return Response({'Error: Issue does not exist'}, status=status.HTTP_404_NOT_FOUND)
+
+
 class IssuesAPIView(APIView):
     serializer_class = IssuesSerializer
-    permission_classes = (IsAuthenticated, )
-    def get(self,request):
+    permission_classes = (IsAuthenticated,)
+
+    def get(self, request):
         if id:
             issues = Issue.objects.all()
             issues_serializer = self.serializer_class(issues, many=True)
             return Response(issues_serializer.data, status=status.HTTP_200_OK)
         else:
             return Response({'message': 'No issues found'}, status=status.HTTP_404_NOT_FOUND)
+
+    def post(self, request):
+        data = json.loads(request.body)
+        if ('subject' in data):
+            subject = data.get('subject')
+        else:
+            return Response({'message': 'Subject Missing'}, status=status.HTTP_400_BAD_REQUEST)
+        if ('description' in data):
+            description = data.get('description')
+        else:
+            return Response({'message': 'Description Missing'}, status=status.HTTP_400_BAD_REQUEST)
+        if ('status' in data):
+            statuses = data.get('status')
+            if not check_in(statuses, "status"):
+                return Response({'message': 'Status not valid'}, status=status.HTTP_400_BAD_REQUEST)
+        else:
+            return Response({'message': 'Status Missing'}, status=status.HTTP_400_BAD_REQUEST)
+        if ('type' in data):
+            type = data.get('type')
+            if not check_in(type, "type"):
+                return Response({'message': 'Type not valid'}, status=status.HTTP_400_BAD_REQUEST)
+        else:
+            return Response({'message': 'Type Missing'}, status=status.HTTP_400_BAD_REQUEST)
+
+        if ('severity' in data):
+            severity = data.get('severity')
+            if not check_in(severity, "severity"):
+                return Response({'message': 'Severity not valid'}, status=status.HTTP_400_BAD_REQUEST)
+        else:
+            return Response({'message': 'Severity Missing'}, status=status.HTTP_400_BAD_REQUEST)
+
+        if ('priority' in data):
+            priority = data.get('priority')
+            if not check_in(priority, "priority"):
+                return Response({'message': 'Priority not valid'}, status=status.HTTP_400_BAD_REQUEST)
+        else:
+            return Response({'message': 'Priority Missing'}, status=status.HTTP_400_BAD_REQUEST)
+
+        statuses = traduce(statuses, "status")
+        type = traduce(type, "type")
+        severity = traduce(severity, "severity")
+        priority = traduce(priority, "priority")
+
+        i = Issue(subject=subject, description=description, creator=request.user.username, status=statuses, type=type,
+                  severity=severity, priority=priority)
+        i.save()
+
+        return Response({'message': 'Issue created'}, status=status.HTTP_201_CREATED)
+
     def put(self, request, id):
         user_to_assign = request.query_params.get('asignTo', None)
         if id:
@@ -705,29 +794,33 @@ class IssuesAPIView(APIView):
 
 class ActivityAPIView(APIView):
     serializer_class = ActivitySerializer
-    permission_classes = (IsAuthenticated, )
-    def get(self,request):
+    permission_classes = (IsAuthenticated,)
+
+    def get(self, request):
         issue_id = request.query_params.get('id', None)
         if issue_id:
             issue = Issue.objects.get(id=issue_id)
             activities = Activity.objects.filter(issueChanged=issue)
-            activity_serializer = self.serializer_class(activities,many=True)
-            return Response(activity_serializer.data,status=status.HTTP_200_OK)
+            activity_serializer = self.serializer_class(activities, many=True)
+            return Response(activity_serializer.data, status=status.HTTP_200_OK)
         else:
             return Response({'message': 'No issues found'}, status=status.HTTP_404_NOT_FOUND)
-    def post(self,request):
+
+    def post(self, request):
         pass
 
-    def put(self,request):
+    def put(self, request):
         pass
 
-    def delete(self,request):
+    def delete(self, request):
         pass
+
 
 class ProfileAPIView(APIView):
     serializer_class = ProfileSerializer
     permission_classes = (IsAuthenticated,)
-    def get(self,request,usernameProf):
+
+    def get(self, request, usernameProf):
         user = User.objects.get(username=usernameProf)
         if user:
             profile = Profile.objects.get(user=user)
@@ -741,11 +834,11 @@ class ProfileAPIView(APIView):
                 },
                 'profile': profile_serializer.data
             }
-            return Response(response_data,status=status.HTTP_200_OK)
+            return Response(response_data, status=status.HTTP_200_OK)
         else:
             return Response({'message': 'No profile found'}, status=status.HTTP_404_NOT_FOUND)
 
-    def put(self, request,usernameProf):
+    def put(self, request, usernameProf):
         user = User.objects.get(username=usernameProf)
         if user:
             profile = Profile.objects.get(user=user)
@@ -770,6 +863,7 @@ class ProfileAPIView(APIView):
         else:
             return Response({'message': 'No profile found'}, status=status.HTTP_404_NOT_FOUND)
 
+
 def traduce(param, type):
     STATUSES = (
         ('New', 1), ('In progress', 2),
@@ -784,7 +878,7 @@ def traduce(param, type):
         ('Important', 4), ('Critical', 5),
     )
     PRIORITIES = (
-        ('Low',1 ), ('Normal', 2), ('High', 3),
+        ('Low', 1), ('Normal', 2), ('High', 3),
     )
 
     if (type == "status"):
@@ -800,6 +894,7 @@ def traduce(param, type):
         num = dict(PRIORITIES).get(param)
         return num
 
+
 def check_in(param, type):
     STATUSES = (
         ('New', 1), ('In progress', 2),
@@ -814,7 +909,7 @@ def check_in(param, type):
         ('Important', 4), ('Critical', 5),
     )
     PRIORITIES = (
-        ('Low',1 ), ('Normal', 2), ('High', 3),
+        ('Low', 1), ('Normal', 2), ('High', 3),
     )
 
     if type == "status":
