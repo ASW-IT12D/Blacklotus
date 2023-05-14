@@ -668,6 +668,25 @@ class IssueAPIView(APIView):
                 else:
                     priority = None
 
+                if ('blocked' in data):
+                    if data.get('blocked') == False:
+                        issue.blocked = False
+                        issue.blockmotive = ""
+                        issue.save()
+                    else:
+                        if ('blocked_motive' in data):
+                            motive = data.get('blocked_motive')
+                            if len(motive) > 0:
+                                issue.blockmotive = motive
+                                issue.blocked = True
+                                issue.save()
+                            else:
+                                return Response({'message': 'Block motive was not included'},
+                                                status=status.HTTP_400_BAD_REQUEST)
+                        else:
+                            return Response({'message': 'Block motive was not included'},
+                                            status=status.HTTP_400_BAD_REQUEST)
+
                 if (subject != None):
                     issue.subject = subject
                 if (description != None):

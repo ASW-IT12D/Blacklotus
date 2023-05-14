@@ -156,7 +156,7 @@ paths:
         schema:
           type: integer
       requestBody:
-        description: Provide the data you want to modify, if you don't want to change a field, just delete it.
+        description: Provide the data you want to modify, if you don't want to change a field, just delete it, do not leave the comma at the end.
         content:
           application/json:
             schema:
@@ -217,7 +217,7 @@ paths:
                 blocked:
                   description: Issue blocked or not
                   maxLength: 100
-                  example: 'True/False'
+                  example: 'true/false'
                   type: boolean
                 blocked_motive:
                   description: Motive of block
@@ -227,7 +227,7 @@ paths:
                 deadline:
                   description: Issue with deadline or not
                   maxLength: 100
-                  example: 'True/False'
+                  example: 'true/false'
                   type: boolean
                 deadline_motive:
                   description: Motive of deadline
@@ -347,17 +347,6 @@ paths:
         required: true
         schema:
           type: integer
-      requestBody:
-        required: true
-        content:
-          multipart/form-data:
-            schema:
-              type: object
-              properties:
-                upfile:
-                  type: string
-                  format: binary
-                  description: The file to upload.
 
       responses:
         200:
