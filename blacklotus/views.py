@@ -26,7 +26,7 @@ from social_django.utils import psa
 
 from .forms import EditProfileInfoForm, RegisterForm, AssignedTo, Watchers
 from .models import Attachments, Activity, Issue, Comentario, Profile
-from .serializers import IssueSerializer, ActivitySerializer, ProfileSerializer, IssuesSerializer, AttachmentsSerializer
+from .serializers import IssueSerializer, ActivitySerializer, ProfileSerializer, IssuesSerializer, AttachmentsSerializer, CommentsSerializer
 
 
 # Create your views here.
@@ -732,60 +732,151 @@ class IssuesAPIView(APIView):
     permission_classes = (IsAuthenticated,)
 
     def get(self, request):
-        if id:
+
+        filtrosS = Q()
+        filtrosP = Q()
+        filtrosT = Q()
+        filtrosSv = Q()
+        filtrosC = Q()
+        filtrosA = Q()
+
+        statuses = request.query_params.getlist('Statuses', None)
+        type = request.query_params.getlist('Types', None)
+        severity = request.query_params.getlist('Severities', None)
+        priority = request.query_params.getlist('Priorities', None)
+        exclusive = request.query_params.get('Type of filter', None)
+        if(exclusive == 'All Issues'):
             issues = Issue.objects.all()
             issues_serializer = self.serializer_class(issues, many=True)
             return Response(issues_serializer.data, status=status.HTTP_200_OK)
         else:
-            return Response({'message': 'No issues found'}, status=status.HTTP_404_NOT_FOUND)
+            if len(statuses) > 0 and (statuses[0] != '' or len(statuses) > 1):
+                for filtro in statuses:
+                    if filtro != '':
+                        f = traduce(filtro, "status")
+                        if exclusive == 'Inclusive':
+                            filtrosS = Q(status=f) | filtrosS
+                        else:
+                            filtrosS = Q(status=f) & filtrosS
+
+            if len(priority) > 0 and (priority[0] != '' or len(priority) > 1):
+                for filtro in priority:
+                    if filtro != '':
+                        f = traduce(filtro, "priority")
+                        if exclusive == 'Inclusive':
+                            filtrosP = Q(priority=f) | filtrosP
+                        else:
+                            filtrosP = Q(priority=f) & filtrosP
+
+            if len(type) > 0 and (type[0] != '' or len(type) > 1):
+                for filtro in type:
+                    if filtro != '':
+                        f = traduce(filtro, "type")
+                        if exclusive == 'Inclusive':
+                            filtrosT = Q(type=f) | filtrosT
+                        else:
+                            filtrosT = Q(type=f) & filtrosT
+
+            if len(severity) > 0 and (severity[0] != '' or len(severity) > 1):
+                for filtro in severity:
+                    if filtro != '':
+                        f = traduce(filtro, "severity")
+                        if exclusive == 'Inclusive':
+                            filtrosSv = Q(severity=f) | filtrosSv
+                        else:
+                            filtrosSv = Q(severity=f) & filtrosSv
+            creator = request.query_params.get('CreatedBy', None)
+            if creator:
+                filtroscreator = creator.split(' ')
+                for filtro in filtroscreator:
+                    if exclusive == 'Inclusive':
+                        filtrosC = Q(creator=filtro) | filtrosC
+                    else:
+                        filtrosC = Q(creator=filtro) & filtrosC
+
+            assigned = request.query_params.get('AssignedTo', None)
+            if assigned:
+                filtrosasigned = assigned.split(' ')
+                for filtro in filtrosasigned:
+                    try:
+                        user = User.objects.get(username=filtro)
+                        if exclusive == 'Inclusive':
+                            filtrosA = Q(asignedTo=user.id) | filtrosA
+                        else:
+                            filtrosA = Q(asignedTo=user.id) & filtrosA
+                    except ObjectDoesNotExist:
+                        pass
+
+            if exclusive == 'Inclusive':
+                filtrosF = filtrosS | filtrosP | filtrosT | filtrosSv | filtrosC | filtrosA
+            else:
+                filtrosF = filtrosS & filtrosP & filtrosT & filtrosSv & filtrosC & filtrosA
+
+            issues = Issue.objects.filter(filtrosF)
+            issues_serializer = self.serializer_class(issues, many=True)
+            return Response(issues_serializer.data, status=status.HTTP_200_OK)
 
     def post(self, request):
         data = json.loads(request.body)
+
         if ('subject' in data):
             subject = data.get('subject')
+            lines = subject.split(',')
+            if(len(lines) > 1):
+                for line in lines:
+                    subject = line.strip()
+                    if subject:
+                        i = Issue(subject=subject, description=" ", creator=request.user.username, status=1, type=1,
+                                  severity=1, priority=1)
+                        i.save()
+                return Response({'message': 'Issues created'}, status=status.HTTP_200_OK)
+            else:
+                subject = data.get('subject')
+
+                if ('description' in data):
+                    description = data.get('description')
+                else:
+                    return Response({'message': 'Description Missing'}, status=status.HTTP_400_BAD_REQUEST)
+                if ('status' in data):
+                    statuses = data.get('status')
+                    if not check_in(statuses, "status"):
+                        return Response({'message': 'Status not valid'}, status=status.HTTP_400_BAD_REQUEST)
+                else:
+                    return Response({'message': 'Status Missing'}, status=status.HTTP_400_BAD_REQUEST)
+                if ('type' in data):
+                    type = data.get('type')
+                    if not check_in(type, "type"):
+                        return Response({'message': 'Type not valid'}, status=status.HTTP_400_BAD_REQUEST)
+                else:
+                    return Response({'message': 'Type Missing'}, status=status.HTTP_400_BAD_REQUEST)
+
+                if ('severity' in data):
+                    severity = data.get('severity')
+                    if not check_in(severity, "severity"):
+                        return Response({'message': 'Severity not valid'}, status=status.HTTP_400_BAD_REQUEST)
+                else:
+                    return Response({'message': 'Severity Missing'}, status=status.HTTP_400_BAD_REQUEST)
+
+                if ('priority' in data):
+                    priority = data.get('priority')
+                    if not check_in(priority, "priority"):
+                        return Response({'message': 'Priority not valid'}, status=status.HTTP_400_BAD_REQUEST)
+                else:
+                    return Response({'message': 'Priority Missing'}, status=status.HTTP_400_BAD_REQUEST)
+
+                statuses = traduce(statuses, "status")
+                type = traduce(type, "type")
+                severity = traduce(severity, "severity")
+                priority = traduce(priority, "priority")
+
+                i = Issue(subject=subject, description=description, creator=request.user.username, status=statuses, type=type,
+                          severity=severity, priority=priority)
+                i.save()
+
+                return Response({'message': 'Issue created'}, status=status.HTTP_201_CREATED)
+
         else:
             return Response({'message': 'Subject Missing'}, status=status.HTTP_400_BAD_REQUEST)
-        if ('description' in data):
-            description = data.get('description')
-        else:
-            return Response({'message': 'Description Missing'}, status=status.HTTP_400_BAD_REQUEST)
-        if ('status' in data):
-            statuses = data.get('status')
-            if not check_in(statuses, "status"):
-                return Response({'message': 'Status not valid'}, status=status.HTTP_400_BAD_REQUEST)
-        else:
-            return Response({'message': 'Status Missing'}, status=status.HTTP_400_BAD_REQUEST)
-        if ('type' in data):
-            type = data.get('type')
-            if not check_in(type, "type"):
-                return Response({'message': 'Type not valid'}, status=status.HTTP_400_BAD_REQUEST)
-        else:
-            return Response({'message': 'Type Missing'}, status=status.HTTP_400_BAD_REQUEST)
-
-        if ('severity' in data):
-            severity = data.get('severity')
-            if not check_in(severity, "severity"):
-                return Response({'message': 'Severity not valid'}, status=status.HTTP_400_BAD_REQUEST)
-        else:
-            return Response({'message': 'Severity Missing'}, status=status.HTTP_400_BAD_REQUEST)
-
-        if ('priority' in data):
-            priority = data.get('priority')
-            if not check_in(priority, "priority"):
-                return Response({'message': 'Priority not valid'}, status=status.HTTP_400_BAD_REQUEST)
-        else:
-            return Response({'message': 'Priority Missing'}, status=status.HTTP_400_BAD_REQUEST)
-
-        statuses = traduce(statuses, "status")
-        type = traduce(type, "type")
-        severity = traduce(severity, "severity")
-        priority = traduce(priority, "priority")
-
-        i = Issue(subject=subject, description=description, creator=request.user.username, status=statuses, type=type,
-                  severity=severity, priority=priority)
-        i.save()
-
-        return Response({'message': 'Issue created'}, status=status.HTTP_201_CREATED)
 
     def put(self, request, id):
         user_to_assign = request.query_params.get('asignTo', None)
@@ -893,6 +984,30 @@ class ActivityAPIView(APIView):
 
     def delete(self, request):
         pass
+
+class CommentsAPIView(APIView):
+    serializer_class = CommentsSerializer
+    permission_classes = (IsAuthenticated,)
+    def post(self, request, id):
+        try:
+            issueId = Issue.objects.get(id=id)
+            comment = request.query_params.get('comment', None)
+            if len(comment) > 0:
+                user = User.objects.get(username=request.auth.user)
+                c = Comentario(message=comment, creator=user, issue=issueId)
+                c.save()
+                return Response({'message': 'New comment'}, status=status.HTTP_200_OK)
+        except ObjectDoesNotExist:
+                return Response({'message': 'Issue not found'}, status=status.HTTP_404_NOT_FOUND)
+
+    def get(self,request,id):
+        try:
+            issueId = Issue.objects.get(id=id)
+            comment = Comentario.objects.all().order_by('-creationDate').filter(issue=id)
+            comment_serializer = self.serializer_class(comment, many=True)
+            return Response(comment_serializer.data, status=status.HTTP_200_OK)
+        except ObjectDoesNotExist:
+            return Response({'message': 'Issue not found'}, status=status.HTTP_404_NOT_FOUND)
 
 
 class ProfileAPIView(APIView):

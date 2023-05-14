@@ -10,8 +10,85 @@ paths:
     get:
       tags:
       - Issues
-      summary: Finds all the issues
-      operationId: getIssues
+      summary: Filters all the issues
+      operationId: getFilteredIssues
+      parameters:
+      - name: Type of filter
+        in: query
+        required: true
+        schema:
+          type: string
+          enum:
+            - All Issues
+            - Exclusive
+            - Inclusive
+      - name: Statuses
+        in: query
+        description: filter by statuses
+        required: false
+        schema:
+          type: array
+          items:
+            type: string
+            enum:
+              - New
+              - In progress
+              - Ready for test
+              - Closed
+              - Needs info
+              - Rejected
+              - Postponed
+      - name: Types
+        in: query
+        description: filter by type
+        required: false
+        schema:
+          type: array
+          items:
+            type: string
+            enum:
+              - Bug
+              - Question
+              - Disabled
+      - name: Severities
+        in: query
+        description: filter by severity
+        required: false
+        schema:
+          type: array
+          items:
+            type: string
+            enum:
+              - Whislist
+              - Minor
+              - Normal
+              - Important
+              - Critical
+      - name: Priotities
+        in: query
+        description: filter by type
+        required: false
+        schema:
+          type: array
+          items:
+            type: string
+            enum:
+              - Low
+              - Normal
+              - High
+      - name: AssignedTo
+        in: query
+        description: filter by assignee
+        required: false
+        schema:
+          type: string
+      - name: CreatedBy
+        in: query
+        description: filter by creator
+        required: false
+        schema:
+          type: string
+
       responses:
         200:
           description: successful operation
@@ -21,23 +98,41 @@ paths:
                 type: array
                 items:
                   $ref: '#/components/schemas/Issue'
+        401:
+          description: 'Error: Unauthorized'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResult'
+              examples:
+                errorExample:
+                  $ref: '#/components/examples/error401'
+        403:
+            description: 'Error: Forbidden'
+            content:
+              application/json:
+                schema:
+                  $ref: '#/components/schemas/ErrorResult'
+                examples:
+                  errorExample:
+                    $ref: '#/components/examples/error403'
     post:
       tags:
       - Issues
       summary: Add a new Issue
       operationId: addIssue
       requestBody:
-        description: pop
+        description: Create one or multiple issues adding subjects separated by commas
         content:
           application/json:
             schema:
               type: object
               properties:
                 subject:
-                  description: Subject of the issue
+                  description: Subject of the issue.
                   type: string
                   maxLength: 100
-                  example: 'Crea Perfil'
+                  example: 'Crea Perfil,...'
                 description:
                   type: string
                   description: Description of the issue
@@ -94,6 +189,24 @@ paths:
                 type: array
                 items:
                   $ref: '#/components/schemas/Issue'
+        401:
+          description: 'Error: Unauthorized'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResult'
+              examples:
+                errorExample:
+                  $ref: '#/components/examples/error401'
+        403:
+            description: 'Error: Forbidden'
+            content:
+              application/json:
+                schema:
+                  $ref: '#/components/schemas/ErrorResult'
+                examples:
+                  errorExample:
+                    $ref: '#/components/examples/error403'
   /issue/{id}/:
     get:
       tags:
@@ -260,6 +373,24 @@ paths:
                 type: array
                 items:
                   $ref: '#/components/schemas/Issue'
+        401:
+          description: 'Error: Unauthorized'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResult'
+              examples:
+                errorExample:
+                  $ref: '#/components/examples/error401'
+        403:
+            description: 'Error: Forbidden'
+            content:
+              application/json:
+                schema:
+                  $ref: '#/components/schemas/ErrorResult'
+                examples:
+                  errorExample:
+                    $ref: '#/components/examples/error403'
     delete:
       tags:
         - Issues
@@ -280,6 +411,25 @@ paths:
                 type: array
                 items:
                   $ref: '#/components/schemas/Activity'
+        401:
+          description: 'Error: Unauthorized'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResult'
+              examples:
+                errorExample:
+                  $ref: '#/components/examples/error401'
+        403:
+            description: 'Error: Forbidden'
+            content:
+              application/json:
+                schema:
+                  $ref: '#/components/schemas/ErrorResult'
+                examples:
+                  errorExample:
+                    $ref: '#/components/examples/error403'
+
   /issue/{id}/attachment:
     get:
       tags:
@@ -302,6 +452,24 @@ paths:
                 type: array
                 items:
                   $ref: '#/components/schemas/Issue'
+        401:
+          description: 'Error: Unauthorized'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResult'
+              examples:
+                errorExample:
+                  $ref: '#/components/examples/error401'
+        403:
+            description: 'Error: Forbidden'
+            content:
+              application/json:
+                schema:
+                  $ref: '#/components/schemas/ErrorResult'
+                examples:
+                  errorExample:
+                    $ref: '#/components/examples/error403'
     post:
       tags:
         - Attachments
@@ -335,6 +503,24 @@ paths:
                 type: array
                 items:
                   $ref: '#/components/schemas/Issue'
+        401:
+          description: 'Error: Unauthorized'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResult'
+              examples:
+                errorExample:
+                  $ref: '#/components/examples/error401'
+        403:
+            description: 'Error: Forbidden'
+            content:
+              application/json:
+                schema:
+                  $ref: '#/components/schemas/ErrorResult'
+                examples:
+                  errorExample:
+                    $ref: '#/components/examples/error403'
     delete:
       tags:
         - Attachments
@@ -357,6 +543,25 @@ paths:
                 type: array
                 items:
                   $ref: '#/components/schemas/Issue'
+        401:
+          description: 'Error: Unauthorized'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResult'
+              examples:
+                errorExample:
+                  $ref: '#/components/examples/error401'
+        403:
+            description: 'Error: Forbidden'
+            content:
+              application/json:
+                schema:
+                  $ref: '#/components/schemas/ErrorResult'
+                examples:
+                  errorExample:
+                    $ref: '#/components/examples/error403'
+
   /activity/:
     get:
       tags:
@@ -508,6 +713,129 @@ paths:
                 examples:
                   errorExample:
                     $ref: '#/components/examples/code200putProfile'
+        401:
+          description: 'Error: Unauthorized'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResult'
+              examples:
+                errorExample:
+                  $ref: '#/components/examples/error401'
+        403:
+            description: 'Error: Forbidden'
+            content:
+              application/json:
+                schema:
+                  $ref: '#/components/schemas/ErrorResult'
+                examples:
+                  errorExample:
+                    $ref: '#/components/examples/error403'
+
+  /comment/{id}/:
+    post:
+        tags:
+          - Comments
+        summary: Comment an issue
+        parameters:
+        - name: id
+          in: path
+          description: Id of the issue you want to comment
+          required: true
+          schema:
+            type: integer
+        - name: comment
+          in: query
+          description: Comment here
+          required: true
+          schema:
+            type: string
+        responses:
+          200:
+            description: 'New Comment'
+            content:
+              application/json:
+                  schema:
+                   $ref: '#/components/schemas/ErrorResult'
+                  examples:
+                    errorExample:
+                      $ref: '#/components/examples/code200postComment'
+          404:
+            description: 'Error: Not Found'
+            content:
+              application/json:
+                schema:
+                  $ref: '#/components/schemas/ErrorResult'
+                examples:
+                  errorExample:
+                    $ref: '#/components/examples/error404noIssue'
+          401:
+            description: 'Error: Unauthorized'
+            content:
+              application/json:
+                schema:
+                  $ref: '#/components/schemas/ErrorResult'
+                examples:
+                  errorExample:
+                    $ref: '#/components/examples/error401'
+          403:
+              description: 'Error: Forbidden'
+              content:
+                application/json:
+                  schema:
+                    $ref: '#/components/schemas/ErrorResult'
+                  examples:
+                    errorExample:
+                      $ref: '#/components/examples/error403'
+    get:
+      tags:
+        - Comments
+      summary: List of all the comments of an issue
+      operationId: getCommentsOfIssue
+      parameters:
+      - name: id
+        in: path
+        description: Enter the id of the issue to see the comments
+        required: true
+        schema:
+          type: integer
+
+      responses:
+        200:
+          description: successful operation
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Comentario'
+        404:
+          description: 'Error: Not Found'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResult'
+              examples:
+                errorExample:
+                  $ref: '#/components/examples/error404noIssue'
+        401:
+            description: 'Error: Unauthorized'
+            content:
+              application/json:
+                schema:
+                  $ref: '#/components/schemas/ErrorResult'
+                examples:
+                  errorExample:
+                    $ref: '#/components/examples/error401'
+        403:
+            description: 'Error: Forbidden'
+            content:
+              application/json:
+                schema:
+                  $ref: '#/components/schemas/ErrorResult'
+                examples:
+                  errorExample:
+                    $ref: '#/components/examples/error403'
 
 components:
   securitySchemes:
@@ -575,6 +903,24 @@ components:
               format: url
               example: 'http://127.0.0.1:8000/api/Activity/?Activity=1'
 
+    Comentario:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 1
+        message:
+          type: string
+          example: 'Hello :3'
+        creationDate:
+          type: string
+          format: date-time
+        creator:
+          type: string
+          example: 'Paula'
+        issue:
+          type: integer
+          example: 1
 
     Issue:
       type: object
@@ -665,6 +1011,9 @@ components:
     code200putProfile:
       value:
         message: "Profile update complete"
+    code200postComment:
+      value:
+        message: "New comment created"
     error400:
       value:
         message: "Content is too long (maximum is 280 characters)"
@@ -677,6 +1026,9 @@ components:
     error404noProfile:
       value:
         message: "There is no profile with this username"
+    error404noIssue:
+      value:
+        message: "Issue not found"
 
 security:
   - ApiKeyAuth: []
