@@ -610,13 +610,21 @@ class IssueAPIView(APIView):
 
     def put(self, request, id):
 
+        watcher = request.query_params.get('watcher')
         try:
             issue = Issue.objects.get(id=id)
 
-            if issue.deadline:
-                issue.deadline = False
-                issue.save()
-                return Response({'message': 'Deadline deleted'}, status=status.HTTP_200_OK)
+            try:
+                user = User.objects.get(username=watcher)
+
+                watchers = issue.watchers.filter(username=user.username)
+                if watchers:
+                    issue.watchers.remove(user)
+                    issue.save()
+                    return Response({'message': 'Watcher deleted'}, status=status.HTTP_200_OK)
+
+            except ObjectDoesNotExist:
+                return Response({'message': 'User not found'}, status=status.HTTP_404_NOT_FOUND)
 
         except ObjectDoesNotExist:
             return Response({'message': 'Issue not found'}, status=status.HTTP_404_NOT_FOUND)

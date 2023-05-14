@@ -93,7 +93,7 @@ paths:
     put:
       tags:
         - Issues
-      summary: Delete the deadline of an issue
+      summary: Delete a watcher of an issue
       parameters:
       - name: id
         in: path
@@ -101,10 +101,16 @@ paths:
         required: true
         schema:
           type: integer
+      - name: watcher
+        in: query
+        description: Name of the user you want to remove from the watcher.
+        required: true
+        schema:
+          type: string
 
       responses:
         200:
-          description: 'Deadline updated'
+          description: 'Watchers updated'
           content:
             application/json:
                 schema:
