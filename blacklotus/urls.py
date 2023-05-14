@@ -1,6 +1,6 @@
 from django.urls import path
 from . import views
-from .views import ProfileEditView
+from .views import ProfileEditView, AttachmentsAPIView
 from django.urls import path, include
 from django.contrib.auth import views as auth_views
 from django.conf import settings
@@ -23,7 +23,12 @@ urlpatterns = [
     path('issue/<int:id>/BlockIssue/', views.BlockIssueForm, name="blockIssue"),
     path('issue/<int:id>/Edit/', views.EditIssue, name='edit'),
     path('issue/<int:id>/Deadline/', views.deadLineForm, name = 'deadline'),
-    path('issue/<int:id>/', IssueAPIView.as_view(), name='api-issue'),
+    path('issue/<int:id>/', include(
+        [
+            path('', IssueAPIView.as_view(), name='api-issue'),
+            path('attachment', AttachmentsAPIView.as_view(), name='api-Docu'),
+        ]
+    )),
     path('issues/', IssuesAPIView.as_view(), name='api-issue'),
     path('activity/',ActivityAPIView.as_view(),name='api-activity'),
     path('profile/<str:usernameProf>/',ProfileAPIView.as_view(),name='api-profile'),

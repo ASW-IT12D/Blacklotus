@@ -26,7 +26,7 @@ from social_django.utils import psa
 
 from .forms import EditProfileInfoForm, RegisterForm, AssignedTo, Watchers
 from .models import Attachments, Activity, Issue, Comentario, Profile
-from .serializers import IssueSerializer, ActivitySerializer, ProfileSerializer, IssuesSerializer
+from .serializers import IssueSerializer, ActivitySerializer, ProfileSerializer, IssuesSerializer, AttachmentsSerializer
 
 
 # Create your views here.
@@ -245,8 +245,7 @@ def list_documents(num):
     try:
         s3 = boto3.client('s3',
                           aws_access_key_id=settings.AWS_ACCESS_KEY_ID,
-                          aws_secret_access_key=settings.AWS_SECRET_ACCESS_KEY,
-                          aws_session_token=settings.AWS_SESSION_TOKEN)
+                          aws_secret_access_key=settings.AWS_SECRET_ACCESS_KEY)
         bucket_name = settings.AWS_STORAGE_BUCKET_NAME
         prefix = 'Attachments/'
         response = s3.list_objects_v2(Bucket=bucket_name, Prefix=prefix)
@@ -287,7 +286,9 @@ def SeeIssue(request, num):
             commentsOn = False
         if 'archivo' in request.FILES and request.FILES['archivo']:
             archivo = request.FILES.get('archivo')
-            if len(archivo) > 0:
+            file_name = 'Attachments/' + archivo.name
+            file = Attachments.objects.filter(archivo=file_name)
+            if len(archivo) > 0 and len(file) == 0:
                 document = Attachments(archivo=archivo, username=request.user.username, issue=issueUpdate)
                 document.save()
         elif 'Download' in request.POST:
@@ -296,8 +297,7 @@ def SeeIssue(request, num):
                 try:
                     s3 = boto3.client('s3',
                                       aws_access_key_id=settings.AWS_ACCESS_KEY_ID,
-                                      aws_secret_access_key=settings.AWS_SECRET_ACCESS_KEY,
-                                      aws_session_token=settings.AWS_SESSION_TOKEN)
+                                      aws_secret_access_key=settings.AWS_SECRET_ACCESS_KEY)
                     object_name = 'Attachments/' + option_selected
                     with tempfile.NamedTemporaryFile(delete=False) as temp_file:
                         s3.download_file(settings.AWS_STORAGE_BUCKET_NAME, object_name, temp_file.name)
@@ -313,8 +313,7 @@ def SeeIssue(request, num):
                 try:
                     s3 = boto3.client('s3',
                                       aws_access_key_id=settings.AWS_ACCESS_KEY_ID,
-                                      aws_secret_access_key=settings.AWS_SECRET_ACCESS_KEY,
-                                      aws_session_token=settings.AWS_SESSION_TOKEN)
+                                      aws_secret_access_key=settings.AWS_SECRET_ACCESS_KEY)
                     object_name = 'Attachments/' + option_selected
                     i = Issue.objects.get(id=num)
                     allAt = Attachments.objects.all().filter(archivo=object_name)
@@ -628,15 +627,11 @@ class IssueAPIView(APIView):
         else:
             return Response({'message': 'No issues found'}, status=status.HTTP_404_NOT_FOUND)
 
-
-
     def put(self, request, id):
         try:
             issue = Issue.objects.get(id=id)
-            user = User.objects.get(username=request.auth.user)  # pillo el user
-            is_assigned = issue.asignedTo.filter(id=user.id).exists()
-            is_watcher = issue.watchers.filter(id=user.id).exists()
-            if issue.getCreator() == user.username or is_assigned or is_watcher:
+            tieneAcceso = check_user(id, request.auth.user)
+            if tieneAcceso:
                 data = json.loads(request.body)
                 if ('subject' in data):
                     subject = data.get('subject')
@@ -699,14 +694,11 @@ class IssueAPIView(APIView):
             return Response({'message': 'issue not found'}, status=status.HTTP_404_NOT_FOUND)
 
     def delete(self, request, id):
-        is_assigned = False
-        is_watcher = False
         try:
             issue = Issue.objects.get(id=id)
             user = User.objects.get(username=request.auth.user)
-            is_assigned = issue.asignedTo.filter(id=user.id).exists()
-            is_watcher = issue.watchers.filter(id=user.id).exists()
-            if issue.getCreator() == user.username or is_assigned or is_watcher:
+            tieneAcceso = check_user(id, request.auth.user)
+            if tieneAcceso:
                 issue.delete()
                 return Response({'Issue deleted'}, status=status.HTTP_200_OK)
             else:
@@ -792,6 +784,74 @@ class IssuesAPIView(APIView):
                 return Response({'message': 'Issue not found'}, status=status.HTTP_404_NOT_FOUND)
 
 
+class AttachmentsAPIView(APIView):
+    serializer_class = AttachmentsSerializer
+    permission_classes = (IsAuthenticated,)
+
+    def get(self, request, id):
+        try:
+            issue = Issue.objects.get(id=id)
+            tieneAcceso = check_user(id, request.auth.user)
+            if tieneAcceso:
+                documents = Attachments.objects.filter(issue=issue)
+                documents_serializer = self.serializer_class(documents, many=True)
+                return Response(documents_serializer.data, status=status.HTTP_200_OK)
+            else:
+                return Response({'message': "You don't have permission to edit this Issue"},
+                                status=status.HTTP_403_FORBIDDEN)
+        except ObjectDoesNotExist:
+            return Response({'message': 'Issue not found'}, status=status.HTTP_404_NOT_FOUND)
+
+    def post(self, request, id):
+        try:
+            issue = Issue.objects.get(id=id)
+            tieneAcceso = check_user(id, request.auth.user)
+            if tieneAcceso:
+                upfile = request.FILES.get('upfile')
+
+                if (upfile != None):
+                    # Obtener el archivo adjunto y otros campos del diccionario 'data'
+                    file_name = 'Attachments/' + upfile.name
+                    file = Attachments.objects.filter(archivo=file_name, issue=issue).exists()
+                    if not file:
+                        document = Attachments(archivo=upfile, username=request.user.username, issue=issue)
+                        document.save()
+                    return Response({'message': 'Attachment added complete'}, status=status.HTTP_200_OK)
+                else:
+                    return Response({'message': 'Attachment empty, nothing was done'}, status=status.HTTP_200_OK)
+            else:
+                return Response({'message': "You don't have permission to edit this Issue"},
+                                status=status.HTTP_403_FORBIDDEN)
+        except ObjectDoesNotExist:
+            return Response({'message': 'Issue not found'}, status=status.HTTP_404_NOT_FOUND)
+
+    def delete(self, request, id):
+        upfile = request.FILES.get('upfile')
+        try:
+            s3 = boto3.client('s3',
+                              aws_access_key_id=settings.AWS_ACCESS_KEY_ID,
+                              aws_secret_access_key=settings.AWS_SECRET_ACCESS_KEY)
+            object_name = 'Attachments/' + upfile.name
+            i = Issue.objects.get(id=id)
+            tieneAcceso = check_user(id, request.auth.user)
+            if tieneAcceso:
+                allAt = Attachments.objects.all().filter(archivo=object_name)
+                a = Attachments.objects.all().filter(issue=i, archivo=object_name)
+                if (len(allAt) > 1):
+                    a.delete()
+                elif (len(allAt) == 1):
+                    a.delete()
+                    s3.delete_object(Bucket=settings.AWS_STORAGE_BUCKET_NAME, Key=object_name)
+                return Response({'message': 'Attachment delete complete'}, status=status.HTTP_200_OK)
+            else:
+                return Response({'message': "You don't have permission to edit this Issue"},
+                                status=status.HTTP_403_FORBIDDEN)
+        except ClientError as e:
+            return Response({'message': 'Something went wrong'}, status=status.HTTP_400_BAD_REQUEST)
+        except ObjectDoesNotExist:
+            return Response({'message': 'Issue not found'}, status=status.HTTP_404_NOT_FOUND)
+
+
 class ActivityAPIView(APIView):
     serializer_class = ActivitySerializer
     permission_classes = (IsAuthenticated,)
@@ -862,6 +922,21 @@ class ProfileAPIView(APIView):
             return Response({'message': 'Profile update complete'}, status=status.HTTP_200_OK)
         else:
             return Response({'message': 'No profile found'}, status=status.HTTP_404_NOT_FOUND)
+
+
+def check_user(id, user):
+    issue = Issue.objects.get(id=id)  # Pillo la issue
+    is_assigned = False
+    is_watcher = False
+    user = User.objects.get(username=user)  # pillo el user
+    if (issue.getAsignedTo().name != None):  # compruebo si el user esta dentro de asigned
+        is_assigned = issue.assignedTo.filter(id=user.id).exists()
+    if (issue.getWatchers().name != None):  # compruebo si el user esta dentro de watchers
+        is_watcher = issue.watchers.filter(id=user.id).exists()
+    if issue.getCreator() == user.username or is_assigned or is_watcher:
+        return True
+    else:
+        return False
 
 
 def traduce(param, type):

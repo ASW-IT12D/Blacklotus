@@ -1,5 +1,6 @@
 from rest_framework import serializers
-from .models import Issue,Activity,Profile
+from .models import Issue, Activity, Profile, Attachments
+
 
 class IssueSerializer(serializers.ModelSerializer):
     class Meta:
@@ -17,6 +18,11 @@ class ActivitySerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Activity
+        fields = '__all__'
+
+class AttachmentsSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Attachments
         fields = '__all__'
 
 class ProfileSerializer(serializers.ModelSerializer):
