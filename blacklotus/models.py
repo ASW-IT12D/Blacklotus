@@ -78,6 +78,7 @@ class Issue(models.Model):
     def getAsignedTo(self):
         return self.asignedTo
 
+
     def getStatus(self):
         status_num = self.status
         status_text = dict(self.STATUSES).get(status_num)
