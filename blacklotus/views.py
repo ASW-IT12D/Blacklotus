@@ -1,7 +1,7 @@
 import calendar
 import tempfile
 from datetime import datetime
-
+import json
 from django.core.exceptions import ObjectDoesNotExist
 from rest_framework.authtoken.models import Token
 import boto3
@@ -617,12 +617,41 @@ class IssueAPIView(APIView):
             is_assigned = issue.asignedTo.filter(id=user.id).exists()
             is_watcher = issue.watchers.filter(id=user.id).exists()
             if issue.getCreator() == user.username or is_assigned or is_watcher:
-                subject = request.query_params.get('subject', None)
-                description = request.query_params.get('description', None)
-                statuses = request.query_params.get('status', None)
-                type = request.query_params.get('type', None)
-                severity = request.query_params.get('severity', None)
-                priority = request.query_params.get('priority', None)
+                data = json.loads(request.body)
+                if ('subject' in data):
+                    subject = data.get('subject')
+                else:
+                    subject = None
+                if ('description' in data):
+                    description = data.get('description')
+                else:
+                    description = None
+                if ('status' in data):
+                    statuses = data.get('status')
+                    if not check_in(statuses, "status"):
+                        return Response({'message': 'status edited successfully'}, status=status.HTTP_200_OK)
+                else:
+                    statuses = None
+                if ('type' in data):
+                    type = data.get('type')
+                    if not check_in(type, "type"):
+                        return Response({'message': 'type edited successfully'}, status=status.HTTP_200_OK)
+                else:
+                    type = None
+
+                if ('severity' in data):
+                    severity = data.get('severity')
+                    if not check_in(severity, "severity"):
+                        return Response({'message': 'severity edited successfully'}, status=status.HTTP_200_OK)
+                else:
+                    severity = None
+
+                if ('priority' in data):
+                    priority = data.get('priority')
+                    if not check_in(priority, "priority"):
+                        return Response({'message': 'priority edited successfully'}, status=status.HTTP_200_OK)
+                else:
+                    priority = None
 
                 if (subject != None):
                     issue.subject = subject
@@ -770,3 +799,42 @@ def traduce(param, type):
     elif (type == "priority"):
         num = dict(PRIORITIES).get(param)
         return num
+
+def check_in(param, type):
+    STATUSES = (
+        ('New', 1), ('In progress', 2),
+        ('Ready for test', 3), ('Closed', 4),
+        ('Needs info', 5), ('Rejected', 6), ('Postponed', 7),
+    )
+    TYPES = (
+        ('Bug', 1), ('Question', 2), ('Disabled', 3),
+    )
+    SEVERITIES = (
+        ('Whishlist', 1), ('Minor', 2), ('Normal', 3),
+        ('Important', 4), ('Critical', 5),
+    )
+    PRIORITIES = (
+        ('Low',1 ), ('Normal', 2), ('High', 3),
+    )
+
+    if type == "status":
+        if param in [status[0] for status in STATUSES]:
+            return True
+        else:
+            return False
+    elif type == "type":
+        if param in [types[0] for types in TYPES]:
+            return True
+        else:
+            return False
+    elif type == "severity":
+        if param in [severity[0] for severity in SEVERITIES]:
+            return True
+        else:
+            return False
+    elif type == "priority":
+        if param in [priority[0] for priority in PRIORITIES]:
+            return True
+        else:
+            return False
+    return False
