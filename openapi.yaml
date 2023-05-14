@@ -280,7 +280,94 @@ paths:
                 type: array
                 items:
                   $ref: '#/components/schemas/Activity'
+  /issue/{id}/attachment:
+    get:
+      tags:
+        - Attachments
+      summary: Lists the Attachment of an Issue
+      operationId: listAttachment
+      parameters:
+      - name: id
+        in: path
+        description: Id of the issue
+        required: true
+        schema:
+          type: integer
+      responses:
+        200:
+          description: successful operation
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Issue'
+    post:
+      tags:
+        - Attachments
+      summary: Adds an Attachment to an Issue
+      operationId: addAttachment
+      parameters:
+      - name: id
+        in: path
+        description: Id of the issue
+        required: true
+        schema:
+          type: integer
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                upfile:
+                  type: string
+                  format: binary
+                  description: The file to upload.
 
+      responses:
+        200:
+          description: successful operation
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Issue'
+    delete:
+      tags:
+        - Attachments
+      summary: Adds an Attachment to an Issue
+      operationId: deleteAttachment
+      parameters:
+      - name: id
+        in: path
+        description: Id of the issue
+        required: true
+        schema:
+          type: integer
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                upfile:
+                  type: string
+                  format: binary
+                  description: The file to upload.
+
+      responses:
+        200:
+          description: successful operation
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Issue'
   /activity/:
     get:
       tags:
