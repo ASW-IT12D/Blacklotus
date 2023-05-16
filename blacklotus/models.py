@@ -218,7 +218,7 @@ class Profile(models.Model):
     def __str__(self):
         return str(self.user)
 
-    def save(self, *args, **kwargs):
+    def saveProfImg(self, *args, **kwargs):
         if bool(self.image):
             s3 = boto3.client('s3',
                               aws_access_key_id=settings.AWS_ACCESS_KEY_ID,

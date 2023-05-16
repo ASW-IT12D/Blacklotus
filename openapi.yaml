@@ -717,59 +717,90 @@ paths:
         required: true
         schema:
           type: string
-      - name: bio
-        in : query
-        description: New biography of the profile
-        required: false
-        schema:
-          type: string
-      - name: image
-        in : query
-        description: New url of the profile image
-        required: false
-        schema:
-          type: string
-      - name: email
-        in : query
-        description: New email of the profile
-        required: false
-        schema:
-          type: string
-      - name: first_name
-        in : query
-        description: New name of the profile
-        required: false
-        schema:
-          type: string
+
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                bio:
+                  description: New biography of the profile
+                  type: string
+                  maxLength: 100
+                  example: 'Hello everyone'
+                email:
+                  description: New email of the profile
+                  type: string
+                  maxLength: 100
+                  example: 'lluis.pujalte@gmail.com'
+                first_name:
+                  description: New name of the profile
+                  type: string
+                  maxLength: 100
+                  example: 'Lluís'
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                profile:
+                  type: string
+                  format: binary
+                  description: The file to upload.
       responses:
         200:
-          description: 'Profile updated'
-          content:
-            application/json:
-                schema:
-                  $ref: '#/components/schemas/ErrorResult'
-                examples:
-                  errorExample:
-                    $ref: '#/components/examples/code200putProfile'
-        401:
-          description: 'Error: Unauthorized'
+          description: Profile update complete
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorResult'
+                type: object
+                properties:
+                  message:
+                    type: string
               examples:
-                errorExample:
-                  $ref: '#/components/examples/error401'
+                successExample:
+                  value:
+                    message: Profile update complete
         403:
-            description: 'Error: Forbidden'
-            content:
-              application/json:
-                schema:
-                  $ref: '#/components/schemas/ErrorResult'
-                examples:
-                  errorExample:
-                    $ref: '#/components/examples/error403'
-
+          description: You don't have permissions to edit this profile
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+              examples:
+                unauthorizedExample:
+                  value:
+                    message: You don't have permissions to edit this profile
+        404:
+          description: No profile found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+              examples:
+                notFoundExample:
+                  value:
+                    message: No profile found
+        415:
+          description: Unsupported media type
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+              examples:
+                unsupportedMediaTypeExample:
+                  value:
+                    message: Unsupported media type
   /comment/{id}/:
     post:
         tags:

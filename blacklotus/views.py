@@ -23,7 +23,7 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from social_django.utils import psa
-
+import codecs
 from .forms import EditProfileInfoForm, RegisterForm, AssignedTo, Watchers
 from .models import Attachments, Activity, Issue, Comentario, Profile
 from .serializers import IssueSerializer, ActivitySerializer, ProfileSerializer, IssuesSerializer, AttachmentsSerializer, CommentsSerializer
@@ -720,19 +720,16 @@ class IssueAPIView(APIView):
                             motive = data.get('deadline_motive')
                             if len(motive) > 0:
                                 issue.deadlinemotive = motive
-
-
                         issue.deadline = True
                         issue.save()
-
                 if('watchers' in data):
                     user_str = data.get('watchers')
                     user = User.objects.get(username=user_str)
-                    if(user):
-                        issue.watchers.add(user)
-                    else:
-                        return Response({'message': 'User not found'}, status=status.HTTP_404_NOT_FOUND)
-
+                    issue.watchers.add(user)
+                if ('asignTo' in data):
+                    user_str = data.get('asignTo')
+                    user = User.objects.get(username=user_str)
+                    issue.asignedTo.add(user)
                 if (subject != None):
                     issue.subject = subject
                 if (description != None):
@@ -756,7 +753,11 @@ class IssueAPIView(APIView):
                 return Response({'message': "You don't have permission to edit this Issue"},
                                 status=status.HTTP_403_FORBIDDEN)
         except ObjectDoesNotExist:
-            return Response({'message': 'issue not found'}, status=status.HTTP_404_NOT_FOUND)
+            try:
+                Issue.objects.get(id=id)
+                return Response({'message': 'User not found'}, status=status.HTTP_400_BAD_REQUEST)
+            except ObjectDoesNotExist:
+                return Response({'message': 'Issue not found'}, status=status.HTTP_404_NOT_FOUND)
 
     def delete(self, request, id):
         try:
@@ -954,20 +955,6 @@ class IssuesAPIView(APIView):
         else:
             return Response({'message': 'Subject Missing'}, status=status.HTTP_400_BAD_REQUEST)
 
-    def put(self, request, id):
-        user_to_assign = request.query_params.get('asignTo', None)
-        if id:
-            issue = Issue.objects.filter(id=id).first()
-            if issue:
-                user = User.objects.filter(username=user_to_assign).first()
-                if user:
-                    issue.asignedTo.add(user)
-                    issue.save()
-                    return Response({'message': 'User assigned'}, status=status.HTTP_200_OK)
-                else:
-                    return Response({'message': 'User not found'}, status=status.HTTP_400_BAD_REQUEST)
-            else:
-                return Response({'message': 'Issue not found'}, status=status.HTTP_404_NOT_FOUND)
 
 
 class AttachmentsAPIView(APIView):
@@ -1041,25 +1028,22 @@ class AttachmentsAPIView(APIView):
 class ActivityAPIView(APIView):
     serializer_class = ActivitySerializer
     permission_classes = (IsAuthenticated,)
-
-    def get(self, request):
-        issue_id = request.query_params.get('id', None)
-        if issue_id:
+    def get(self,request):
+        try:
+            issue_id = request.query_params.get('id', None)
             issue = Issue.objects.get(id=issue_id)
-            activities = Activity.objects.filter(issueChanged=issue)
-            activity_serializer = self.serializer_class(activities, many=True)
-            return Response(activity_serializer.data, status=status.HTTP_200_OK)
-        else:
+            user = User.objects.get(username=request.auth.user)
+            is_assigned = issue.asignedTo.filter(id=user.id).exists()
+            is_watcher = issue.watchers.filter(id=user.id).exists()
+            if issue.getCreator() == user.username or is_assigned or is_watcher:
+                activities = Activity.objects.filter(issueChanged=issue)
+                activity_serializer = self.serializer_class(activities,many=True)
+                return Response(activity_serializer.data,status=status.HTTP_200_OK)
+            else:
+                return Response({'message': 'You don\'t have permissions to view this issue'},status=status.HTTP_403_FORBIDDEN)
+        except ObjectDoesNotExist:
             return Response({'message': 'No issues found'}, status=status.HTTP_404_NOT_FOUND)
 
-    def post(self, request):
-        pass
-
-    def put(self, request):
-        pass
-
-    def delete(self, request):
-        pass
 
 class CommentsAPIView(APIView):
     serializer_class = CommentsSerializer
@@ -1089,10 +1073,10 @@ class CommentsAPIView(APIView):
 class ProfileAPIView(APIView):
     serializer_class = ProfileSerializer
     permission_classes = (IsAuthenticated,)
+    def get(self,request,usernameProf):
 
-    def get(self, request, usernameProf):
-        user = User.objects.get(username=usernameProf)
-        if user:
+        try:
+            user = User.objects.get(username=usernameProf)
             profile = Profile.objects.get(user=user)
             profile_serializer = self.serializer_class(profile)
             response_data = {
@@ -1104,33 +1088,41 @@ class ProfileAPIView(APIView):
                 },
                 'profile': profile_serializer.data
             }
-            return Response(response_data, status=status.HTTP_200_OK)
-        else:
+            return Response(response_data,status=status.HTTP_200_OK)
+        except ObjectDoesNotExist:
             return Response({'message': 'No profile found'}, status=status.HTTP_404_NOT_FOUND)
 
     def put(self, request, usernameProf):
-        user = User.objects.get(username=usernameProf)
-        if user:
-            profile = Profile.objects.get(user=user)
-            bio = request.data.get('bio', None)
-            if bio:
-                profile.bio = bio
-                profile.save()
-            image = request.data.get('image', None)
-            if image:
-                profile.image = image
-                image.save()
-            email = request.data.get('email', None)
-            if email:
-                user.email = email
-                user.save()
-            first_name = request.data.get('first_name', None)
-            if first_name:
-                user.first_name = first_name
-                user.save()
 
-            return Response({'message': 'Profile update complete'}, status=status.HTTP_200_OK)
-        else:
+        try:
+            user = User.objects.get(username=usernameProf)
+            data = json.loads(request.body)
+            if user == User.objects.get(username=request.auth.user):
+                profile = Profile.objects.get(user=user)
+                if 'profile' in request.FILES:
+                    image = request.FILES.get('profile')
+                    if image:
+                        if image.content_type in ["image/jpeg", "image/png", "image/gif"]:
+                            profile.image = image
+                            profile.saveProfImg()
+                            return Response({'message': 'Profile update complete'}, status=status.HTTP_200_OK)
+                        else:
+                            return Response({'message': 'Unsupported media type'},status=status.HTTP_415_UNSUPPORTED_MEDIA_TYPE)
+                else:
+                    if 'bio' in data:
+                        profile.bio = data.get('bio')
+                        profile.save()
+                    if 'email' in data:
+                        user.email = data.get('email')
+                        user.save()
+                    if 'first_name' in data:
+                        user.first_name = data.get('first_name')
+                        user.save()
+                    return Response({'message': 'Profile update complete'}, status=status.HTTP_200_OK)
+            else:
+                return Response({'message': 'You don\'t have permissions to edit this profile'},
+                                status=status.HTTP_403_FORBIDDEN)
+        except ObjectDoesNotExist:
             return Response({'message': 'No profile found'}, status=status.HTTP_404_NOT_FOUND)
 
 
