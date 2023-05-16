@@ -687,6 +687,52 @@ class IssueAPIView(APIView):
                             return Response({'message': 'Block motive was not included'},
                                             status=status.HTTP_400_BAD_REQUEST)
 
+                if ('deadline' in data):
+                    if data.get('deadline') == False:
+                        issue.deadline = False
+                        issue.deadlinemotive = ""
+                        issue.deadlinedate = None
+
+                        issue.save()
+                    else:
+                        if('deadline_date' in data):
+                            deadline_str = data.get('deadline_date')
+                            try:
+                                deadline = datetime.strptime(deadline_str, "%d-%m-%Y")
+                            except:
+                                return Response({'message': 'Invalid deadline format, it should be dd-mm-yyyy'},
+                                                status=status.HTTP_406_NOT_ACCEPTABLE)
+
+                            now = datetime.now()
+                            last_day = calendar.monthrange(deadline.year, deadline.month)[1]
+
+                            if deadline < now or deadline.day > last_day:
+                                return Response({'message': 'Invalid deadline format, date can not be earlier than today'},
+                                                status=status.HTTP_406_NOT_ACCEPTABLE)
+
+                            issue.deadlinedate = deadline
+
+                        else:
+                            return Response({'message': 'Deadline was not included'},
+                                            status=status.HTTP_400_BAD_REQUEST)
+
+                        if ('deadline_motive' in data):
+                            motive = data.get('deadline_motive')
+                            if len(motive) > 0:
+                                issue.deadlinemotive = motive
+
+
+                        issue.deadline = True
+                        issue.save()
+
+                if('watchers' in data):
+                    user_str = data.get('watchers')
+                    user = User.objects.get(username=user_str)
+                    if(user):
+                        issue.watchers.add(user)
+                    else:
+                        return Response({'message': 'User not found'}, status=status.HTTP_404_NOT_FOUND)
+
                 if (subject != None):
                     issue.subject = subject
                 if (description != None):
@@ -739,12 +785,15 @@ class IssuesAPIView(APIView):
         filtrosSv = Q()
         filtrosC = Q()
         filtrosA = Q()
+        filtrosN = Q()
+        filtrosSrt = Q()
 
         statuses = request.query_params.getlist('Statuses', None)
         type = request.query_params.getlist('Types', None)
         severity = request.query_params.getlist('Severities', None)
         priority = request.query_params.getlist('Priorities', None)
         exclusive = request.query_params.get('Type of filter', None)
+        sortby = request.query_params.get('SortBy', None)
         if(exclusive == 'All Issues'):
             issues = Issue.objects.all()
             issues_serializer = self.serializer_class(issues, many=True)
@@ -785,6 +834,17 @@ class IssuesAPIView(APIView):
                             filtrosSv = Q(severity=f) | filtrosSv
                         else:
                             filtrosSv = Q(severity=f) & filtrosSv
+
+            if len(sortby) > 0 and (sortby[0] != '' or len(sortby) > 1):
+                for filtro in sortby:
+                    if filtro != '':
+                        f = filtro.lower()
+                        order = request.query_params.get('SortOrder', None)
+                        if(order):
+                            if(order == 'desc'):
+                                f = '-' + f
+
+
             creator = request.query_params.get('CreatedBy', None)
             if creator:
                 filtroscreator = creator.split(' ')
@@ -807,12 +867,28 @@ class IssuesAPIView(APIView):
                     except ObjectDoesNotExist:
                         pass
 
-            if exclusive == 'Inclusive':
-                filtrosF = filtrosS | filtrosP | filtrosT | filtrosSv | filtrosC | filtrosA
-            else:
-                filtrosF = filtrosS & filtrosP & filtrosT & filtrosSv & filtrosC & filtrosA
+            subject = request.query_params.get('Subject', None)
+            if subject:
+                filtrosname = subject.split(' ')
+                for filtro in filtrosname:
+                    try:
+                        if exclusive == 'Inclusive':
+                            filtrosN = Q(subject=filtro) | filtrosN
+                        else:
+                            filtrosN = Q(subject=filtro) & filtrosN
+                    except ObjectDoesNotExist:
+                        pass
 
-            issues = Issue.objects.filter(filtrosF)
+            if exclusive == 'Inclusive':
+                filtrosF = filtrosS | filtrosP | filtrosT | filtrosSv | filtrosC | filtrosA | filtrosN
+            else:
+                filtrosF = filtrosS & filtrosP & filtrosT & filtrosSv & filtrosC & filtrosA & filtrosN
+
+
+            if sortby:
+                issues = Issue.objects.order_by(f).filter(filtrosF)
+            else:
+                issues = Issue.objects.filter(filtrosF)
             issues_serializer = self.serializer_class(issues, many=True)
             return Response(issues_serializer.data, status=status.HTTP_200_OK)
 

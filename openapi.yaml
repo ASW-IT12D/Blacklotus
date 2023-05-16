@@ -88,7 +88,36 @@ paths:
         required: false
         schema:
           type: string
-
+      - name: Subject
+        in: query
+        description: filter by subject
+        required: false
+        schema:
+          type: string
+      - name: SortBy
+        in: query
+        description: order by parameters
+        required: false
+        schema:
+          type: array
+          items:
+            type: string
+            enum:
+              - Status
+              - Type
+              - Severity
+              - Priority
+      - name: SortOrder
+        in: query
+        description: order by parameters
+        required: false
+        schema:
+          type: array
+          items:
+            type: string
+            enum:
+              - asc
+              - desc
       responses:
         200:
           description: successful operation
@@ -391,6 +420,15 @@ paths:
                 examples:
                   errorExample:
                     $ref: '#/components/examples/error403'
+        406:
+            description: 'Error: Incorrect data'
+            content:
+              application/json:
+                schema:
+                  $ref: '#/components/schemas/ErrorResult'
+                examples:
+                  errorExample:
+                    $ref: '#/components/examples/error406'
     delete:
       tags:
         - Issues
@@ -1023,6 +1061,9 @@ components:
     error403:
       value:
         message: "You provided an invalid token"
+    error406:
+      value:
+        message: "Content is not correct (invalid format)"
     error404noProfile:
       value:
         message: "There is no profile with this username"
