@@ -799,7 +799,7 @@ class IssuesAPIView(APIView):
             severity = request.query_params.getlist('Severities', None)
             priority = request.query_params.getlist('Priorities', None)
             exclusive = request.query_params.get('Type of filter', None)
-            sortby = request.query_params.get('SortBy', None)
+            sortby = request.query_params.getlist('SortBy', None)
             sortorder = request.query_params.get('SortOrder', None)
             filterissue = Q(creator=request.auth.user) | Q(asignedTo__username=request.auth.user) | Q(watchers__username=request.auth.user)
 
@@ -849,7 +849,7 @@ class IssuesAPIView(APIView):
                         if filtro != '' and filtro != None:
                             f = filtro.lower()
                             if (sortorder == 'desc'):
-                                f = '-' + filtro
+                                f = '-' + f
 
 
                 creator = request.query_params.get('CreatedBy', None)
