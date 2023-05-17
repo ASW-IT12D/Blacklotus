@@ -9,10 +9,14 @@ https://docs.djangoproject.com/en/4.1/topics/settings/
 For the full list of settings and their values, see
 https://docs.djangoproject.com/en/4.1/ref/settings/
 """
-
+import os
+import dj_database_url
+import whitenoise as whitenoise
+from dotenv import load_dotenv
 from pathlib import Path
-
 import social_django.middleware
+
+load_dotenv()
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -25,10 +29,10 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = 'django-insecure-8y@g%vwm%8hgatsrkscuy-grlx9&l-6b-3v=*@mcrh03tnw93p'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = os.environ.get('DEBUG')
 
-ALLOWED_HOSTS = []
-
+ALLOWED_HOSTS = ['127.0.0.1', 'localhost', 'blacklotusdeploy.fly.dev']
+CSRF_TRUSTED_ORIGINS = ['https://blacklotusdeploy.fly.dev']
 
 # Application definition
 
@@ -42,6 +46,7 @@ INSTALLED_APPS = [
     'rest_framework',
     'rest_framework.authtoken',
     'blacklotus',
+    'whitenoise.runserver_nostatic',
     'social_django',
     'corsheaders',
 
@@ -60,6 +65,7 @@ CORS_ALLOW_METHODS = [
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
+    'whitenoise.middleware.WhiteNoiseMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -69,6 +75,7 @@ MIDDLEWARE = [
     'social_django.middleware.SocialAuthExceptionMiddleware',
     'corsheaders.middleware.CorsMiddleware',
     'django.middleware.common.CommonMiddleware',
+    'social_django.middleware.SocialAuthExceptionMiddleware',
 ]
 
 ROOT_URLCONF = 'ASWPROJECT.urls'
@@ -94,8 +101,8 @@ AUTHENTICATION_BACKENDS = [
     'django.contrib.auth.backends.ModelBackend',
 ]
 
-SOCIAL_AUTH_GITHUB_KEY = 'f602b1295efdaf14b9b4'
-SOCIAL_AUTH_GITHUB_SECRET = 'f5c0e921221a277318989f68c35f0927e863c701'
+SOCIAL_AUTH_GITHUB_KEY = '50fa52142a158026db60'
+SOCIAL_AUTH_GITHUB_SECRET = 'da801cc772fc8755ed9cca97091f037a336d5716'
 
 WSGI_APPLICATION = 'ASWPROJECT.wsgi.application'
 
@@ -104,10 +111,9 @@ WSGI_APPLICATION = 'ASWPROJECT.wsgi.application'
 # https://docs.djangoproject.com/en/4.1/ref/settings/#databases
 
 DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
-    }
+    'default': dj_database_url.config(
+        default='sqlite:///'+os.path.join('db.sqlite3')
+    )
 }
 
 
@@ -144,6 +150,7 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/4.1/howto/static-files/
 
+STATICFILES_STORAGE='whitenoise.storage.CompressedManifestStaticFilesStorage'
 STATIC_URL = 'static/'
 STATICFILES_DIRS = [BASE_DIR / "static"]
 
@@ -151,7 +158,6 @@ STATICFILES_DIRS = [BASE_DIR / "static"]
 # https://docs.djangoproject.com/en/4.1/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
-
 
 # AWS S3 Settings
 AWS_ACCESS_KEY_ID = 'AKIASSJ5VHLPGQB2IUW6'
