@@ -620,11 +620,16 @@ class IssueAPIView(APIView):
     permission_classes = (IsAuthenticated,)
 
     def get(self, request, id):
-        if id:
-            issue = Issue.objects.filter(id=id)
-            issue_serializer = self.serializer_class(issue, many=True)
-            return Response(issue_serializer.data, status=status.HTTP_200_OK)
-        else:
+        try:
+            tieneAcceso = check_user(id, request.auth.user)
+            if tieneAcceso:
+                issue = Issue.objects.filter(id=id)
+                issue_serializer = self.serializer_class(issue, many=True)
+                return Response(issue_serializer.data, status=status.HTTP_200_OK)
+            else:
+                return Response({'message': "You don't have permission to edit this Issue"},
+                                status=status.HTTP_403_FORBIDDEN)
+        except ObjectDoesNotExist:
             return Response({'message': 'No issues found'}, status=status.HTTP_404_NOT_FOUND)
 
     def put(self, request, id):
@@ -779,120 +784,132 @@ class IssuesAPIView(APIView):
     permission_classes = (IsAuthenticated,)
 
     def get(self, request):
+        try:
+            filtrosS = Q()
+            filtrosP = Q()
+            filtrosT = Q()
+            filtrosSv = Q()
+            filtrosC = Q()
+            filtrosA = Q()
+            filtrosN = Q()
+            filtrosSrt = Q()
 
-        filtrosS = Q()
-        filtrosP = Q()
-        filtrosT = Q()
-        filtrosSv = Q()
-        filtrosC = Q()
-        filtrosA = Q()
-        filtrosN = Q()
-        filtrosSrt = Q()
+            statuses = request.query_params.getlist('Statuses', None)
+            type = request.query_params.getlist('Types', None)
+            severity = request.query_params.getlist('Severities', None)
+            priority = request.query_params.getlist('Priorities', None)
+            exclusive = request.query_params.get('Type of filter', None)
+            sortby = request.query_params.get('SortBy', None)
+            sortorder = request.query_params.get('SortOrder', None)
+            filterissue = Q(creator=request.auth.user) | Q(asignedTo__username=request.auth.user) | Q(watchers__username=request.auth.user)
 
-        statuses = request.query_params.getlist('Statuses', None)
-        type = request.query_params.getlist('Types', None)
-        severity = request.query_params.getlist('Severities', None)
-        priority = request.query_params.getlist('Priorities', None)
-        exclusive = request.query_params.get('Type of filter', None)
-        sortby = request.query_params.get('SortBy', None)
-        if(exclusive == 'All Issues'):
-            issues = Issue.objects.all()
-            issues_serializer = self.serializer_class(issues, many=True)
-            return Response(issues_serializer.data, status=status.HTTP_200_OK)
-        else:
-            if len(statuses) > 0 and (statuses[0] != '' or len(statuses) > 1):
-                for filtro in statuses:
-                    if filtro != '':
-                        f = traduce(filtro, "status")
+            if(exclusive == 'All Issues'):
+                issues = Issue.objects.filter(filterissue)
+                issues_serializer = self.serializer_class(issues, many=True)
+                return Response(issues_serializer.data, status=status.HTTP_200_OK)
+            else:
+                if statuses != None and len(statuses) > 0 and (statuses[0] != '' or len(statuses) > 1):
+                    for filtro in statuses:
+                        if filtro != '':
+                            f = traduce(filtro, "status")
+                            if exclusive == 'Inclusive':
+                                filtrosS = Q(status=f) | filtrosS
+                            else:
+                                filtrosS = Q(status=f) & filtrosS
+
+                if priority != None and len(priority) > 0 and (priority[0] != '' or len(priority) > 1):
+                    for filtro in priority:
+                        if filtro != '':
+                            f = traduce(filtro, "priority")
+                            if exclusive == 'Inclusive':
+                                filtrosP = Q(priority=f) | filtrosP
+                            else:
+                                filtrosP = Q(priority=f) & filtrosP
+
+                if type != None and len(type) > 0 and (type[0] != '' or len(type) > 1):
+                    for filtro in type:
+                        if filtro != '':
+                            f = traduce(filtro, "type")
+                            if exclusive == 'Inclusive':
+                                filtrosT = Q(type=f) | filtrosT
+                            else:
+                                filtrosT = Q(type=f) & filtrosT
+
+                if severity != None and len(severity) > 0 and (severity[0] != '' or len(severity) > 1):
+                    for filtro in severity:
+                        if filtro != '' and filtro != None:
+                            f = traduce(filtro, "severity")
+                            if exclusive == 'Inclusive':
+                                filtrosSv = Q(severity=f) | filtrosSv
+                            else:
+                                filtrosSv = Q(severity=f) & filtrosSv
+
+                if sortby != None and sortorder != None and len(sortby) > 0 and (sortby[0] != '' or len(sortby) > 1):
+                    for filtro in sortby:
+                        if filtro != '' and filtro != None:
+                            f = filtro.lower()
+                            if (sortorder == 'desc'):
+                                f = '-' + filtro
+
+
+                creator = request.query_params.get('CreatedBy', None)
+                if creator:
+                    filtroscreator = creator.split(' ')
+                    for filtro in filtroscreator:
                         if exclusive == 'Inclusive':
-                            filtrosS = Q(status=f) | filtrosS
+                            filtrosC = Q(creator=filtro) | filtrosC
                         else:
-                            filtrosS = Q(status=f) & filtrosS
+                            filtrosC = Q(creator=filtro) & filtrosC
 
-            if len(priority) > 0 and (priority[0] != '' or len(priority) > 1):
-                for filtro in priority:
-                    if filtro != '':
-                        f = traduce(filtro, "priority")
-                        if exclusive == 'Inclusive':
-                            filtrosP = Q(priority=f) | filtrosP
-                        else:
-                            filtrosP = Q(priority=f) & filtrosP
-
-            if len(type) > 0 and (type[0] != '' or len(type) > 1):
-                for filtro in type:
-                    if filtro != '':
-                        f = traduce(filtro, "type")
-                        if exclusive == 'Inclusive':
-                            filtrosT = Q(type=f) | filtrosT
-                        else:
-                            filtrosT = Q(type=f) & filtrosT
-
-            if len(severity) > 0 and (severity[0] != '' or len(severity) > 1):
-                for filtro in severity:
-                    if filtro != '':
-                        f = traduce(filtro, "severity")
-                        if exclusive == 'Inclusive':
-                            filtrosSv = Q(severity=f) | filtrosSv
-                        else:
-                            filtrosSv = Q(severity=f) & filtrosSv
-
-            if len(sortby) > 0 and (sortby[0] != '' or len(sortby) > 1):
-                for filtro in sortby:
-                    if filtro != '':
-                        f = filtro.lower()
-                        order = request.query_params.get('SortOrder', None)
-                        if(order):
-                            if(order == 'desc'):
-                                f = '-' + f
-
-
-            creator = request.query_params.get('CreatedBy', None)
-            if creator:
-                filtroscreator = creator.split(' ')
-                for filtro in filtroscreator:
-                    if exclusive == 'Inclusive':
-                        filtrosC = Q(creator=filtro) | filtrosC
-                    else:
-                        filtrosC = Q(creator=filtro) & filtrosC
-
-            assigned = request.query_params.get('AssignedTo', None)
-            if assigned:
-                filtrosasigned = assigned.split(' ')
-                for filtro in filtrosasigned:
-                    try:
+                assigned = request.query_params.get('AssignedTo', None)
+                if assigned:
+                    filtrosasigned = assigned.split(' ')
+                    for filtro in filtrosasigned:
                         user = User.objects.get(username=filtro)
                         if exclusive == 'Inclusive':
                             filtrosA = Q(asignedTo=user.id) | filtrosA
                         else:
                             filtrosA = Q(asignedTo=user.id) & filtrosA
-                    except ObjectDoesNotExist:
-                        pass
 
-            subject = request.query_params.get('Subject', None)
-            if subject:
-                filtrosname = subject.split(' ')
-                for filtro in filtrosname:
-                    try:
+
+                subject = request.query_params.get('Subject', None)
+                if subject:
+                    filtrosname = subject.split(' ')
+                    for filtro in filtrosname:
                         if exclusive == 'Inclusive':
                             filtrosN = Q(subject=filtro) | filtrosN
                         else:
                             filtrosN = Q(subject=filtro) & filtrosN
-                    except ObjectDoesNotExist:
-                        pass
 
-            if exclusive == 'Inclusive':
-                filtrosF = filtrosS | filtrosP | filtrosT | filtrosSv | filtrosC | filtrosA | filtrosN
-            else:
-                filtrosF = filtrosS & filtrosP & filtrosT & filtrosSv & filtrosC & filtrosA & filtrosN
+                if exclusive == 'Inclusive':
+                    filtrosF = (filtrosS | filtrosP | filtrosT | filtrosSv | filtrosC | filtrosA | filtrosN) & filterissue
+                else:
+                    filtrosF = (filtrosS & filtrosP & filtrosT & filtrosSv & filtrosC & filtrosA & filtrosN) & filterissue
 
-
-            if sortby:
-                issues = Issue.objects.order_by(f).filter(filtrosF)
-            else:
-                issues = Issue.objects.filter(filtrosF)
-            issues_serializer = self.serializer_class(issues, many=True)
-            return Response(issues_serializer.data, status=status.HTTP_200_OK)
-
+                if sortby:
+                    if subject:
+                        issues = Issue.objects.order_by(f).filter(filtrosF).filter(Q(subject__icontains=subject))
+                        issues_serializer = self.serializer_class(issues, many=True)
+                        return Response(issues_serializer.data, status=status.HTTP_200_OK)
+                    else:
+                        issues = Issue.objects.order_by(f).filter(filtrosF)
+                        issues_serializer = self.serializer_class(issues, many=True)
+                        return Response(issues_serializer.data, status=status.HTTP_200_OK)
+                else:
+                    if subject:
+                        issues = Issue.objects.filter(filtrosF).filter(Q(subject__icontains=subject))
+                        issues_serializer = self.serializer_class(issues, many=True)
+                        return Response(issues_serializer.data, status=status.HTTP_200_OK)
+                    else:
+                        issues = Issue.objects.filter(filtrosF)
+                        issues_serializer = self.serializer_class(issues, many=True)
+                        return Response(issues_serializer.data, status=status.HTTP_200_OK)
+        except ObjectDoesNotExist:
+            try:
+                Issue.objects.get(id=id)
+                return Response({'message': 'User not found'}, status=status.HTTP_400_BAD_REQUEST)
+            except ObjectDoesNotExist:
+                return Response({'message': 'Issue not found'}, status=status.HTTP_404_NOT_FOUND)
     def post(self, request):
         data = json.loads(request.body)
 
@@ -999,30 +1016,39 @@ class AttachmentsAPIView(APIView):
             return Response({'message': 'Issue not found'}, status=status.HTTP_404_NOT_FOUND)
 
     def delete(self, request, id):
-        upfile = request.FILES.get('upfile')
+        upfile = request.query_params.get('fileName', None)
         try:
-            s3 = boto3.client('s3',
-                              aws_access_key_id=settings.AWS_ACCESS_KEY_ID,
-                              aws_secret_access_key=settings.AWS_SECRET_ACCESS_KEY)
-            object_name = 'Attachments/' + upfile.name
-            i = Issue.objects.get(id=id)
             tieneAcceso = check_user(id, request.auth.user)
             if tieneAcceso:
-                allAt = Attachments.objects.all().filter(archivo=object_name)
-                a = Attachments.objects.all().filter(issue=i, archivo=object_name)
-                if (len(allAt) > 1):
-                    a.delete()
-                elif (len(allAt) == 1):
-                    a.delete()
-                    s3.delete_object(Bucket=settings.AWS_STORAGE_BUCKET_NAME, Key=object_name)
-                return Response({'message': 'Attachment delete complete'}, status=status.HTTP_200_OK)
+                s3 = boto3.client('s3',
+                                  aws_access_key_id=settings.AWS_ACCESS_KEY_ID,
+                                  aws_secret_access_key=settings.AWS_SECRET_ACCESS_KEY)
+                object_name = 'Attachments/' + upfile
+                i = Issue.objects.get(id=id)
+                tieneAcceso = check_user(id, request.auth.user)
+                if tieneAcceso:
+                    allAt = Attachments.objects.all().get(archivo=object_name)
+                    a = Attachments.objects.all().get(issue=i, archivo=object_name)
+                    if (len(allAt) > 1):
+                        a.delete()
+                    elif (len(allAt) == 1):
+                        a.delete()
+                        s3.delete_object(Bucket=settings.AWS_STORAGE_BUCKET_NAME, Key=object_name)
+                    return Response({'message': 'Attachment delete complete'}, status=status.HTTP_200_OK)
+                else:
+                    return Response({'message': "You don't have permission to edit this Issue"},
+                                    status=status.HTTP_403_FORBIDDEN)
             else:
                 return Response({'message': "You don't have permission to edit this Issue"},
                                 status=status.HTTP_403_FORBIDDEN)
         except ClientError as e:
             return Response({'message': 'Something went wrong'}, status=status.HTTP_400_BAD_REQUEST)
         except ObjectDoesNotExist:
-            return Response({'message': 'Issue not found'}, status=status.HTTP_404_NOT_FOUND)
+            try:
+                Issue.objects.get(id=id)
+                return Response({'message': 'Attachment not found'}, status=status.HTTP_400_BAD_REQUEST)
+            except ObjectDoesNotExist:
+                return Response({'message': 'Issue not found'}, status=status.HTTP_404_NOT_FOUND)
 
 
 class ActivityAPIView(APIView):
