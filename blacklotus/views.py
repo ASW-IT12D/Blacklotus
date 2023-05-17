@@ -23,10 +23,11 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from social_django.utils import psa
-import codecs
+
 from .forms import EditProfileInfoForm, RegisterForm, AssignedTo, Watchers
 from .models import Attachments, Activity, Issue, Comentario, Profile
-from .serializers import IssueSerializer, ActivitySerializer, ProfileSerializer, IssuesSerializer, AttachmentsSerializer, CommentsSerializer
+from .serializers import IssueSerializer, ActivitySerializer, ProfileSerializer, IssuesSerializer, \
+    AttachmentsSerializer, CommentsSerializer
 
 
 # Create your views here.
@@ -35,7 +36,6 @@ from .serializers import IssueSerializer, ActivitySerializer, ProfileSerializer,
 def github_auth(request):
     # Autenticación de GitHub en segundo plano
     return redirect(showIssues)
-
 
 @login_required(login_url='login')
 def CreateIssueForm(request):
@@ -53,7 +53,6 @@ def CreateIssueForm(request):
         return redirect(showIssues)
     else:
         return render(request, 'newissue.html')
-
 
 @login_required(login_url='login')
 def BulkIssueForm(request):
@@ -74,7 +73,6 @@ def BulkIssueForm(request):
                     i.save()
         return redirect(showIssues)
     return render(request, 'bulkissue.html')
-
 
 @login_required(login_url='login')
 def showIssues(request):
@@ -229,7 +227,6 @@ def showIssues(request):
     allUsers = User.objects.all()
     return render(request, 'mainIssue.html', {'visible': visible, 'qs': qs, 'allUsers': allUsers})
 
-
 @login_required(login_url='login')
 def BlockIssueForm(request, id):
     if request.method == 'POST':
@@ -239,7 +236,6 @@ def BlockIssueForm(request, id):
             issueUpdate.save()
             return redirect(SeeIssue, num=id)
     return render(request, 'blockissue.html')
-
 
 def list_documents(num):
     try:
@@ -263,7 +259,6 @@ def list_documents(num):
         print(e)
         documents = []
         return documents
-
 
 @login_required(login_url='login')
 def SeeIssue(request, num):
@@ -465,7 +460,6 @@ def SeeIssue(request, num):
                    'asignedTo': asignedTo, 'coments': coments, 'activity': activity, 'commentsOn': commentsOn,
                    'documents': documents, 'watchers': watchers, 'imagesC': imagesC, 'imagesA': imagesA})
 
-
 @login_required(login_url='login')
 def EditIssue(request, id):
     ID = request.session.get('id')
@@ -492,7 +486,6 @@ def EditIssue(request, id):
     else:
         return render(request, 'editIssue.html', {'issue': issue})
 
-
 def log(request):
     if request.method == 'POST':
         form = AuthenticationForm(request, data=request.POST)
@@ -504,7 +497,6 @@ def log(request):
         form = AuthenticationForm()
     return render(request, 'loginPage.html', {'form': form})
 
-
 def join(request):
     if request.method == 'POST':
         form = RegisterForm(request.POST)
@@ -515,12 +507,10 @@ def join(request):
         form = RegisterForm()
     return render(request, 'signUp.html', {'form': form})
 
-
 @login_required
 def custom_logout(request):
     logout(request)
     return redirect('home')
-
 
 @login_required
 def showProfile(request, usernameProf):
@@ -539,14 +529,11 @@ def showProfile(request, usernameProf):
                   {'image_url': image_url, 'profile': profile, 'timeline': timeline, 'watchers': watchers,
                    'timelineOn': timelineOn})
 
-
 def showProfileRedir(request):
     return redirect(showProfile, request.user.username)
 
-
 def redirectLogin(request):
     return redirect(log)
-
 
 class ProfileEditView(generic.UpdateView):
     form_class = EditProfileInfoForm
@@ -555,7 +542,6 @@ class ProfileEditView(generic.UpdateView):
 
     def get_object(self):
         return self.request.user
-
 
 @login_required(login_url='login')
 def deadLineForm(request, id):
@@ -606,14 +592,12 @@ def deadLineForm(request, id):
 
     return render(request, 'newDeadLine.html', context)
 
-
 def get_token(request):
     # Definimos la URL de la API de autenticación
     token, created = Token.objects.get_or_create(user=request.user)
 
     # Aquí puedes hacer lo que necesites con el token, por ejemplo guardarlo en una variable o en una sesión
     return render(request, 'token.html', {'token': token.key})
-
 
 class IssueAPIView(APIView):
     serializer_class = IssueSerializer
@@ -700,7 +684,7 @@ class IssueAPIView(APIView):
 
                         issue.save()
                     else:
-                        if('deadline_date' in data):
+                        if ('deadline_date' in data):
                             deadline_str = data.get('deadline_date')
                             try:
                                 deadline = datetime.strptime(deadline_str, "%d-%m-%Y")
@@ -712,8 +696,9 @@ class IssueAPIView(APIView):
                             last_day = calendar.monthrange(deadline.year, deadline.month)[1]
 
                             if deadline < now or deadline.day > last_day:
-                                return Response({'message': 'Invalid deadline format, date can not be earlier than today'},
-                                                status=status.HTTP_406_NOT_ACCEPTABLE)
+                                return Response(
+                                    {'message': 'Invalid deadline format, date can not be earlier than today'},
+                                    status=status.HTTP_406_NOT_ACCEPTABLE)
 
                             issue.deadlinedate = deadline
 
@@ -727,7 +712,7 @@ class IssueAPIView(APIView):
                                 issue.deadlinemotive = motive
                         issue.deadline = True
                         issue.save()
-                if('watchers' in data):
+                if ('watchers' in data):
                     user_str = data.get('watchers')
                     user = User.objects.get(username=user_str)
                     issue.watchers.add(user)
@@ -778,7 +763,6 @@ class IssueAPIView(APIView):
         except ObjectDoesNotExist:
             return Response({'Error: Issue does not exist'}, status=status.HTTP_404_NOT_FOUND)
 
-
 class IssuesAPIView(APIView):
     serializer_class = IssuesSerializer
     permission_classes = (IsAuthenticated,)
@@ -801,12 +785,21 @@ class IssuesAPIView(APIView):
             exclusive = request.query_params.get('Type of filter', None)
             sortby = request.query_params.getlist('SortBy', None)
             sortorder = request.query_params.get('SortOrder', None)
-            filterissue = Q(creator=request.auth.user) | Q(asignedTo__username=request.auth.user) | Q(watchers__username=request.auth.user)
+            filterissue = Q(creator=request.auth.user) | Q(asignedTo__username=request.auth.user) | Q(
+                watchers__username=request.auth.user)
 
-            if(exclusive == 'All Issues'):
-                issues = Issue.objects.filter(filterissue)
+            if (exclusive == 'All Issues'):
+                if sortby != None and sortorder != None and len(sortby) > 0 and (sortby[0] != '' or len(sortby) > 1):
+                    for filtro in sortby:
+                        if filtro != '' and filtro != None:
+                            f = filtro.lower()
+                            if (sortorder == 'desc'):
+                                f = '-' + f
+
+                issues = Issue.objects.filter(filterissue).order_by(f)
                 issues_serializer = self.serializer_class(issues, many=True)
                 return Response(issues_serializer.data, status=status.HTTP_200_OK)
+
             else:
                 if statuses != None and len(statuses) > 0 and (statuses[0] != '' or len(statuses) > 1):
                     for filtro in statuses:
@@ -845,14 +838,13 @@ class IssuesAPIView(APIView):
                                 filtrosSv = Q(severity=f) & filtrosSv
 
                 if sortby != None and sortorder != None and len(sortby) > 0 and (sortby[0] != '' or len(sortby) > 1):
-                    for filtro in sortby:
-                        if filtro != '' and filtro != None:
-                            f = filtro.lower()
-                            if (sortorder == 'desc'):
-                                f = '-' + f
-
+                    if sortby[0] != '' and sortby[0] != None:
+                        f = sortby[0].lower()
+                        if (sortorder == 'desc'):
+                            f = '-' + f
 
                 creator = request.query_params.get('CreatedBy', None)
+
                 if creator:
                     filtroscreator = creator.split(' ')
                     for filtro in filtroscreator:
@@ -862,6 +854,7 @@ class IssuesAPIView(APIView):
                             filtrosC = Q(creator=filtro) & filtrosC
 
                 assigned = request.query_params.get('AssignedTo', None)
+
                 if assigned:
                     filtrosasigned = assigned.split(' ')
                     for filtro in filtrosasigned:
@@ -871,8 +864,8 @@ class IssuesAPIView(APIView):
                         else:
                             filtrosA = Q(asignedTo=user.id) & filtrosA
 
-
                 subject = request.query_params.get('Subject', None)
+
                 if subject:
                     filtrosname = subject.split(' ')
                     for filtro in filtrosname:
@@ -882,9 +875,11 @@ class IssuesAPIView(APIView):
                             filtrosN = Q(subject=filtro) & filtrosN
 
                 if exclusive == 'Inclusive':
-                    filtrosF = (filtrosS | filtrosP | filtrosT | filtrosSv | filtrosC | filtrosA | filtrosN) & filterissue
+                    filtrosF = (
+                                           filtrosS | filtrosP | filtrosT | filtrosSv | filtrosC | filtrosA | filtrosN) & filterissue
                 else:
-                    filtrosF = (filtrosS & filtrosP & filtrosT & filtrosSv & filtrosC & filtrosA & filtrosN) & filterissue
+                    filtrosF = (
+                                           filtrosS & filtrosP & filtrosT & filtrosSv & filtrosC & filtrosA & filtrosN) & filterissue
 
                 if sortby:
                     if subject:
@@ -904,26 +899,28 @@ class IssuesAPIView(APIView):
                         issues = Issue.objects.filter(filtrosF)
                         issues_serializer = self.serializer_class(issues, many=True)
                         return Response(issues_serializer.data, status=status.HTTP_200_OK)
+
         except ObjectDoesNotExist:
             try:
                 Issue.objects.get(id=id)
                 return Response({'message': 'User not found'}, status=status.HTTP_400_BAD_REQUEST)
             except ObjectDoesNotExist:
                 return Response({'message': 'Issue not found'}, status=status.HTTP_404_NOT_FOUND)
+
     def post(self, request):
         data = json.loads(request.body)
 
         if ('subject' in data):
             subject = data.get('subject')
             lines = subject.split(',')
-            if(len(lines) > 1):
+            if (len(lines) > 1):
                 for line in lines:
                     subject = line.strip()
                     if subject:
                         i = Issue(subject=subject, description=" ", creator=request.user.username, status=1, type=1,
                                   severity=1, priority=1)
                         i.save()
-                return Response({'message': 'Issues created'}, status=status.HTTP_200_OK)
+                return Response({'message': 'Issues created'}, status=status.HTTP_201_CREATED)
             else:
                 subject = data.get('subject')
 
@@ -963,7 +960,8 @@ class IssuesAPIView(APIView):
                 severity = traduce(severity, "severity")
                 priority = traduce(priority, "priority")
 
-                i = Issue(subject=subject, description=description, creator=request.user.username, status=statuses, type=type,
+                i = Issue(subject=subject, description=description, creator=request.user.username, status=statuses,
+                          type=type,
                           severity=severity, priority=priority)
                 i.save()
 
@@ -971,8 +969,6 @@ class IssuesAPIView(APIView):
 
         else:
             return Response({'message': 'Subject Missing'}, status=status.HTTP_400_BAD_REQUEST)
-
-
 
 class AttachmentsAPIView(APIView):
     serializer_class = AttachmentsSerializer
@@ -1006,7 +1002,7 @@ class AttachmentsAPIView(APIView):
                     if not file:
                         document = Attachments(archivo=upfile, username=request.user.username, issue=issue)
                         document.save()
-                    return Response({'message': 'Attachment added complete'}, status=status.HTTP_200_OK)
+                    return Response({'message': 'Attachment added complete'}, status=status.HTTP_201_CREATED)
                 else:
                     return Response({'message': 'Attachment empty, nothing was done'}, status=status.HTTP_200_OK)
             else:
@@ -1050,11 +1046,11 @@ class AttachmentsAPIView(APIView):
             except ObjectDoesNotExist:
                 return Response({'message': 'Issue not found'}, status=status.HTTP_404_NOT_FOUND)
 
-
 class ActivityAPIView(APIView):
     serializer_class = ActivitySerializer
     permission_classes = (IsAuthenticated,)
-    def get(self,request):
+
+    def get(self, request):
         try:
             issue_id = request.query_params.get('id', None)
             issue = Issue.objects.get(id=issue_id)
@@ -1063,17 +1059,18 @@ class ActivityAPIView(APIView):
             is_watcher = issue.watchers.filter(id=user.id).exists()
             if issue.getCreator() == user.username or is_assigned or is_watcher:
                 activities = Activity.objects.filter(issueChanged=issue)
-                activity_serializer = self.serializer_class(activities,many=True)
-                return Response(activity_serializer.data,status=status.HTTP_200_OK)
+                activity_serializer = self.serializer_class(activities, many=True)
+                return Response(activity_serializer.data, status=status.HTTP_200_OK)
             else:
-                return Response({'message': 'You don\'t have permissions to view this issue'},status=status.HTTP_403_FORBIDDEN)
+                return Response({'message': 'You don\'t have permissions to view this issue'},
+                                status=status.HTTP_403_FORBIDDEN)
         except ObjectDoesNotExist:
             return Response({'message': 'No issues found'}, status=status.HTTP_404_NOT_FOUND)
-
 
 class CommentsAPIView(APIView):
     serializer_class = CommentsSerializer
     permission_classes = (IsAuthenticated,)
+
     def post(self, request, id):
         try:
             issueId = Issue.objects.get(id=id)
@@ -1082,11 +1079,11 @@ class CommentsAPIView(APIView):
                 user = User.objects.get(username=request.auth.user)
                 c = Comentario(message=comment, creator=user, issue=issueId)
                 c.save()
-                return Response({'message': 'New comment'}, status=status.HTTP_200_OK)
+                return Response({'message': 'New comment'}, status=status.HTTP_201_CREATED)
         except ObjectDoesNotExist:
-                return Response({'message': 'Issue not found'}, status=status.HTTP_404_NOT_FOUND)
+            return Response({'message': 'Issue not found'}, status=status.HTTP_404_NOT_FOUND)
 
-    def get(self,request,id):
+    def get(self, request, id):
         try:
             issueId = Issue.objects.get(id=id)
             comment = Comentario.objects.all().order_by('-creationDate').filter(issue=id)
@@ -1095,11 +1092,11 @@ class CommentsAPIView(APIView):
         except ObjectDoesNotExist:
             return Response({'message': 'Issue not found'}, status=status.HTTP_404_NOT_FOUND)
 
-
 class ProfileAPIView(APIView):
     serializer_class = ProfileSerializer
     permission_classes = (IsAuthenticated,)
-    def get(self,request,usernameProf):
+
+    def get(self, request, usernameProf):
 
         try:
             user = User.objects.get(username=usernameProf)
@@ -1114,7 +1111,7 @@ class ProfileAPIView(APIView):
                 },
                 'profile': profile_serializer.data
             }
-            return Response(response_data,status=status.HTTP_200_OK)
+            return Response(response_data, status=status.HTTP_200_OK)
         except ObjectDoesNotExist:
             return Response({'message': 'No profile found'}, status=status.HTTP_404_NOT_FOUND)
 
@@ -1133,7 +1130,8 @@ class ProfileAPIView(APIView):
                             profile.saveProfImg()
                             return Response({'message': 'Profile update complete'}, status=status.HTTP_200_OK)
                         else:
-                            return Response({'message': 'Unsupported media type'},status=status.HTTP_415_UNSUPPORTED_MEDIA_TYPE)
+                            return Response({'message': 'Unsupported media type'},
+                                            status=status.HTTP_415_UNSUPPORTED_MEDIA_TYPE)
                 else:
                     if 'bio' in data:
                         profile.bio = data.get('bio')
@@ -1151,7 +1149,6 @@ class ProfileAPIView(APIView):
         except ObjectDoesNotExist:
             return Response({'message': 'No profile found'}, status=status.HTTP_404_NOT_FOUND)
 
-
 def check_user(id, user):
     issue = Issue.objects.get(id=id)  # Pillo la issue
     is_assigned = False
@@ -1165,7 +1162,6 @@ def check_user(id, user):
         return True
     else:
         return False
-
 
 def traduce(param, type):
     STATUSES = (
@@ -1196,7 +1192,6 @@ def traduce(param, type):
     elif (type == "priority"):
         num = dict(PRIORITIES).get(param)
         return num
-
 
 def check_in(param, type):
     STATUSES = (
