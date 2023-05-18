@@ -11,6 +11,7 @@ https://docs.djangoproject.com/en/4.1/ref/settings/
 """
 import os
 import dj_database_url
+
 import whitenoise as whitenoise
 from dotenv import load_dotenv
 from pathlib import Path
@@ -31,8 +32,8 @@ SECRET_KEY = 'django-insecure-8y@g%vwm%8hgatsrkscuy-grlx9&l-6b-3v=*@mcrh03tnw93p
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = os.environ.get('DEBUG')
 
-ALLOWED_HOSTS = ['127.0.0.1', 'localhost', 'blacklotusdeploy.fly.dev']
-CSRF_TRUSTED_ORIGINS = ['https://blacklotusdeploy.fly.dev']
+ALLOWED_HOSTS = ['127.0.0.1', 'localhost', 'blacklotusapi.fly.dev']
+CSRF_TRUSTED_ORIGINS = ['https://blacklotusapi.fly.dev']
 
 # Application definition
 
@@ -101,8 +102,8 @@ AUTHENTICATION_BACKENDS = [
     'django.contrib.auth.backends.ModelBackend',
 ]
 
-SOCIAL_AUTH_GITHUB_KEY = '50fa52142a158026db60'
-SOCIAL_AUTH_GITHUB_SECRET = 'da801cc772fc8755ed9cca97091f037a336d5716'
+SOCIAL_AUTH_GITHUB_KEY = '3e88be864711ce2de538'
+SOCIAL_AUTH_GITHUB_SECRET = '0ed8e2425c32d27e284de5d92a46cbe42976ed56'
 
 WSGI_APPLICATION = 'ASWPROJECT.wsgi.application'
 
@@ -111,10 +112,9 @@ WSGI_APPLICATION = 'ASWPROJECT.wsgi.application'
 # https://docs.djangoproject.com/en/4.1/ref/settings/#databases
 
 DATABASES = {
-    'default': dj_database_url.config(
-        default='sqlite:///'+os.path.join('db.sqlite3')
-    )
+    'default': dj_database_url.parse(os.environ.get('DATABASE_URL'), conn_max_age=600),
 }
+
 
 
 # Password validation

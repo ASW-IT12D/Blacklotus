@@ -1,6 +1,3 @@
 fly.toml
 .git/
 *.sqlite3
-tmp
-.env
-.venv

@@ -1,12 +1,12 @@
 save this file somewhere
 
-Postgres cluster blacklotusdeploy-db created
+Postgres cluster blacklotusapi-db created
   Username:    postgres
-  Password:    DmKv2w6Tmpx8uJx
-  Hostname:    blacklotusdeploy-db.internal
-  Flycast:     fdaa:1:aa35:0:1::10
+  Password:    1K9ToyuxOKv6KC5
+  Hostname:    blacklotusapi-db.internal
+  Flycast:     fdaa:1:aa35:0:1::19
   Proxy port:  5432
   Postgres port:  5433
-  Connection string: postgres://postgres:DmKv2w6Tmpx8uJx@blacklotusdeploy-db.flycast:5432
+  Connection string: postgres://postgres:1K9ToyuxOKv6KC5@blacklotusapi-db.flycast:5432
 
-DATABASE_URL=postgres://blacklotusdeploy:IduVvgdoA9tm7vR@blacklotusdeploy-db.flycast:5432/blacklotusdeploy?sslmode=disable
+DATABASE_URL=postgres://blacklotusapi:IAZ1QhXT4go3YXv@blacklotusapi-db.flycast:5432/blacklotusapi?sslmode=disable

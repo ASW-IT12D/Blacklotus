@@ -788,6 +788,8 @@ class IssuesAPIView(APIView):
             filterissue = Q(creator=request.auth.user) | Q(asignedTo__username=request.auth.user) | Q(
                 watchers__username=request.auth.user)
 
+            f = None
+
             if (exclusive == 'All Issues'):
                 if sortby != None and sortorder != None and len(sortby) > 0 and (sortby[0] != '' or len(sortby) > 1):
                     for filtro in sortby:
@@ -796,7 +798,10 @@ class IssuesAPIView(APIView):
                             if (sortorder == 'desc'):
                                 f = '-' + f
 
-                issues = Issue.objects.filter(filterissue).order_by(f)
+                if f != None:
+                    issues = Issue.objects.filter(filterissue).order_by(f)
+                else:
+                    issues = Issue.objects.filter(filterissue)
                 issues_serializer = self.serializer_class(issues, many=True)
                 return Response(issues_serializer.data, status=status.HTTP_200_OK)
 
@@ -875,13 +880,11 @@ class IssuesAPIView(APIView):
                             filtrosN = Q(subject=filtro) & filtrosN
 
                 if exclusive == 'Inclusive':
-                    filtrosF = (
-                                           filtrosS | filtrosP | filtrosT | filtrosSv | filtrosC | filtrosA | filtrosN) & filterissue
+                    filtrosF = (filtrosS | filtrosP | filtrosT | filtrosSv | filtrosC | filtrosA | filtrosN) & filterissue
                 else:
-                    filtrosF = (
-                                           filtrosS & filtrosP & filtrosT & filtrosSv & filtrosC & filtrosA & filtrosN) & filterissue
+                    filtrosF = (filtrosS & filtrosP & filtrosT & filtrosSv & filtrosC & filtrosA & filtrosN) & filterissue
 
-                if sortby:
+                if f != None:
                     if subject:
                         issues = Issue.objects.order_by(f).filter(filtrosF).filter(Q(subject__icontains=subject))
                         issues_serializer = self.serializer_class(issues, many=True)
