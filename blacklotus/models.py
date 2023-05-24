@@ -72,8 +72,12 @@ class Issue(models.Model):
     def getCreator(self):
         return self.creator
 
+    def getWatchers(self):
+        return self.watchers
+
     def getAsignedTo(self):
         return self.asignedTo
+
 
     def getStatus(self):
         status_num = self.status
@@ -180,8 +184,7 @@ class Attachments(models.Model):
     def save(self, *args, **kwargs):
         s3 = boto3.client('s3',
                           aws_access_key_id=settings.AWS_ACCESS_KEY_ID,
-                          aws_secret_access_key=settings.AWS_SECRET_ACCESS_KEY,
-                          aws_session_token=settings.AWS_SESSION_TOKEN)
+                          aws_secret_access_key=settings.AWS_SECRET_ACCESS_KEY)
         nombre_archivo = f"Attachments/{self.archivo.name}"
         with self.archivo.open('rb') as archivo:
             contenido = archivo.read()
@@ -206,7 +209,6 @@ class Comentario(models.Model):
     def getCreationDate(self):
         return self.creationDate
 
-
 class Profile(models.Model):
     user = models.OneToOneField(User, null=True, on_delete=models.CASCADE)
     bio = models.TextField()
@@ -216,12 +218,11 @@ class Profile(models.Model):
     def __str__(self):
         return str(self.user)
 
-    def save(self, *args, **kwargs):
+    def saveProfImg(self, *args, **kwargs):
         if bool(self.image):
             s3 = boto3.client('s3',
                               aws_access_key_id=settings.AWS_ACCESS_KEY_ID,
-                              aws_secret_access_key=settings.AWS_SECRET_ACCESS_KEY,
-                              aws_session_token=settings.AWS_SESSION_TOKEN)
+                              aws_secret_access_key=settings.AWS_SECRET_ACCESS_KEY)
             nombre_archivo = f"Images/{self.image.name}"
             with self.image.open('rb') as archivo:
                 contenido = archivo.read()
@@ -239,8 +240,7 @@ class Profile(models.Model):
         try:
             s3 = boto3.client('s3',
                               aws_access_key_id=settings.AWS_ACCESS_KEY_ID,
-                              aws_secret_access_key=settings.AWS_SECRET_ACCESS_KEY,
-                              aws_session_token=settings.AWS_SESSION_TOKEN)
+                              aws_secret_access_key=settings.AWS_SECRET_ACCESS_KEY)
             if bool(self.image):
                 filename = self.image.name
             else:

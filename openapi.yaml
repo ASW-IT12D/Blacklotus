@@ -1,0 +1,1106 @@
+openapi: 3.0.2
+info:
+  version: 1.0.0
+  title: BlackLotus
+  description: "POR PONER"
+servers:
+  - url: 'http://127.0.0.1:8000/'
+paths:
+  /issues/:
+    get:
+      tags:
+      - Issues
+      summary: Filters all the issues
+      operationId: getFilteredIssues
+      parameters:
+      - name: Type of filter
+        in: query
+        required: true
+        schema:
+          type: string
+          enum:
+            - All Issues
+            - Exclusive
+            - Inclusive
+      - name: Statuses
+        in: query
+        description: filter by statuses
+        required: false
+        schema:
+          type: array
+          items:
+            type: string
+            enum:
+              - New
+              - In progress
+              - Ready for test
+              - Closed
+              - Needs info
+              - Rejected
+              - Postponed
+      - name: Types
+        in: query
+        description: filter by type
+        required: false
+        schema:
+          type: array
+          items:
+            type: string
+            enum:
+              - Bug
+              - Question
+              - Disabled
+      - name: Severities
+        in: query
+        description: filter by severity
+        required: false
+        schema:
+          type: array
+          items:
+            type: string
+            enum:
+              - Whislist
+              - Minor
+              - Normal
+              - Important
+              - Critical
+      - name: Priotities
+        in: query
+        description: filter by type
+        required: false
+        schema:
+          type: array
+          items:
+            type: string
+            enum:
+              - Low
+              - Normal
+              - High
+      - name: AssignedTo
+        in: query
+        description: filter by assignee
+        required: false
+        schema:
+          type: string
+      - name: CreatedBy
+        in: query
+        description: filter by creator
+        required: false
+        schema:
+          type: string
+      - name: Subject
+        in: query
+        description: filter by subject
+        required: false
+        schema:
+          type: string
+      - name: SortBy
+        in: query
+        description: order by parameters
+        required: false
+        schema:
+          type: array
+          items:
+            type: string
+            enum:
+              - Status
+              - Type
+              - Severity
+              - Priority
+      - name: SortOrder
+        in: query
+        description: order by parameters
+        required: false
+        schema:
+          type: array
+          items:
+            type: string
+            enum:
+              - asc
+              - desc
+      responses:
+        200:
+          description: successful operation
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Issue'
+        401:
+          description: 'Error: Unauthorized'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResult'
+              examples:
+                errorExample:
+                  $ref: '#/components/examples/error401'
+        403:
+            description: 'Error: Forbidden'
+            content:
+              application/json:
+                schema:
+                  $ref: '#/components/schemas/ErrorResult'
+                examples:
+                  errorExample:
+                    $ref: '#/components/examples/error403'
+    post:
+      tags:
+      - Issues
+      summary: Add a new Issue
+      operationId: addIssue
+      requestBody:
+        description: Create one or multiple issues adding subjects separated by commas
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                subject:
+                  description: Subject of the issue.
+                  type: string
+                  maxLength: 100
+                  example: 'Crea Perfil,...'
+                description:
+                  type: string
+                  description: Description of the issue
+                  maxLength: 100
+                  example: 'My content'
+                status:
+                  description: Status of the issue
+                  maxLength: 100
+                  example: 'New'
+                  type: string
+                  enum:
+                    - New
+                    - In progress
+                    - Ready for test
+                    - Closed
+                    - Needs info
+                    - Rejected
+                    - Postponed
+                type:
+                  description: Type of the issue
+                  maxLength: 100
+                  example: 'Bug'
+                  type: string
+                  enum:
+                    - Bug
+                    - Question
+                    - Disabled
+                severity:
+                  description: Severity of the issue
+                  maxLength: 100
+                  example: 'Whishlist'
+                  type: string
+                  enum:
+                    - Whishlist
+                    - Minor
+                    - Normal
+                    - Important
+                    - Critical
+                priority:
+                  description: Priority of the issue
+                  maxLength: 100
+                  example: 'Low'
+                  type: string
+                  enum:
+                    - Low
+                    - Normal
+                    - High
+      responses:
+        200:
+          description: successful operation
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Issue'
+        401:
+          description: 'Error: Unauthorized'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResult'
+              examples:
+                errorExample:
+                  $ref: '#/components/examples/error401'
+        403:
+            description: 'Error: Forbidden'
+            content:
+              application/json:
+                schema:
+                  $ref: '#/components/schemas/ErrorResult'
+                examples:
+                  errorExample:
+                    $ref: '#/components/examples/error403'
+  /issue/{id}/:
+    get:
+      tags:
+      - Issues
+      summary: Finds an issue with its id, if it's id
+      operationId: getIssueById
+      parameters:
+      - name: id
+        in: path
+        description: Optional id of the issue
+        required: true
+        schema:
+          type: integer
+      responses:
+        200:
+          description: successful operation
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Issue'
+        400:
+          description: 'Error: Bad Request'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResult'
+              examples:
+                errorExample:
+                  $ref: '#/components/examples/error400'
+        401:
+          description: 'Error: Unauthorized'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResult'
+              examples:
+                errorExample:
+                  $ref: '#/components/examples/error401'
+        403:
+            description: 'Error: Forbidden'
+            content:
+              application/json:
+                schema:
+                  $ref: '#/components/schemas/ErrorResult'
+                examples:
+                  errorExample:
+                    $ref: '#/components/examples/error403'
+    put:
+      tags:
+      - Issues
+      summary: Edit a Issue
+      operationId: editIssue
+      parameters:
+      - name: id
+        in: path
+        description: Id of the issue
+        required: true
+        schema:
+          type: integer
+      requestBody:
+        description: Provide the data you want to modify, if you don't want to change a field, just delete it, do not leave the comma at the end.
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                subject:
+                  description: Subject of the issue
+                  type: string
+                  maxLength: 100
+                  example: 'Crea Perfil'
+                description:
+                  type: string
+                  description: Description of the issue
+                  maxLength: 100
+                  example: 'My content'
+                status:
+                  description: Status of the issue
+                  maxLength: 100
+                  example: 'New'
+                  type: string
+                  enum:
+                    - New
+                    - In progress
+                    - Ready for test
+                    - Closed
+                    - Needs info
+                    - Rejected
+                    - Postponed
+                type:
+                  description: Type of the issue
+                  maxLength: 100
+                  example: 'Bug'
+                  type: string
+                  enum:
+                    - Bug
+                    - Question
+                    - Disabled
+                severity:
+                  description: Severity of the issue
+                  maxLength: 100
+                  example: 'Whishlist'
+                  type: string
+                  enum:
+                    - Whishlist
+                    - Minor
+                    - Normal
+                    - Important
+                    - Critical
+                priority:
+                  description: Priority of the issue
+                  maxLength: 100
+                  example: 'Low'
+                  type: string
+                  enum:
+                    - Low
+                    - Normal
+                    - High
+                blocked:
+                  description: Issue blocked or not
+                  maxLength: 100
+                  example: 'true/false'
+                  type: boolean
+                blocked_motive:
+                  description: Motive of block
+                  maxLength: 100
+                  example: 'My motive'
+                  type: string
+                deadline:
+                  description: Issue with deadline or not
+                  maxLength: 100
+                  example: 'true/false'
+                  type: boolean
+                deadline_motive:
+                  description: Motive of deadline
+                  maxLength: 100
+                  example: 'My motive'
+                  type: string
+                deadline_date:
+                  description: Date of deadline
+                  maxLength: 100
+                  example: 'dd/mm/yy'
+                  type: string
+                  format: date
+                watchers:
+                  description: Name of the person you want to be able to watch the issue
+                  maxLength: 100
+                  example: 'Marc'
+                  type: string
+                asignTo:
+                  description: Name of the person you want to asign the issue
+                  maxLength: 100
+                  example: 'Marc'
+                  type: string
+
+      responses:
+        200:
+          description: successful operation
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Issue'
+        401:
+          description: 'Error: Unauthorized'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResult'
+              examples:
+                errorExample:
+                  $ref: '#/components/examples/error401'
+        403:
+            description: 'Error: Forbidden'
+            content:
+              application/json:
+                schema:
+                  $ref: '#/components/schemas/ErrorResult'
+                examples:
+                  errorExample:
+                    $ref: '#/components/examples/error403'
+        406:
+            description: 'Error: Incorrect data'
+            content:
+              application/json:
+                schema:
+                  $ref: '#/components/schemas/ErrorResult'
+                examples:
+                  errorExample:
+                    $ref: '#/components/examples/error406'
+    delete:
+      tags:
+        - Issues
+      summary: Deletes an Issue
+      parameters:
+      - name: id
+        in: path
+        description: Id of the issue
+        required: true
+        schema:
+          type: integer
+      responses:
+        200:
+          description: successful operation
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Activity'
+        401:
+          description: 'Error: Unauthorized'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResult'
+              examples:
+                errorExample:
+                  $ref: '#/components/examples/error401'
+        403:
+            description: 'Error: Forbidden'
+            content:
+              application/json:
+                schema:
+                  $ref: '#/components/schemas/ErrorResult'
+                examples:
+                  errorExample:
+                    $ref: '#/components/examples/error403'
+
+  /issue/{id}/attachment:
+    get:
+      tags:
+        - Attachments
+      summary: Lists the Attachment of an Issue
+      operationId: listAttachment
+      parameters:
+      - name: id
+        in: path
+        description: Id of the issue
+        required: true
+        schema:
+          type: integer
+      responses:
+        200:
+          description: successful operation
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Issue'
+        401:
+          description: 'Error: Unauthorized'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResult'
+              examples:
+                errorExample:
+                  $ref: '#/components/examples/error401'
+        403:
+            description: 'Error: Forbidden'
+            content:
+              application/json:
+                schema:
+                  $ref: '#/components/schemas/ErrorResult'
+                examples:
+                  errorExample:
+                    $ref: '#/components/examples/error403'
+    post:
+      tags:
+        - Attachments
+      summary: Adds an Attachment to an Issue
+      operationId: addAttachment
+      parameters:
+      - name: id
+        in: path
+        description: Id of the issue
+        required: true
+        schema:
+          type: integer
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                upfile:
+                  type: string
+                  format: binary
+                  description: The file to upload.
+
+      responses:
+        200:
+          description: successful operation
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Issue'
+        401:
+          description: 'Error: Unauthorized'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResult'
+              examples:
+                errorExample:
+                  $ref: '#/components/examples/error401'
+        403:
+            description: 'Error: Forbidden'
+            content:
+              application/json:
+                schema:
+                  $ref: '#/components/schemas/ErrorResult'
+                examples:
+                  errorExample:
+                    $ref: '#/components/examples/error403'
+    delete:
+      tags:
+        - Attachments
+      summary: Adds an Attachment to an Issue
+      operationId: deleteAttachment
+      parameters:
+      - name: id
+        in: path
+        description: Id of the issue
+        required: true
+        schema:
+          type: integer
+
+      responses:
+        200:
+          description: successful operation
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Issue'
+        401:
+          description: 'Error: Unauthorized'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResult'
+              examples:
+                errorExample:
+                  $ref: '#/components/examples/error401'
+        403:
+            description: 'Error: Forbidden'
+            content:
+              application/json:
+                schema:
+                  $ref: '#/components/schemas/ErrorResult'
+                examples:
+                  errorExample:
+                    $ref: '#/components/examples/error403'
+
+  /activity/:
+    get:
+      tags:
+      - Activities
+      summary: List all the activities of an issue
+      operationId: getActivitiesOfIssue
+      parameters:
+      - name: id
+        in: query
+        description: Id of the issue
+        required: true
+        schema:
+          type: integer
+      responses:
+        200:
+          description: successful operation
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Activity'
+        400:
+          description: 'Error: Bad Request'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResult'
+              examples:
+                errorExample:
+                  $ref: '#/components/examples/error400'
+        401:
+          description: 'Error: Unauthorized'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResult'
+              examples:
+                errorExample:
+                  $ref: '#/components/examples/error401'
+        403:
+            description: 'Error: Forbidden'
+            content:
+              application/json:
+                schema:
+                  $ref: '#/components/schemas/ErrorResult'
+                examples:
+                  errorExample:
+                    $ref: '#/components/examples/error403'
+  /profile/{username}/:
+    get:
+      tags:
+      - Profiles
+      summary: Get the profile of a user
+      operationId: getProfileOfUser
+      parameters:
+      - name: username
+        in : path
+        description: Username of the profile
+        required: true
+        schema:
+          type: string
+
+      responses:
+        200:
+          description: successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Profile'
+        404:
+          description: 'Error: Not Found'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResult'
+              examples:
+                errorExample:
+                  $ref: '#/components/examples/error404noProfile'
+        400:
+          description: 'Error: Bad Request'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResult'
+              examples:
+                errorExample:
+                  $ref: '#/components/examples/error400'
+        401:
+          description: 'Error: Unauthorized'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResult'
+              examples:
+                errorExample:
+                  $ref: '#/components/examples/error401'
+        403:
+            description: 'Error: Forbidden'
+            content:
+              application/json:
+                schema:
+                  $ref: '#/components/schemas/ErrorResult'
+                examples:
+                  errorExample:
+                    $ref: '#/components/examples/error403'
+    put:
+      tags:
+        - Profiles
+      summary: Edit a profile by the username
+      parameters:
+      - name: username
+        in : path
+        description: Username of the profile
+        required: true
+        schema:
+          type: string
+
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                bio:
+                  description: New biography of the profile
+                  type: string
+                  maxLength: 100
+                  example: 'Hello everyone'
+                email:
+                  description: New email of the profile
+                  type: string
+                  maxLength: 100
+                  example: 'lluis.pujalte@gmail.com'
+                first_name:
+                  description: New name of the profile
+                  type: string
+                  maxLength: 100
+                  example: 'Lluís'
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                profile:
+                  type: string
+                  format: binary
+                  description: The file to upload.
+      responses:
+        200:
+          description: Profile update complete
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+              examples:
+                successExample:
+                  value:
+                    message: Profile update complete
+        403:
+          description: You don't have permissions to edit this profile
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+              examples:
+                unauthorizedExample:
+                  value:
+                    message: You don't have permissions to edit this profile
+        404:
+          description: No profile found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+              examples:
+                notFoundExample:
+                  value:
+                    message: No profile found
+        415:
+          description: Unsupported media type
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+              examples:
+                unsupportedMediaTypeExample:
+                  value:
+                    message: Unsupported media type
+  /comment/{id}/:
+    post:
+        tags:
+          - Comments
+        summary: Comment an issue
+        parameters:
+        - name: id
+          in: path
+          description: Id of the issue you want to comment
+          required: true
+          schema:
+            type: integer
+        - name: comment
+          in: query
+          description: Comment here
+          required: true
+          schema:
+            type: string
+        responses:
+          200:
+            description: 'New Comment'
+            content:
+              application/json:
+                  schema:
+                   $ref: '#/components/schemas/ErrorResult'
+                  examples:
+                    errorExample:
+                      $ref: '#/components/examples/code200postComment'
+          404:
+            description: 'Error: Not Found'
+            content:
+              application/json:
+                schema:
+                  $ref: '#/components/schemas/ErrorResult'
+                examples:
+                  errorExample:
+                    $ref: '#/components/examples/error404noIssue'
+          401:
+            description: 'Error: Unauthorized'
+            content:
+              application/json:
+                schema:
+                  $ref: '#/components/schemas/ErrorResult'
+                examples:
+                  errorExample:
+                    $ref: '#/components/examples/error401'
+          403:
+              description: 'Error: Forbidden'
+              content:
+                application/json:
+                  schema:
+                    $ref: '#/components/schemas/ErrorResult'
+                  examples:
+                    errorExample:
+                      $ref: '#/components/examples/error403'
+    get:
+      tags:
+        - Comments
+      summary: List of all the comments of an issue
+      operationId: getCommentsOfIssue
+      parameters:
+      - name: id
+        in: path
+        description: Enter the id of the issue to see the comments
+        required: true
+        schema:
+          type: integer
+
+      responses:
+        200:
+          description: successful operation
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Comentario'
+        404:
+          description: 'Error: Not Found'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResult'
+              examples:
+                errorExample:
+                  $ref: '#/components/examples/error404noIssue'
+        401:
+            description: 'Error: Unauthorized'
+            content:
+              application/json:
+                schema:
+                  $ref: '#/components/schemas/ErrorResult'
+                examples:
+                  errorExample:
+                    $ref: '#/components/examples/error401'
+        403:
+            description: 'Error: Forbidden'
+            content:
+              application/json:
+                schema:
+                  $ref: '#/components/schemas/ErrorResult'
+                examples:
+                  errorExample:
+                    $ref: '#/components/examples/error403'
+
+components:
+  securitySchemes:
+    ApiKeyAuth:
+        type: apiKey
+        in: header
+        name: Authorization
+  schemas:
+    User:
+      type: object
+      properties:
+        id:
+            type: integer
+            format: int64
+            example: 2
+        username:
+            type: string
+            minLength: 4
+            example: 'TestSubject'
+
+    Profile:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+          example: 2
+        bio:
+          type: string
+          example: 'Hello World'
+        image:
+          type: string
+          example: '/Images/drilo.jpg'
+
+
+    Activity:
+      type: object
+      properties:
+        creationdate:
+          type: string
+          format: date-time
+        field:
+          type: string
+          minLength: 4
+          example: 'status'
+        change:
+          type: string
+          minLength: 4
+          example: 'In progress'
+        old:
+          type: string
+          minLength: 4
+          example: 'New'
+        user:
+          $ref: '#/components/schemas/User'
+
+        issueChanged:
+          $ref: '#/components/schemas/Issue'
+
+        _links:
+          type: object
+          properties:
+            self:
+              type: string
+              format: url
+              example: 'http://127.0.0.1:8000/api/Activity/?Activity=1'
+
+    Comentario:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 1
+        message:
+          type: string
+          example: 'Hello :3'
+        creationDate:
+          type: string
+          format: date-time
+        creator:
+          type: string
+          example: 'Paula'
+        issue:
+          type: integer
+          example: 1
+
+    Issue:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+          example: 2
+        subject:
+          type: string
+          minLength: 4
+          example: 'TestSubject'
+        description:
+          type: string
+          minLength: 4
+          maxLength: 100
+          example: 'My content'
+        creator:
+          type: string
+          minLength: 4
+          maxLength: 100
+          example: 'LluisPetardo'
+        creationdate:
+          type: string
+          format: date-time
+        modifieddate:
+          type: string
+          format: date-time
+        deadlinedate:
+          type: string
+          format: date-time
+        deadlinemotive:
+          type: string
+          minLength: 4
+          maxLength: 100
+          example: 'PQ_LluisPetardo'
+        blocked:
+          type: boolean
+        blockmotiv*e:
+          type: string
+          minLength: 4
+          maxLength: 100
+          example: 'PQ_LluisPetardo'
+        deadline:
+          type: boolean
+        status:
+          type: integer
+          format: int64
+          example: 2
+        type:
+          type: integer
+          format: int64
+          example: 2
+        severity:
+          type: integer
+          format: int64
+          example: 2
+        priority:
+          type: integer
+          format: int64
+          example: 2
+        watchers:
+          type: array
+          items:
+            $ref: '#/components/schemas/User'
+        asignedTo:
+          type: array
+          items:
+            $ref: '#/components/schemas/User'
+        _links:
+          type: object
+          properties:
+            self:
+              type: string
+              format: url
+              example: 'http://127.0.0.1:8000/api/Issue/?Issue=1'
+
+    ErrorResult:
+      type: object
+      properties:
+        message:
+          type: string
+          example: 'Content is too long (maximum is 280 characters)'
+      required:
+        - message
+
+  examples:
+    code200putProfile:
+      value:
+        message: "Profile update complete"
+    code200postComment:
+      value:
+        message: "New comment created"
+    error400:
+      value:
+        message: "Content is too long (maximum is 280 characters)"
+    error401:
+      value:
+        message: "You provided no token"
+    error403:
+      value:
+        message: "You provided an invalid token"
+    error406:
+      value:
+        message: "Content is not correct (invalid format)"
+    error404noProfile:
+      value:
+        message: "There is no profile with this username"
+    error404noIssue:
+      value:
+        message: "Issue not found"
+
+security:
+  - ApiKeyAuth: []

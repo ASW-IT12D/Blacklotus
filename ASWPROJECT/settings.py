@@ -39,9 +39,23 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'rest_framework',
+    'rest_framework.authtoken',
     'blacklotus',
     'social_django',
+    'corsheaders',
 
+]
+
+CORS_ORIGIN_ALLOW_ALL = True
+
+CORS_ALLOW_METHODS = [
+    'DELETE',
+    'GET',
+    'OPTIONS',
+    'PATCH',
+    'POST',
+    'PUT',
 ]
 
 MIDDLEWARE = [
@@ -53,6 +67,8 @@ MIDDLEWARE = [
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'social_django.middleware.SocialAuthExceptionMiddleware',
+    'corsheaders.middleware.CorsMiddleware',
+    'django.middleware.common.CommonMiddleware',
 ]
 
 ROOT_URLCONF = 'ASWPROJECT.urls'
@@ -137,16 +153,20 @@ STATICFILES_DIRS = [BASE_DIR / "static"]
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 
-
 # AWS S3 Settings
-AWS_ACCESS_KEY_ID = 'ASIAUOQ5NQL2TB2A664R'
-AWS_SECRET_ACCESS_KEY = '1SckETEKS6OrzWfkemXQGlIxvvxgvqAiD7RSsWhN'
-AWS_STORAGE_BUCKET_NAME = 'blacklotusbucket2'
+AWS_ACCESS_KEY_ID = 'AKIASSJ5VHLPGQB2IUW6'
+AWS_SECRET_ACCESS_KEY = '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'
+AWS_STORAGE_BUCKET_NAME = 'bucketaswblacklotus'
 AWS_S3_REGION_NAME = 'us-east-1'
-AWS_SESSION_TOKEN = 'FwoGZXIvYXdzEO///////////wEaDGihLMJH0y5jThgaPiLXAS5j6VA8rtf+Xt+5/AGkLLR4Nxy5uFXl7wq2zMHQC02ix4Bno/U3/xh+xZPUN4lipmGUvRp4GtaeLnEdODnnQcqAdhYNo7+5+DUezWXbIxWbIlgY0icyzLhOroa2x+h8YyiXS04hZOdsqdQrR7g5wzW76fXw3ksdtf88tW82Xf0Rzyn3fdHwOv8yfo/qoX2RIPwMDtQi0dom/tDWufxWIEOjGEdTxcQR0Cp5+xXecURVwfN2z9cq7yPwQqyQ2n6mKCysuqyVlUlk4KbuI6fgCJ6u1fYFdaIgKIvilKIGMi0Q3UDW21d3rnvt9TTxNXMA5YlJvBvH58Yup50xopZv7DjtFxcUyMpnlF8EiPM='
 AWS_S3_CUSTOM_DOMAIN = f'{AWS_STORAGE_BUCKET_NAME}.s3.amazonaws.com'
 AWS_DEFAULT_ACL = None
 AWS_QUERYSTRING_AUTH = False
 AWS_S3_OBJECT_PARAMETERS = {
     'CacheControl': 'max-age=86400',
+}
+
+REST_FRAMEWORK = {
+    'DEFAULT_AUTHENTICATION_CLASSES': [
+        'rest_framework.authentication.TokenAuthentication'
+    ]
 }

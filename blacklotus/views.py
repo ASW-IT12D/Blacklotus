@@ -1,4 +1,5 @@
 import calendar
+import json
 import tempfile
 from datetime import datetime
 
@@ -10,15 +11,24 @@ from django.contrib.auth import logout
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.forms import AuthenticationForm
 from django.contrib.auth.models import User
+from django.core.exceptions import ObjectDoesNotExist
 from django.db.models import Q
 from django.http import HttpResponse
 from django.shortcuts import render, redirect
 from django.urls import reverse_lazy
 from django.views import generic
+from rest_framework import status
+from rest_framework.authtoken.models import Token
+from rest_framework.permissions import IsAuthenticated
+from rest_framework.response import Response
+from rest_framework.views import APIView
 from social_django.utils import psa
 
 from .forms import EditProfileInfoForm, RegisterForm, AssignedTo, Watchers
 from .models import Attachments, Activity, Issue, Comentario, Profile
+from .serializers import IssueSerializer, ActivitySerializer, ProfileSerializer, IssuesSerializer, \
+    AttachmentsSerializer, CommentsSerializer
+
 
 # Create your views here.
 
@@ -58,7 +68,8 @@ def BulkIssueForm(request):
                     severity = 1
                     priority = 1
                     status = 1
-                    i = Issue(subject=sub, description=des, creator=request.user.username, status=status, type=type, severity=severity, priority=priority)
+                    i = Issue(subject=sub, description=des, creator=request.user.username, status=status, type=type,
+                              severity=severity, priority=priority)
                     i.save()
         return redirect(showIssues)
     return render(request, 'bulkissue.html')
@@ -98,7 +109,8 @@ def showIssues(request):
             visible = False
         elif 'mostrarfiltros' in request.POST:
             visible = True
-        if 'updatefiltros' in request.POST or ('filtros_status' in request.session or 'filtros_creator' in request.session or 'filtros_asignedTo' in request.session or 'filtros_severity' in request.session or 'filtros_priority' in request.session or 'filtros_type' in request.session):
+        if 'updatefiltros' in request.POST or (
+                'filtros_status' in request.session or 'filtros_creator' in request.session or 'filtros_asignedTo' in request.session or 'filtros_severity' in request.session or 'filtros_priority' in request.session or 'filtros_type' in request.session):
             if 'filtros_status' not in request.session and 'filtros_asignedTo' not in request.session and 'filtros_creator' not in request.session and 'filtros_severity' not in request.session and 'filtros_priority' not in request.session and 'filtros_type' not in request.session:
                 filtrosS = Q()
                 filtrosP = Q()
@@ -115,7 +127,7 @@ def showIssues(request):
                 filtrosC = Q()
                 filtrosA = Q()
 
-                if'filtros_status' in request.session:
+                if 'filtros_status' in request.session:
                     filtrosstatus = request.session["filtros_status"]
                     for filtro in filtrosstatus:
                         filtrosS = Q(status=filtro) | filtrosS
@@ -152,7 +164,6 @@ def showIssues(request):
                                 user = User.objects.get(username=filtro)
                                 filtrosA = Q(asignedTo=user.id) | filtrosA
 
-
             for filtro in request.POST.getlist("status"):
                 filtrosS = Q(status=filtro) | filtrosS
                 filtrosstatus.append(filtro)
@@ -175,7 +186,7 @@ def showIssues(request):
 
             for filtro in request.POST.getlist("assignations"):
                 if filtro == "Unassigned" or filtro == None:
-                    filtrosA = Q(asignedTo = None)| filtrosA
+                    filtrosA = Q(asignedTo=None) | filtrosA
                     filtrosasigned.append(None)
                 else:
                     if isinstance(filtro, int):
@@ -193,13 +204,13 @@ def showIssues(request):
             request.session['filtros_creator'] = filtroscreator
             request.session['filtros_asignedTo'] = filtrosasigned
 
-
             if 'flexRadioInclude' in request.POST:
                 filtrosF = filtrosS | filtrosP | filtrosT | filtrosSv | filtrosC | filtrosA
             else:
                 filtrosF = filtrosS & filtrosP & filtrosT & filtrosSv & filtrosC & filtrosA
 
-    filtroscreator = Q(creator=request.user.username) | Q(asignedTo__username=request.user.username) | Q(watchers__username=request.user.username)
+    filtroscreator = Q(creator=request.user.username) | Q(asignedTo__username=request.user.username) | Q(
+        watchers__username=request.user.username)
     if ref is not None:
         if sort_by is not None:
             qs = Issue.objects.filter(filtrosF).order_by(sort_by).filter(filtroscreator).filter(
@@ -214,7 +225,7 @@ def showIssues(request):
         else:
             qs = Issue.objects.filter(filtrosF).order_by('-creationdate').filter(filtroscreator)
     allUsers = User.objects.all()
-    return render(request, 'mainIssue.html', {'visible': visible,'qs': qs, 'allUsers': allUsers})
+    return render(request, 'mainIssue.html', {'visible': visible, 'qs': qs, 'allUsers': allUsers})
 
 @login_required(login_url='login')
 def BlockIssueForm(request, id):
@@ -230,8 +241,7 @@ def list_documents(num):
     try:
         s3 = boto3.client('s3',
                           aws_access_key_id=settings.AWS_ACCESS_KEY_ID,
-                          aws_secret_access_key=settings.AWS_SECRET_ACCESS_KEY,
-                          aws_session_token=settings.AWS_SESSION_TOKEN)
+                          aws_secret_access_key=settings.AWS_SECRET_ACCESS_KEY)
         bucket_name = settings.AWS_STORAGE_BUCKET_NAME
         prefix = 'Attachments/'
         response = s3.list_objects_v2(Bucket=bucket_name, Prefix=prefix)
@@ -249,6 +259,7 @@ def list_documents(num):
         print(e)
         documents = []
         return documents
+
 @login_required(login_url='login')
 def SeeIssue(request, num):
     form = AssignedTo()
@@ -261,12 +272,7 @@ def SeeIssue(request, num):
     else:
         commentsOn = True
 
-    if request.method == "POST" and request.POST.get("_method") == "DELETE":
-        issue = Issue.objects.get(id=num)
-        issue.delete()
-        return redirect(showIssues)
-
-    elif request.method == "POST":
+    if request.method == "POST":
         if 'comments' in request.POST:
             request.session['commentsOn'] = True
             commentsOn = True
@@ -275,7 +281,9 @@ def SeeIssue(request, num):
             commentsOn = False
         if 'archivo' in request.FILES and request.FILES['archivo']:
             archivo = request.FILES.get('archivo')
-            if len(archivo) > 0:
+            file_name = 'Attachments/' + archivo.name
+            file = Attachments.objects.filter(archivo=file_name)
+            if len(archivo) > 0 and len(file) == 0:
                 document = Attachments(archivo=archivo, username=request.user.username, issue=issueUpdate)
                 document.save()
         elif 'Download' in request.POST:
@@ -284,8 +292,7 @@ def SeeIssue(request, num):
                 try:
                     s3 = boto3.client('s3',
                                       aws_access_key_id=settings.AWS_ACCESS_KEY_ID,
-                                      aws_secret_access_key=settings.AWS_SECRET_ACCESS_KEY,
-                                      aws_session_token=settings.AWS_SESSION_TOKEN)
+                                      aws_secret_access_key=settings.AWS_SECRET_ACCESS_KEY)
                     object_name = 'Attachments/' + option_selected
                     with tempfile.NamedTemporaryFile(delete=False) as temp_file:
                         s3.download_file(settings.AWS_STORAGE_BUCKET_NAME, object_name, temp_file.name)
@@ -301,8 +308,7 @@ def SeeIssue(request, num):
                 try:
                     s3 = boto3.client('s3',
                                       aws_access_key_id=settings.AWS_ACCESS_KEY_ID,
-                                      aws_secret_access_key=settings.AWS_SECRET_ACCESS_KEY,
-                                      aws_session_token=settings.AWS_SESSION_TOKEN)
+                                      aws_secret_access_key=settings.AWS_SECRET_ACCESS_KEY)
                     object_name = 'Attachments/' + option_selected
                     i = Issue.objects.get(id=num)
                     allAt = Attachments.objects.all().filter(archivo=object_name)
@@ -318,6 +324,10 @@ def SeeIssue(request, num):
             issueUpdate.blocked = True
             issueUpdate.save()
             return redirect(BlockIssueForm, id=num)
+        elif request.POST.get('_method') == 'DELETE':
+            issue = Issue.objects.get(id=num)
+            issue.delete()
+            return redirect(showIssues)
         elif 'unblock' in request.POST:
             issueUpdate.blocked = False
             issueUpdate.blockmotive = ""
@@ -413,16 +423,14 @@ def SeeIssue(request, num):
     issueAct = Issue.objects.get(id=num)
 
     coment = None
-    if request.method == 'POST':
-        if 'comment' in request.POST:
-            coment = request.POST.get('comment')
+    if request.method == 'GET':
+        if 'comment' in request.GET:
+            coment = request.GET.get('comment')
             if len(coment) > 0:
                 iss = Issue.objects.get(id=num)
                 user = User.objects.get(username=request.user.username)
                 c = Comentario(message=coment, creator=user, issue=iss)
                 c.save()
-                return redirect(SeeIssue, num)
-
     coments = Comentario.objects.all().order_by('-creationDate').filter(issue=num)
 
     imagesC = {}
@@ -450,7 +458,7 @@ def SeeIssue(request, num):
     return render(request, 'single_issue.html',
                   {'image_url': image_url, 'issue': issue, 'form': form, 'form2': form2,
                    'asignedTo': asignedTo, 'coments': coments, 'activity': activity, 'commentsOn': commentsOn,
-                   'documents': documents, 'watchers': watchers,'imagesC': imagesC, 'imagesA':imagesA})
+                   'documents': documents, 'watchers': watchers, 'imagesC': imagesC, 'imagesA': imagesA})
 
 @login_required(login_url='login')
 def EditIssue(request, id):
@@ -505,7 +513,7 @@ def custom_logout(request):
     return redirect('home')
 
 @login_required
-def showProfile(request,usernameProf):
+def showProfile(request, usernameProf):
     user = User.objects.get(username=usernameProf)
     profile = Profile.objects.get(user=user)
     image_url = profile.get_url_image()
@@ -517,12 +525,13 @@ def showProfile(request,usernameProf):
             timelineOn = True
         elif 'watched' in request.POST:
             timelineOn = False
-    return render(request, 'viewProfile.html', {'image_url':image_url,'profile':profile,
-                                                'timeline': timeline,'watchers' : watchers,
-                                                'timelineOn':timelineOn})
+    return render(request, 'viewProfile.html',
+                  {'image_url': image_url, 'profile': profile, 'timeline': timeline, 'watchers': watchers,
+                   'timelineOn': timelineOn})
 
 def showProfileRedir(request):
-    return redirect(showProfile,request.user.username)
+    return redirect(showProfile, request.user.username)
+
 def redirectLogin(request):
     return redirect(log)
 
@@ -538,10 +547,10 @@ class ProfileEditView(generic.UpdateView):
 def deadLineForm(request, id):
     current_year = datetime.now().year
 
-    days = [str(day) for day in range (1, 32)]
+    days = [str(day) for day in range(1, 32)]
     months = ['January', 'February', 'March', 'April', 'May', 'June',
               'July', 'August', 'September', 'October', 'November', 'December']
-    years = [str(year) for year in range (current_year, current_year + 10)]
+    years = [str(year) for year in range(current_year, current_year + 10)]
 
     months_dict = {'January': 1, 'February': 2, 'March': 3, 'April': 4, 'May': 5, 'June': 6,
                    'July': 7, 'August': 8, 'September': 9, 'October': 10, 'November': 11, 'December': 12}
@@ -570,7 +579,6 @@ def deadLineForm(request, id):
         if deadline_date < now or day > last_day:
             return render(request, 'newDeadLine.html', context)
 
-
         issue.deadlinedate = deadline_date
         issue.deadline = True
 
@@ -584,4 +592,642 @@ def deadLineForm(request, id):
 
     return render(request, 'newDeadLine.html', context)
 
+def get_token(request):
+    # Definimos la URL de la API de autenticación
+    token, created = Token.objects.get_or_create(user=request.user)
 
+    # Aquí puedes hacer lo que necesites con el token, por ejemplo guardarlo en una variable o en una sesión
+    return render(request, 'token.html', {'token': token.key})
+
+class IssueAPIView(APIView):
+    serializer_class = IssueSerializer
+    permission_classes = (IsAuthenticated,)
+
+    def get(self, request, id):
+        try:
+            tieneAcceso = check_user(id, request.auth.user)
+            if tieneAcceso:
+                issue = Issue.objects.filter(id=id)
+                issue_serializer = self.serializer_class(issue, many=True)
+                return Response(issue_serializer.data, status=status.HTTP_200_OK)
+            else:
+                return Response({'message': "You don't have permission to edit this Issue"},
+                                status=status.HTTP_403_FORBIDDEN)
+        except ObjectDoesNotExist:
+            return Response({'message': 'No issues found'}, status=status.HTTP_404_NOT_FOUND)
+
+    def put(self, request, id):
+        try:
+            issue = Issue.objects.get(id=id)
+            tieneAcceso = check_user(id, request.auth.user)
+            if tieneAcceso:
+                data = json.loads(request.body)
+                if ('subject' in data):
+                    subject = data.get('subject')
+                else:
+                    subject = None
+                if ('description' in data):
+                    description = data.get('description')
+                else:
+                    description = None
+                if ('status' in data):
+                    statuses = data.get('status')
+                    if not check_in(statuses, "status"):
+                        return Response({'message': 'status edited successfully'}, status=status.HTTP_200_OK)
+                else:
+                    statuses = None
+                if ('type' in data):
+                    type = data.get('type')
+                    if not check_in(type, "type"):
+                        return Response({'message': 'type edited successfully'}, status=status.HTTP_200_OK)
+                else:
+                    type = None
+
+                if ('severity' in data):
+                    severity = data.get('severity')
+                    if not check_in(severity, "severity"):
+                        return Response({'message': 'severity edited successfully'}, status=status.HTTP_200_OK)
+                else:
+                    severity = None
+
+                if ('priority' in data):
+                    priority = data.get('priority')
+                    if not check_in(priority, "priority"):
+                        return Response({'message': 'priority edited successfully'}, status=status.HTTP_200_OK)
+                else:
+                    priority = None
+
+                if ('blocked' in data):
+                    if data.get('blocked') == False:
+                        issue.blocked = False
+                        issue.blockmotive = ""
+                        issue.save()
+                    else:
+                        if ('blocked_motive' in data):
+                            motive = data.get('blocked_motive')
+                            if len(motive) > 0:
+                                issue.blockmotive = motive
+                                issue.blocked = True
+                                issue.save()
+                            else:
+                                return Response({'message': 'Block motive was not included'},
+                                                status=status.HTTP_400_BAD_REQUEST)
+                        else:
+                            return Response({'message': 'Block motive was not included'},
+                                            status=status.HTTP_400_BAD_REQUEST)
+
+                if ('deadline' in data):
+                    if data.get('deadline') == False:
+                        issue.deadline = False
+                        issue.deadlinemotive = ""
+                        issue.deadlinedate = None
+
+                        issue.save()
+                    else:
+                        if ('deadline_date' in data):
+                            deadline_str = data.get('deadline_date')
+                            try:
+                                deadline = datetime.strptime(deadline_str, "%d-%m-%Y")
+                            except:
+                                return Response({'message': 'Invalid deadline format, it should be dd-mm-yyyy'},
+                                                status=status.HTTP_406_NOT_ACCEPTABLE)
+
+                            now = datetime.now()
+                            last_day = calendar.monthrange(deadline.year, deadline.month)[1]
+
+                            if deadline < now or deadline.day > last_day:
+                                return Response(
+                                    {'message': 'Invalid deadline format, date can not be earlier than today'},
+                                    status=status.HTTP_406_NOT_ACCEPTABLE)
+
+                            issue.deadlinedate = deadline
+
+                        else:
+                            return Response({'message': 'Deadline was not included'},
+                                            status=status.HTTP_400_BAD_REQUEST)
+
+                        if ('deadline_motive' in data):
+                            motive = data.get('deadline_motive')
+                            if len(motive) > 0:
+                                issue.deadlinemotive = motive
+                        issue.deadline = True
+                        issue.save()
+                if ('watchers' in data):
+                    user_str = data.get('watchers')
+                    user = User.objects.get(username=user_str)
+                    issue.watchers.add(user)
+                if ('asignTo' in data):
+                    user_str = data.get('asignTo')
+                    user = User.objects.get(username=user_str)
+                    issue.asignedTo.add(user)
+                if (subject != None):
+                    issue.subject = subject
+                if (description != None):
+                    issue.description = description
+                if (statuses != None):
+                    statusesNum = traduce(statuses, "status")
+                    issue.status = statusesNum
+                if (type != None):
+                    typeNum = traduce(type, "type")
+                    issue.type = typeNum
+                if (severity != None):
+                    severityNum = traduce(severity, "severity")
+                    issue.severity = severityNum
+                if (priority != None):
+                    priorityNum = traduce(priority, "priority")
+                    issue.priority = priorityNum
+                issue.save()
+
+                return Response({'message': 'Issue edited successfully'}, status=status.HTTP_200_OK)
+            else:
+                return Response({'message': "You don't have permission to edit this Issue"},
+                                status=status.HTTP_403_FORBIDDEN)
+        except ObjectDoesNotExist:
+            try:
+                Issue.objects.get(id=id)
+                return Response({'message': 'User not found'}, status=status.HTTP_400_BAD_REQUEST)
+            except ObjectDoesNotExist:
+                return Response({'message': 'Issue not found'}, status=status.HTTP_404_NOT_FOUND)
+
+    def delete(self, request, id):
+        try:
+            issue = Issue.objects.get(id=id)
+            user = User.objects.get(username=request.auth.user)
+            tieneAcceso = check_user(id, request.auth.user)
+            if tieneAcceso:
+                issue.delete()
+                return Response({'Issue deleted'}, status=status.HTTP_200_OK)
+            else:
+                return Response({'message': "You don't have permission to edit this Issue"},
+                                status=status.HTTP_403_FORBIDDEN)
+        except ObjectDoesNotExist:
+            return Response({'Error: Issue does not exist'}, status=status.HTTP_404_NOT_FOUND)
+
+class IssuesAPIView(APIView):
+    serializer_class = IssuesSerializer
+    permission_classes = (IsAuthenticated,)
+
+    def get(self, request):
+        try:
+            filtrosS = Q()
+            filtrosP = Q()
+            filtrosT = Q()
+            filtrosSv = Q()
+            filtrosC = Q()
+            filtrosA = Q()
+            filtrosN = Q()
+            filtrosSrt = Q()
+
+            statuses = request.query_params.getlist('Statuses', None)
+            type = request.query_params.getlist('Types', None)
+            severity = request.query_params.getlist('Severities', None)
+            priority = request.query_params.getlist('Priorities', None)
+            exclusive = request.query_params.get('Type of filter', None)
+            sortby = request.query_params.getlist('SortBy', None)
+            sortorder = request.query_params.get('SortOrder', None)
+            filterissue = Q(creator=request.auth.user) | Q(asignedTo__username=request.auth.user) | Q(
+                watchers__username=request.auth.user)
+
+            if (exclusive == 'All Issues'):
+                if sortby != None and sortorder != None and len(sortby) > 0 and (sortby[0] != '' or len(sortby) > 1):
+                    for filtro in sortby:
+                        if filtro != '' and filtro != None:
+                            f = filtro.lower()
+                            if (sortorder == 'desc'):
+                                f = '-' + f
+
+                issues = Issue.objects.filter(filterissue).order_by(f)
+                issues_serializer = self.serializer_class(issues, many=True)
+                return Response(issues_serializer.data, status=status.HTTP_200_OK)
+
+            else:
+                if statuses != None and len(statuses) > 0 and (statuses[0] != '' or len(statuses) > 1):
+                    for filtro in statuses:
+                        if filtro != '':
+                            f = traduce(filtro, "status")
+                            if exclusive == 'Inclusive':
+                                filtrosS = Q(status=f) | filtrosS
+                            else:
+                                filtrosS = Q(status=f) & filtrosS
+
+                if priority != None and len(priority) > 0 and (priority[0] != '' or len(priority) > 1):
+                    for filtro in priority:
+                        if filtro != '':
+                            f = traduce(filtro, "priority")
+                            if exclusive == 'Inclusive':
+                                filtrosP = Q(priority=f) | filtrosP
+                            else:
+                                filtrosP = Q(priority=f) & filtrosP
+
+                if type != None and len(type) > 0 and (type[0] != '' or len(type) > 1):
+                    for filtro in type:
+                        if filtro != '':
+                            f = traduce(filtro, "type")
+                            if exclusive == 'Inclusive':
+                                filtrosT = Q(type=f) | filtrosT
+                            else:
+                                filtrosT = Q(type=f) & filtrosT
+
+                if severity != None and len(severity) > 0 and (severity[0] != '' or len(severity) > 1):
+                    for filtro in severity:
+                        if filtro != '' and filtro != None:
+                            f = traduce(filtro, "severity")
+                            if exclusive == 'Inclusive':
+                                filtrosSv = Q(severity=f) | filtrosSv
+                            else:
+                                filtrosSv = Q(severity=f) & filtrosSv
+
+                if sortby != None and sortorder != None and len(sortby) > 0 and (sortby[0] != '' or len(sortby) > 1):
+                    if sortby[0] != '' and sortby[0] != None:
+                        f = sortby[0].lower()
+                        if (sortorder == 'desc'):
+                            f = '-' + f
+
+                creator = request.query_params.get('CreatedBy', None)
+
+                if creator:
+                    filtroscreator = creator.split(' ')
+                    for filtro in filtroscreator:
+                        if exclusive == 'Inclusive':
+                            filtrosC = Q(creator=filtro) | filtrosC
+                        else:
+                            filtrosC = Q(creator=filtro) & filtrosC
+
+                assigned = request.query_params.get('AssignedTo', None)
+
+                if assigned:
+                    filtrosasigned = assigned.split(' ')
+                    for filtro in filtrosasigned:
+                        user = User.objects.get(username=filtro)
+                        if exclusive == 'Inclusive':
+                            filtrosA = Q(asignedTo=user.id) | filtrosA
+                        else:
+                            filtrosA = Q(asignedTo=user.id) & filtrosA
+
+                subject = request.query_params.get('Subject', None)
+
+                if subject:
+                    filtrosname = subject.split(' ')
+                    for filtro in filtrosname:
+                        if exclusive == 'Inclusive':
+                            filtrosN = Q(subject=filtro) | filtrosN
+                        else:
+                            filtrosN = Q(subject=filtro) & filtrosN
+
+                if exclusive == 'Inclusive':
+                    filtrosF = (
+                                           filtrosS | filtrosP | filtrosT | filtrosSv | filtrosC | filtrosA | filtrosN) & filterissue
+                else:
+                    filtrosF = (
+                                           filtrosS & filtrosP & filtrosT & filtrosSv & filtrosC & filtrosA & filtrosN) & filterissue
+
+                if sortby:
+                    if subject:
+                        issues = Issue.objects.order_by(f).filter(filtrosF).filter(Q(subject__icontains=subject))
+                        issues_serializer = self.serializer_class(issues, many=True)
+                        return Response(issues_serializer.data, status=status.HTTP_200_OK)
+                    else:
+                        issues = Issue.objects.order_by(f).filter(filtrosF)
+                        issues_serializer = self.serializer_class(issues, many=True)
+                        return Response(issues_serializer.data, status=status.HTTP_200_OK)
+                else:
+                    if subject:
+                        issues = Issue.objects.filter(filtrosF).filter(Q(subject__icontains=subject))
+                        issues_serializer = self.serializer_class(issues, many=True)
+                        return Response(issues_serializer.data, status=status.HTTP_200_OK)
+                    else:
+                        issues = Issue.objects.filter(filtrosF)
+                        issues_serializer = self.serializer_class(issues, many=True)
+                        return Response(issues_serializer.data, status=status.HTTP_200_OK)
+
+        except ObjectDoesNotExist:
+            try:
+                Issue.objects.get(id=id)
+                return Response({'message': 'User not found'}, status=status.HTTP_400_BAD_REQUEST)
+            except ObjectDoesNotExist:
+                return Response({'message': 'Issue not found'}, status=status.HTTP_404_NOT_FOUND)
+
+    def post(self, request):
+        data = json.loads(request.body)
+
+        if ('subject' in data):
+            subject = data.get('subject')
+            lines = subject.split(',')
+            if (len(lines) > 1):
+                for line in lines:
+                    subject = line.strip()
+                    if subject:
+                        i = Issue(subject=subject, description=" ", creator=request.user.username, status=1, type=1,
+                                  severity=1, priority=1)
+                        i.save()
+                return Response({'message': 'Issues created'}, status=status.HTTP_201_CREATED)
+            else:
+                subject = data.get('subject')
+
+                if ('description' in data):
+                    description = data.get('description')
+                else:
+                    return Response({'message': 'Description Missing'}, status=status.HTTP_400_BAD_REQUEST)
+                if ('status' in data):
+                    statuses = data.get('status')
+                    if not check_in(statuses, "status"):
+                        return Response({'message': 'Status not valid'}, status=status.HTTP_400_BAD_REQUEST)
+                else:
+                    return Response({'message': 'Status Missing'}, status=status.HTTP_400_BAD_REQUEST)
+                if ('type' in data):
+                    type = data.get('type')
+                    if not check_in(type, "type"):
+                        return Response({'message': 'Type not valid'}, status=status.HTTP_400_BAD_REQUEST)
+                else:
+                    return Response({'message': 'Type Missing'}, status=status.HTTP_400_BAD_REQUEST)
+
+                if ('severity' in data):
+                    severity = data.get('severity')
+                    if not check_in(severity, "severity"):
+                        return Response({'message': 'Severity not valid'}, status=status.HTTP_400_BAD_REQUEST)
+                else:
+                    return Response({'message': 'Severity Missing'}, status=status.HTTP_400_BAD_REQUEST)
+
+                if ('priority' in data):
+                    priority = data.get('priority')
+                    if not check_in(priority, "priority"):
+                        return Response({'message': 'Priority not valid'}, status=status.HTTP_400_BAD_REQUEST)
+                else:
+                    return Response({'message': 'Priority Missing'}, status=status.HTTP_400_BAD_REQUEST)
+
+                statuses = traduce(statuses, "status")
+                type = traduce(type, "type")
+                severity = traduce(severity, "severity")
+                priority = traduce(priority, "priority")
+
+                i = Issue(subject=subject, description=description, creator=request.user.username, status=statuses,
+                          type=type,
+                          severity=severity, priority=priority)
+                i.save()
+
+                return Response({'message': 'Issue created'}, status=status.HTTP_201_CREATED)
+
+        else:
+            return Response({'message': 'Subject Missing'}, status=status.HTTP_400_BAD_REQUEST)
+
+class AttachmentsAPIView(APIView):
+    serializer_class = AttachmentsSerializer
+    permission_classes = (IsAuthenticated,)
+
+    def get(self, request, id):
+        try:
+            issue = Issue.objects.get(id=id)
+            tieneAcceso = check_user(id, request.auth.user)
+            if tieneAcceso:
+                documents = Attachments.objects.filter(issue=issue)
+                documents_serializer = self.serializer_class(documents, many=True)
+                return Response(documents_serializer.data, status=status.HTTP_200_OK)
+            else:
+                return Response({'message': "You don't have permission to edit this Issue"},
+                                status=status.HTTP_403_FORBIDDEN)
+        except ObjectDoesNotExist:
+            return Response({'message': 'Issue not found'}, status=status.HTTP_404_NOT_FOUND)
+
+    def post(self, request, id):
+        try:
+            issue = Issue.objects.get(id=id)
+            tieneAcceso = check_user(id, request.auth.user)
+            if tieneAcceso:
+                upfile = request.FILES.get('upfile')
+
+                if (upfile != None):
+                    # Obtener el archivo adjunto y otros campos del diccionario 'data'
+                    file_name = 'Attachments/' + upfile.name
+                    file = Attachments.objects.filter(archivo=file_name, issue=issue).exists()
+                    if not file:
+                        document = Attachments(archivo=upfile, username=request.user.username, issue=issue)
+                        document.save()
+                    return Response({'message': 'Attachment added complete'}, status=status.HTTP_201_CREATED)
+                else:
+                    return Response({'message': 'Attachment empty, nothing was done'}, status=status.HTTP_200_OK)
+            else:
+                return Response({'message': "You don't have permission to edit this Issue"},
+                                status=status.HTTP_403_FORBIDDEN)
+        except ObjectDoesNotExist:
+            return Response({'message': 'Issue not found'}, status=status.HTTP_404_NOT_FOUND)
+
+    def delete(self, request, id):
+        upfile = request.query_params.get('fileName', None)
+        try:
+            tieneAcceso = check_user(id, request.auth.user)
+            if tieneAcceso:
+                s3 = boto3.client('s3',
+                                  aws_access_key_id=settings.AWS_ACCESS_KEY_ID,
+                                  aws_secret_access_key=settings.AWS_SECRET_ACCESS_KEY)
+                object_name = 'Attachments/' + upfile
+                i = Issue.objects.get(id=id)
+                tieneAcceso = check_user(id, request.auth.user)
+                if tieneAcceso:
+                    allAt = Attachments.objects.all().get(archivo=object_name)
+                    a = Attachments.objects.all().get(issue=i, archivo=object_name)
+                    if (len(allAt) > 1):
+                        a.delete()
+                    elif (len(allAt) == 1):
+                        a.delete()
+                        s3.delete_object(Bucket=settings.AWS_STORAGE_BUCKET_NAME, Key=object_name)
+                    return Response({'message': 'Attachment delete complete'}, status=status.HTTP_200_OK)
+                else:
+                    return Response({'message': "You don't have permission to edit this Issue"},
+                                    status=status.HTTP_403_FORBIDDEN)
+            else:
+                return Response({'message': "You don't have permission to edit this Issue"},
+                                status=status.HTTP_403_FORBIDDEN)
+        except ClientError as e:
+            return Response({'message': 'Something went wrong'}, status=status.HTTP_400_BAD_REQUEST)
+        except ObjectDoesNotExist:
+            try:
+                Issue.objects.get(id=id)
+                return Response({'message': 'Attachment not found'}, status=status.HTTP_400_BAD_REQUEST)
+            except ObjectDoesNotExist:
+                return Response({'message': 'Issue not found'}, status=status.HTTP_404_NOT_FOUND)
+
+class ActivityAPIView(APIView):
+    serializer_class = ActivitySerializer
+    permission_classes = (IsAuthenticated,)
+
+    def get(self, request):
+        try:
+            issue_id = request.query_params.get('id', None)
+            issue = Issue.objects.get(id=issue_id)
+            user = User.objects.get(username=request.auth.user)
+            is_assigned = issue.asignedTo.filter(id=user.id).exists()
+            is_watcher = issue.watchers.filter(id=user.id).exists()
+            if issue.getCreator() == user.username or is_assigned or is_watcher:
+                activities = Activity.objects.filter(issueChanged=issue)
+                activity_serializer = self.serializer_class(activities, many=True)
+                return Response(activity_serializer.data, status=status.HTTP_200_OK)
+            else:
+                return Response({'message': 'You don\'t have permissions to view this issue'},
+                                status=status.HTTP_403_FORBIDDEN)
+        except ObjectDoesNotExist:
+            return Response({'message': 'No issues found'}, status=status.HTTP_404_NOT_FOUND)
+
+class CommentsAPIView(APIView):
+    serializer_class = CommentsSerializer
+    permission_classes = (IsAuthenticated,)
+
+    def post(self, request, id):
+        try:
+            issueId = Issue.objects.get(id=id)
+            comment = request.query_params.get('comment', None)
+            if len(comment) > 0:
+                user = User.objects.get(username=request.auth.user)
+                c = Comentario(message=comment, creator=user, issue=issueId)
+                c.save()
+                return Response({'message': 'New comment'}, status=status.HTTP_201_CREATED)
+        except ObjectDoesNotExist:
+            return Response({'message': 'Issue not found'}, status=status.HTTP_404_NOT_FOUND)
+
+    def get(self, request, id):
+        try:
+            issueId = Issue.objects.get(id=id)
+            comment = Comentario.objects.all().order_by('-creationDate').filter(issue=id)
+            comment_serializer = self.serializer_class(comment, many=True)
+            return Response(comment_serializer.data, status=status.HTTP_200_OK)
+        except ObjectDoesNotExist:
+            return Response({'message': 'Issue not found'}, status=status.HTTP_404_NOT_FOUND)
+
+class ProfileAPIView(APIView):
+    serializer_class = ProfileSerializer
+    permission_classes = (IsAuthenticated,)
+
+    def get(self, request, usernameProf):
+
+        try:
+            user = User.objects.get(username=usernameProf)
+            profile = Profile.objects.get(user=user)
+            profile_serializer = self.serializer_class(profile)
+            response_data = {
+                'user': {
+                    'id': user.id,
+                    'username': user.username,
+                    'email': user.email,
+                    'first_name': user.first_name
+                },
+                'profile': profile_serializer.data
+            }
+            return Response(response_data, status=status.HTTP_200_OK)
+        except ObjectDoesNotExist:
+            return Response({'message': 'No profile found'}, status=status.HTTP_404_NOT_FOUND)
+
+    def put(self, request, usernameProf):
+
+        try:
+            user = User.objects.get(username=usernameProf)
+            data = json.loads(request.body)
+            if user == User.objects.get(username=request.auth.user):
+                profile = Profile.objects.get(user=user)
+                if 'profile' in request.FILES:
+                    image = request.FILES.get('profile')
+                    if image:
+                        if image.content_type in ["image/jpeg", "image/png", "image/gif"]:
+                            profile.image = image
+                            profile.saveProfImg()
+                            return Response({'message': 'Profile update complete'}, status=status.HTTP_200_OK)
+                        else:
+                            return Response({'message': 'Unsupported media type'},
+                                            status=status.HTTP_415_UNSUPPORTED_MEDIA_TYPE)
+                else:
+                    if 'bio' in data:
+                        profile.bio = data.get('bio')
+                        profile.save()
+                    if 'email' in data:
+                        user.email = data.get('email')
+                        user.save()
+                    if 'first_name' in data:
+                        user.first_name = data.get('first_name')
+                        user.save()
+                    return Response({'message': 'Profile update complete'}, status=status.HTTP_200_OK)
+            else:
+                return Response({'message': 'You don\'t have permissions to edit this profile'},
+                                status=status.HTTP_403_FORBIDDEN)
+        except ObjectDoesNotExist:
+            return Response({'message': 'No profile found'}, status=status.HTTP_404_NOT_FOUND)
+
+def check_user(id, user):
+    issue = Issue.objects.get(id=id)  # Pillo la issue
+    is_assigned = False
+    is_watcher = False
+    user = User.objects.get(username=user)  # pillo el user
+    if (issue.getAsignedTo().name != None):  # compruebo si el user esta dentro de asigned
+        is_assigned = issue.assignedTo.filter(id=user.id).exists()
+    if (issue.getWatchers().name != None):  # compruebo si el user esta dentro de watchers
+        is_watcher = issue.watchers.filter(id=user.id).exists()
+    if issue.getCreator() == user.username or is_assigned or is_watcher:
+        return True
+    else:
+        return False
+
+def traduce(param, type):
+    STATUSES = (
+        ('New', 1), ('In progress', 2),
+        ('Ready for test', 3), ('Closed', 4),
+        ('Needs info', 5), ('Rejected', 6), ('Postponed', 7),
+    )
+    TYPES = (
+        ('Bug', 1), ('Question', 2), ('Disabled', 3),
+    )
+    SEVERITIES = (
+        ('Whishlist', 1), ('Minor', 2), ('Normal', 3),
+        ('Important', 4), ('Critical', 5),
+    )
+    PRIORITIES = (
+        ('Low', 1), ('Normal', 2), ('High', 3),
+    )
+
+    if (type == "status"):
+        num = dict(STATUSES).get(param)
+        return num
+    elif (type == "type"):
+        num = dict(TYPES).get(param)
+        return num
+    elif (type == "severity"):
+        num = dict(SEVERITIES).get(param)
+        return num
+    elif (type == "priority"):
+        num = dict(PRIORITIES).get(param)
+        return num
+
+def check_in(param, type):
+    STATUSES = (
+        ('New', 1), ('In progress', 2),
+        ('Ready for test', 3), ('Closed', 4),
+        ('Needs info', 5), ('Rejected', 6), ('Postponed', 7),
+    )
+    TYPES = (
+        ('Bug', 1), ('Question', 2), ('Disabled', 3),
+    )
+    SEVERITIES = (
+        ('Whishlist', 1), ('Minor', 2), ('Normal', 3),
+        ('Important', 4), ('Critical', 5),
+    )
+    PRIORITIES = (
+        ('Low', 1), ('Normal', 2), ('High', 3),
+    )
+
+    if type == "status":
+        if param in [status[0] for status in STATUSES]:
+            return True
+        else:
+            return False
+    elif type == "type":
+        if param in [types[0] for types in TYPES]:
+            return True
+        else:
+            return False
+    elif type == "severity":
+        if param in [severity[0] for severity in SEVERITIES]:
+            return True
+        else:
+            return False
+    elif type == "priority":
+        if param in [priority[0] for priority in PRIORITIES]:
+            return True
+        else:
+            return False
+    return False
