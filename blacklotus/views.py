@@ -2,7 +2,7 @@ import calendar
 import json
 import tempfile
 from datetime import datetime
-
+from django.views.decorators.csrf import csrf_exempt
 import boto3
 from botocore.exceptions import ClientError
 from django.conf import settings
@@ -763,6 +763,8 @@ class IssueAPIView(APIView):
         except ObjectDoesNotExist:
             return Response({'Error: Issue does not exist'}, status=status.HTTP_404_NOT_FOUND)
 
+
+
 class IssuesAPIView(APIView):
     serializer_class = IssuesSerializer
     permission_classes = (IsAuthenticated,)
@@ -907,9 +909,9 @@ class IssuesAPIView(APIView):
             except ObjectDoesNotExist:
                 return Response({'message': 'Issue not found'}, status=status.HTTP_404_NOT_FOUND)
 
+    @csrf_exempt
     def post(self, request):
         data = json.loads(request.body)
-
         if ('subject' in data):
             subject = data.get('subject')
             lines = subject.split(',')
@@ -988,6 +990,7 @@ class AttachmentsAPIView(APIView):
         except ObjectDoesNotExist:
             return Response({'message': 'Issue not found'}, status=status.HTTP_404_NOT_FOUND)
 
+    @csrf_exempt
     def post(self, request, id):
         try:
             issue = Issue.objects.get(id=id)

@@ -27,7 +27,7 @@ SECRET_KEY = 'django-insecure-8y@g%vwm%8hgatsrkscuy-grlx9&l-6b-3v=*@mcrh03tnw93p
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['localhost', '127.0.0.1']
 
 
 # Application definition
@@ -48,6 +48,14 @@ INSTALLED_APPS = [
 ]
 
 CORS_ORIGIN_ALLOW_ALL = True
+
+CORS_ALLOWED_ORIGINS = [
+    'http://localhost:3000',  # Reemplaza con la URL correcta de tu aplicación React
+]
+
+CSRF_TRUSTED_ORIGINS = ['http://localhost:3000']
+
+ROOT_URLCONF = 'ASWPROJECT.urls'
 
 CORS_ALLOW_METHODS = [
     'DELETE',
@@ -71,7 +79,6 @@ MIDDLEWARE = [
     'django.middleware.common.CommonMiddleware',
 ]
 
-ROOT_URLCONF = 'ASWPROJECT.urls'
 
 TEMPLATES = [
     {
