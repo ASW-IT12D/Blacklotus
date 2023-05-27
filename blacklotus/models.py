@@ -189,7 +189,8 @@ class Attachments(models.Model):
         with self.archivo.open('rb') as archivo:
             contenido = archivo.read()
         s3.put_object(Body=contenido, Bucket=settings.AWS_STORAGE_BUCKET_NAME, Key=nombre_archivo)
-        self.archivo = nombre_archivo
+        nombre = self.archivo.name
+        self.archivo = nombre
         super().save(*args, **kwargs)
 
 class Comentario(models.Model):

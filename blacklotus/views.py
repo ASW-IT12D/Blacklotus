@@ -2,7 +2,7 @@ import calendar
 import json
 import tempfile
 from datetime import datetime
-
+from django.views.decorators.csrf import csrf_exempt
 import boto3
 from botocore.exceptions import ClientError
 from django.conf import settings
@@ -247,13 +247,13 @@ def list_documents(num):
         response = s3.list_objects_v2(Bucket=bucket_name, Prefix=prefix)
         documents = []
         for content in response.get('Contents', []):
-            if content.get("Key") != 'Attachments/':
-                i = Issue.objects.get(id=num)
-                a = Attachments.objects.all().filter(issue=i, archivo=content.get("Key"))
-                if (len(a) > 0):
-                    url = f"{content['Key']}"
-                    url = url.replace("Attachments/", "")
-                    documents.append(url)
+            i = Issue.objects.get(id=num)
+            nombre = content.get("Key").replace("Attachments/", "")
+            a = Attachments.objects.all().filter(issue=i, archivo=nombre)
+            if (len(a) > 0):
+                url = f"{content['Key']}"
+                url = url.replace("Attachments/", "")
+                documents.append(url)
         return documents
     except ClientError as e:
         print(e)
@@ -281,7 +281,7 @@ def SeeIssue(request, num):
             commentsOn = False
         if 'archivo' in request.FILES and request.FILES['archivo']:
             archivo = request.FILES.get('archivo')
-            file_name = 'Attachments/' + archivo.name
+            file_name = archivo.name
             file = Attachments.objects.filter(archivo=file_name)
             if len(archivo) > 0 and len(file) == 0:
                 document = Attachments(archivo=archivo, username=request.user.username, issue=issueUpdate)
@@ -909,7 +909,6 @@ class IssuesAPIView(APIView):
 
     def post(self, request):
         data = json.loads(request.body)
-
         if ('subject' in data):
             subject = data.get('subject')
             lines = subject.split(',')
@@ -997,7 +996,7 @@ class AttachmentsAPIView(APIView):
 
                 if (upfile != None):
                     # Obtener el archivo adjunto y otros campos del diccionario 'data'
-                    file_name = 'Attachments/' + upfile.name
+                    file_name = upfile.name
                     file = Attachments.objects.filter(archivo=file_name, issue=issue).exists()
                     if not file:
                         document = Attachments(archivo=upfile, username=request.user.username, issue=issue)
@@ -1010,7 +1009,6 @@ class AttachmentsAPIView(APIView):
                                 status=status.HTTP_403_FORBIDDEN)
         except ObjectDoesNotExist:
             return Response({'message': 'Issue not found'}, status=status.HTTP_404_NOT_FOUND)
-
     def delete(self, request, id):
         upfile = request.query_params.get('fileName', None)
         try:
@@ -1019,11 +1017,11 @@ class AttachmentsAPIView(APIView):
                 s3 = boto3.client('s3',
                                   aws_access_key_id=settings.AWS_ACCESS_KEY_ID,
                                   aws_secret_access_key=settings.AWS_SECRET_ACCESS_KEY)
-                object_name = 'Attachments/' + upfile
+                object_name = upfile
                 i = Issue.objects.get(id=id)
                 tieneAcceso = check_user(id, request.auth.user)
                 if tieneAcceso:
-                    allAt = Attachments.objects.all().get(archivo=object_name)
+                    allAt = Attachments.objects.all().filter(archivo=object_name)
                     a = Attachments.objects.all().get(issue=i, archivo=object_name)
                     if (len(allAt) > 1):
                         a.delete()

@@ -4,7 +4,7 @@ info:
   title: BlackLotus
   description: "POR PONER"
 servers:
-  - url: 'http://127.0.0.1:8000/'
+  - url: 'https://blacklotusapi.fly.dev/'
 paths:
   /issues/:
     get:
@@ -489,7 +489,7 @@ paths:
               schema:
                 type: array
                 items:
-                  $ref: '#/components/schemas/Issue'
+                  $ref: '#/components/schemas/Attachment'
         401:
           description: 'Error: Unauthorized'
           content:
@@ -538,9 +538,10 @@ paths:
           content:
             application/json:
               schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/Issue'
+                $ref: '#/components/schemas/ErrorResult'
+              examples:
+                errorExample:
+                  $ref: '#/components/examples/code201postAttach'
         401:
           description: 'Error: Unauthorized'
           content:
@@ -571,6 +572,12 @@ paths:
         required: true
         schema:
           type: integer
+      - name: fileName
+        in: query
+        description: Name of the file
+        required: true
+        schema:
+          type: string
 
       responses:
         200:
@@ -578,9 +585,10 @@ paths:
           content:
             application/json:
               schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/Issue'
+                $ref: '#/components/schemas/ErrorResult'
+              examples:
+                errorExample:
+                  $ref: '#/components/examples/code201delAttach'
         401:
           description: 'Error: Unauthorized'
           content:
@@ -972,6 +980,25 @@ components:
               format: url
               example: 'http://127.0.0.1:8000/api/Activity/?Activity=1'
 
+    Attachment:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 1
+        archivo:
+          type: string
+          example: "osomalayo.png"
+        creado_en:
+          type: string
+          example: "2023-05-26T13:09:38.152685+02:00"
+        username:
+          type: string
+          example: Marc
+        issue:
+          type: integer
+          example: 4
+
     Comentario:
       type: object
       properties:
@@ -1083,6 +1110,12 @@ components:
     code200postComment:
       value:
         message: "New comment created"
+    code201postAttach:
+      value:
+        message: "Attachment added complete"
+    code201delAttach:
+      value:
+        message: "Attachment deleted"
     error400:
       value:
         message: "Content is too long (maximum is 280 characters)"
