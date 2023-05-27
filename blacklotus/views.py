@@ -1109,7 +1109,10 @@ class ProfileAPIView(APIView):
                     'email': user.email,
                     'first_name': user.first_name
                 },
-                'profile': profile_serializer.data
+                'profile': profile_serializer.data,
+                'profile_image': {
+                    'url_image': profile.get_url_image()
+                }
             }
             return Response(response_data, status=status.HTTP_200_OK)
         except ObjectDoesNotExist:
