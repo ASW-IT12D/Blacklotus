@@ -1093,16 +1093,23 @@ class CommentsAPIView(APIView):
         except ObjectDoesNotExist:
             return Response({'message': 'Issue not found'}, status=status.HTTP_404_NOT_FOUND)
 
+
 class ProfileAPIView(APIView):
     serializer_class = ProfileSerializer
     permission_classes = (IsAuthenticated,)
 
     def get(self, request, usernameProf):
-
         try:
             user = User.objects.get(username=usernameProf)
             profile = Profile.objects.get(user=user)
             profile_serializer = self.serializer_class(profile)
+
+            activities = Activity.objects.filter(user=user).order_by('-creationdate')
+            activity_serializer = ActivitySerializer(activities, many=True)
+
+            watchers = Issue.objects.filter(watchers=user)
+            watcher_serializer = IssueSerializer(watchers, many=True)
+
             response_data = {
                 'user': {
                     'id': user.id,
@@ -1113,29 +1120,33 @@ class ProfileAPIView(APIView):
                 'profile': profile_serializer.data,
                 'profile_image': {
                     'url_image': profile.get_url_image()
+                },
+                'profile_activity': {
+                    'timeline': activity_serializer.data,
+                    'watchers': watcher_serializer.data
                 }
             }
+
             return Response(response_data, status=status.HTTP_200_OK)
         except ObjectDoesNotExist:
             return Response({'message': 'No profile found'}, status=status.HTTP_404_NOT_FOUND)
 
     def put(self, request, usernameProf):
-
         try:
             user = User.objects.get(username=usernameProf)
-            data = json.loads(request.body)
-            if user == User.objects.get(username=request.auth.user):
+            data = request.data
+
+            if user == request.user:
                 profile = Profile.objects.get(user=user)
                 if 'profile' in request.FILES:
-                    image = request.FILES.get('profile')
-                    if image:
-                        if image.content_type in ["image/jpeg", "image/png", "image/gif"]:
-                            profile.image = image
-                            profile.saveProfImg()
-                            return Response({'message': 'Profile update complete'}, status=status.HTTP_200_OK)
-                        else:
-                            return Response({'message': 'Unsupported media type'},
-                                            status=status.HTTP_415_UNSUPPORTED_MEDIA_TYPE)
+                    image = request.FILES['profile']
+                    if image.content_type in ["image/jpeg", "image/png", "image/gif"]:
+                        profile.image = image
+                        profile.saveProfImg()
+                        return Response({'message': 'Profile update complete'}, status=status.HTTP_200_OK)
+                    else:
+                        return Response({'message': 'Unsupported media type'},
+                                        status=status.HTTP_415_UNSUPPORTED_MEDIA_TYPE)
                 else:
                     if 'bio' in data:
                         profile.bio = data.get('bio')
