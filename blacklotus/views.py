@@ -607,9 +607,12 @@ class IssueAPIView(APIView):
         try:
             tieneAcceso = check_user(id, request.auth.user)
             if tieneAcceso:
-                issue = Issue.objects.filter(id=id)
-                issue_serializer = self.serializer_class(issue, many=True)
-                return Response(issue_serializer.data, status=status.HTTP_200_OK)
+                issue = Issue.objects.get(id=id)
+                issue_serializer = self.serializer_class(issue)
+                response_data = {
+                    'data': issue_serializer.data
+                }
+                return Response(response_data, status=status.HTTP_200_OK)
             else:
                 return Response({'message': "You don't have permission to edit this Issue"},
                                 status=status.HTTP_403_FORBIDDEN)
