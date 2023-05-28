@@ -1071,16 +1071,17 @@ class ActivityAPIView(APIView):
 class CommentsAPIView(APIView):
     serializer_class = CommentsSerializer
     permission_classes = (IsAuthenticated,)
-
     def post(self, request, id):
         try:
             issueId = Issue.objects.get(id=id)
-            comment = request.query_params.get('comment', None)
-            if len(comment) > 0:
-                user = User.objects.get(username=request.auth.user)
-                c = Comentario(message=comment, creator=user, issue=issueId)
-                c.save()
-                return Response({'message': 'New comment'}, status=status.HTTP_201_CREATED)
+            data = json.loads(request.body)
+            if ('comment' in data):
+                comment = data.get('comment')
+                if len(comment) > 0:
+                    user = User.objects.get(username=request.auth.user)
+                    c = Comentario(message=comment, creator=user, issue=issueId)
+                    c.save()
+                    return Response({'message': 'New comment'}, status=status.HTTP_201_CREATED)
         except ObjectDoesNotExist:
             return Response({'message': 'Issue not found'}, status=status.HTTP_404_NOT_FOUND)
 

@@ -811,59 +811,66 @@ paths:
                     message: Unsupported media type
   /comment/{id}/:
     post:
-        tags:
-          - Comments
-        summary: Comment an issue
-        parameters:
+      tags:
+        - Comments
+      summary: Comment an issue
+      parameters:
         - name: id
           in: path
           description: Id of the issue you want to comment
           required: true
           schema:
             type: integer
-        - name: comment
-          in: query
-          description: Comment here
-          required: true
-          schema:
-            type: string
-        responses:
-          200:
-            description: 'New Comment'
-            content:
-              application/json:
-                  schema:
-                   $ref: '#/components/schemas/ErrorResult'
-                  examples:
-                    errorExample:
-                      $ref: '#/components/examples/code200postComment'
-          404:
-            description: 'Error: Not Found'
-            content:
-              application/json:
-                schema:
-                  $ref: '#/components/schemas/ErrorResult'
-                examples:
-                  errorExample:
-                    $ref: '#/components/examples/error404noIssue'
-          401:
-            description: 'Error: Unauthorized'
-            content:
-              application/json:
-                schema:
-                  $ref: '#/components/schemas/ErrorResult'
-                examples:
-                  errorExample:
-                    $ref: '#/components/examples/error401'
-          403:
-              description: 'Error: Forbidden'
-              content:
-                application/json:
-                  schema:
-                    $ref: '#/components/schemas/ErrorResult'
-                  examples:
-                    errorExample:
-                      $ref: '#/components/examples/error403'
+      operationId: addComment
+      requestBody:
+        description: Comment in one specific issue
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                comment:
+                  description: Comment
+                  type: string
+                  maxLength: 100
+                  example: 'Comment here...'
+      responses:
+        200:
+          description: 'New Comment'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResult'
+              examples:
+                errorExample:
+                  $ref: '#/components/examples/code200postComment'
+        404:
+          description: 'Error: Not Found'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResult'
+              examples:
+                errorExample:
+                  $ref: '#/components/examples/error404noIssue'
+        401:
+          description: 'Error: Unauthorized'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResult'
+              examples:
+                errorExample:
+                  $ref: '#/components/examples/error401'
+        403:
+          description: 'Error: Forbidden'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResult'
+              examples:
+                errorExample:
+                  $ref: '#/components/examples/error403'
     get:
       tags:
         - Comments
