@@ -228,9 +228,7 @@ class Profile(models.Model):
             with self.image.open('rb') as archivo:
                 contenido = archivo.read()
             s3.put_object(Body=contenido, Bucket=settings.AWS_STORAGE_BUCKET_NAME, Key=nombre_archivo)
-
             self.image = nombre_archivo
-
         super().save(*args, **kwargs)
 
     def get_user(self):
