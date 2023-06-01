@@ -780,7 +780,7 @@ class IssuesAPIView(APIView):
             filtrosA = Q()
             filtrosN = Q()
             filtrosSrt = Q()
-
+            f = ''
             statuses = request.query_params.getlist('Statuses', None)
             type = request.query_params.getlist('Types', None)
             severity = request.query_params.getlist('Severities', None)
@@ -798,8 +798,10 @@ class IssuesAPIView(APIView):
                             f = filtro.lower()
                             if (sortorder == 'desc'):
                                 f = '-' + f
-
-                issues = Issue.objects.filter(filterissue).order_by(f)
+                if (f != ''):
+                    issues = Issue.objects.filter(filterissue).order_by(f)
+                else:
+                    issues = Issue.objects.filter(filterissue)
                 issues_serializer = self.serializer_class(issues, many=True)
                 return Response(issues_serializer.data, status=status.HTTP_200_OK)
 
