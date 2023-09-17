@@ -22,7 +22,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/4.1/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-8y@g%vwm%8hgatsrkscuy-grlx9&l-6b-3v=*@mcrh03tnw93p'
+SECRET_KEY = ''
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
@@ -101,8 +101,8 @@ AUTHENTICATION_BACKENDS = [
     'django.contrib.auth.backends.ModelBackend',
 ]
 
-SOCIAL_AUTH_GITHUB_KEY = 'f602b1295efdaf14b9b4'
-SOCIAL_AUTH_GITHUB_SECRET = 'f5c0e921221a277318989f68c35f0927e863c701'
+SOCIAL_AUTH_GITHUB_KEY = ''
+SOCIAL_AUTH_GITHUB_SECRET = ''
 
 WSGI_APPLICATION = 'ASWPROJECT.wsgi.application'
 
@@ -161,9 +161,9 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 
 # AWS S3 Settings
-AWS_ACCESS_KEY_ID = 'AKIASSJ5VHLPGQB2IUW6'
-AWS_SECRET_ACCESS_KEY = '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'
-AWS_STORAGE_BUCKET_NAME = 'bucketaswblacklotus'
+AWS_ACCESS_KEY_ID = ''
+AWS_SECRET_ACCESS_KEY = '+86SsJzquHxGxZ9X55k8sAr'
+AWS_STORAGE_BUCKET_NAME = ''
 AWS_S3_REGION_NAME = 'us-east-1'
 AWS_S3_CUSTOM_DOMAIN = f'{AWS_STORAGE_BUCKET_NAME}.s3.amazonaws.com'
 AWS_DEFAULT_ACL = None
